@@ -4,14 +4,14 @@ Obras com etapas e subetapas, orçamento da obra (itens, margem/BDI, envio ao in
 
 ## Acessos
 
-Cada pessoa tem a própria conta (e-mail e senha). Não existe cadastro aberto.
+Cada pessoa entra pelo próprio celular, sem senha: digita o número, recebe um código de 6 números no WhatsApp da empresa e entra. O aparelho fica conectado por 30 dias (ou até clicar em Sair). Não existe cadastro aberto.
 
-- **Dono**: vê tudo, aprova as compras acima do teto médio e é o único que mexe em Configurações (empresa, tetos, obras, fornecedores e **Pessoas**). Toda entrada pede o código de 6 números do aplicativo autenticador do celular.
+- **Dono**: vê tudo, aprova as compras acima do teto médio e é o único que mexe em Configurações (empresa, tetos, obras, fornecedores e **Pessoas**).
 - **Financeiro**: vê todas as obras, libera as compras da faixa média e registra pagamentos.
-- **Engenheiro**: vê só as obras ligadas à conta dele; se tiver mais de uma, escolhe ao entrar.
-- **Primeiro acesso**: a tela pede o código de instalação (`CODIGO_INSTALACAO`, no servidor) para criar a conta do dono. Depois o dono cria as outras contas em Configurações › Pessoas, com senha provisória que a pessoa troca na primeira entrada.
-- **Proteções**: 5 erros seguidos (senha ou código) bloqueiam a conta por 15 minutos; desativar uma conta ou trocar a senha derruba as sessões abertas; o histórico grava o nome de quem fez cada coisa.
-- **Celular perdido**: na tela do código, "Perdi o celular" com o código de instalação, ou outro dono em Configurações › Pessoas.
+- **Engenheiro**: vê só as obras marcadas para ele; se tiver mais de uma, escolhe ao entrar.
+- **Instalação**: a primeira tela pede o código de instalação (`CODIGO_INSTALACAO`, no servidor), o nome e o celular do dono. Depois o dono cadastra o nome e o celular de cada pessoa em Configurações › Pessoas.
+- **Proteções**: o código vale 10 minutos e uma vez só; 5 códigos errados bloqueiam a entrada por 15 minutos; um código novo só a cada minuto; desativar a pessoa ou trocar o número dela derruba as sessões abertas; em Minha conta dá para sair de todos os aparelhos. O histórico grava o nome de quem fez cada coisa.
+- Sem o WhatsApp configurado, o código só aparece na tela em desenvolvimento (`npm run dev`); em produção a entrada exige o WhatsApp da Meta.
 - Na primeira entrada cada pessoa vê um passo a passo do próprio perfil; dá para rever em Minha conta.
 
 ## Cotação e conversa com fornecedores
@@ -34,7 +34,7 @@ cp .env.example .env.local # preencha SUPABASE_SERVICE_ROLE_KEY (Secret key do `
 npm run dev                # liga o Supabase local (aplica supabase/migrations) e depois o site
 ```
 
-Testes das regras (faixas, parcelas, fluxo de caixa, fracionamento, frete, propostas, checagem do que a IA devolve, código do celular): `npm test`.
+Testes das regras (faixas, parcelas, fluxo de caixa, fracionamento, frete, propostas, checagem do que a IA devolve): `npm test`.
 
 ## Colocar no ar
 
@@ -46,14 +46,16 @@ Testes das regras (faixas, parcelas, fluxo de caixa, fracionamento, frete, propo
    - `SESSION_SECRET` e `CRON_SECRET`: textos aleatórios de 32+ caracteres.
    - `CODIGO_INSTALACAO`: texto aleatório de 12+ caracteres; guarde num lugar seguro fora do sistema.
    - `ANTHROPIC_API_KEY`: chave criada em console.anthropic.com → API Keys (cobra por uso; centavos por mensagem lida).
-4. Abra o site, digite o código de instalação e crie a conta do dono; em seguida cadastre o celular (QR Code) e crie as contas da equipe.
+4. Configure o WhatsApp oficial (abaixo): é por ele que chega o código de entrada.
+5. Abra o site, digite o código de instalação, seu nome e seu celular; entre com o código que chegar no WhatsApp e cadastre a equipe em Configurações › Pessoas.
 
 ### WhatsApp oficial (Meta)
 
 1. Em developers.facebook.com, crie um app do tipo Business com o produto WhatsApp e vincule a conta Meta Business verificada.
 2. Cadastre o número da empresa e gere um token permanente (usuário do sistema). Preencha `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_ID` (ID do número) e `WHATSAPP_APP_SECRET` (Configurações do app → Básico).
 3. Em WhatsApp → Configuração, cadastre o webhook `https://SEU-SITE/api/whatsapp`, com o mesmo texto de `WHATSAPP_VERIFY_TOKEN`, e assine o campo **messages**.
-4. Crie e aprove estes 3 modelos de mensagem (categoria Utilidade, idioma Português (BR)), com os nomes e textos exatos:
+4. Crie o modelo `codigo_acesso` na categoria **Autenticação** (idioma Português (BR)), com o botão "Copiar código": é o código de entrada no sistema. A Meta monta o texto sozinha ("*123456* é seu código de verificação").
+5. Crie e aprove estes 3 modelos de mensagem (categoria Utilidade, idioma Português (BR)), com os nomes e textos exatos:
 
 | Nome | Texto |
 |---|---|

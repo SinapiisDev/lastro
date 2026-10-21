@@ -43,8 +43,8 @@ const PASSOS: Record<Perfil, Passo[]> = {
       titulo: '4. Crie as contas da equipe',
       onde: 'Configurações › Pessoas › Nova pessoa',
       texto: [
-        'Crie a conta do financeiro e a de cada engenheiro (marque as obras que ele cuida).',
-        'Use uma senha provisória e passe para a pessoa junto com o e-mail. No primeiro acesso ela cria a própria senha.',
+        'Cadastre o nome e o celular (WhatsApp) do financeiro e de cada engenheiro; para o engenheiro, marque as obras que ele cuida.',
+        'Pronto: a pessoa entra digitando o próprio número e o código que chega no WhatsApp. Não existe senha.',
         'Se alguém sair da empresa, desative a conta: a pessoa sai do sistema na hora.',
       ],
     },

@@ -49,7 +49,7 @@ export function descreverEvento(e: Evento): string {
   const a: any = e.antes ?? {}
   const d: any = e.depois ?? {}
   const mudou = (campo: string) => e.acao === 'update' && a[campo] !== d[campo]
-  if (d.senha === 'alterada') return e.tabela === 'usuarios' ? `Senha ou código do celular de ${a.nome} alterado` : 'Senha de acesso alterada'
+  if (d.senha === 'alterada') return 'Senha de acesso alterada'
 
   switch (e.tabela) {
     case 'compras':
@@ -118,10 +118,10 @@ export function descreverEvento(e: Evento): string {
       if (mudou('whatsapp')) return `WhatsApp de ${d.nome}: ${d.whatsapp ? `+${d.whatsapp}` : 'removido'}`
       return `Fornecedor alterado: ${d.nome}`
     case 'usuarios':
-      if (e.acao === 'insert') return `Conta criada: ${d.nome} (${d.email}), acesso ${PERFIL[d.perfil]}`
+      if (e.acao === 'insert') return `Pessoa cadastrada: ${d.nome}, acesso ${PERFIL[d.perfil]}`
       if (mudou('ativo')) return `Conta de ${d.nome} ${d.ativo ? 'reativada' : 'desativada'}`
-      if (mudou('totp_ativo')) return `Código do celular de ${d.nome} ${d.totp_ativo ? 'ligado' : 'desligado para cadastrar outro celular'}`
-      if (mudou('trocar_senha') && d.trocar_senha) return `Senha provisória definida para ${d.nome}`
+      if (mudou('celular')) return `Celular de ${d.nome} ${a.celular ? 'trocado' : 'cadastrado'}`
+      if (mudou('sessao_versao')) return `${d.nome} saiu de todos os aparelhos`
       return `Conta de ${d.nome} alterada`
     case 'usuario_obras': {
       const i = e.acao === 'delete' ? a : d

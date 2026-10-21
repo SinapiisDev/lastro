@@ -1,12 +1,12 @@
-import { CabecalhoTela, Campo, Cartao, Entrada, FormAcao, Secao, Selecao } from '@ds'
+import { CabecalhoTela, Campo, FormAcao, Secao, Selecao } from '@ds'
 import { sql } from '@/lib/db'
 import { exigirSessao, ROTULO_PERFIL } from '@/lib/sessao'
-import { trocarMinhaSenha, trocarObra, marcarPassoAPasso } from './acoes'
+import { sairDeTodos, trocarObra, marcarPassoAPasso } from './acoes'
 
 export default async function MinhaConta() {
   const s = await exigirSessao()
   const [[u], obras] = await Promise.all([
-    sql<{ email: string; totpAtivo: boolean }[]>`select email, totp_ativo as "totpAtivo" from usuarios where id = ${s.usuarioId}`,
+    sql<{ celular: string }[]>`select celular from usuarios where id = ${s.usuarioId}`,
     s.perfil === 'obra'
       ? sql<{ id: number; nome: string }[]>`
           select o.id, o.nome from usuario_obras uo join obras o on o.id = uo.obra_id
@@ -16,34 +16,18 @@ export default async function MinhaConta() {
 
   return (
     <>
-      <CabecalhoTela contexto={`${ROTULO_PERFIL[s.perfil]} · ${u.email}`} titulo="Minha conta" />
+      <CabecalhoTela contexto={`${ROTULO_PERFIL[s.perfil]} · WhatsApp +${u.celular}`} titulo="Minha conta" />
       <div className="grid items-start gap-4 lg:grid-cols-2">
-        <Secao titulo="Trocar a senha">
-          <FormAcao action={trocarMinhaSenha} botao="Trocar senha" variante="primario" className="flex flex-col gap-3.5">
-            <Campo rotulo="Senha atual">
-              <Entrada name="atual" type="password" required autoComplete="current-password" />
-            </Campo>
-            <Campo rotulo="Nova senha" ajuda="Mínimo de 10 caracteres.">
-              <Entrada name="senha" type="password" minLength={10} required autoComplete="new-password" />
-            </Campo>
-            <Campo rotulo="Repita a nova senha">
-              <Entrada name="confirmar" type="password" minLength={10} required autoComplete="new-password" />
-            </Campo>
+        <Secao titulo="Aparelhos conectados">
+          <FormAcao action={sairDeTodos} botao="Sair de todos os aparelhos" variante="perigo" className="flex flex-col gap-3">
+            <p className="text-table text-ink-2">
+              Cada aparelho fica conectado por 30 dias. Perdeu o celular ou entrou num computador emprestado? Saia de todos e entre de novo com o
+              código do WhatsApp. Trocou de número? Peça ao dono para atualizar em Configurações › Pessoas.
+            </p>
           </FormAcao>
         </Secao>
 
         <div className="flex flex-col gap-4">
-          {s.perfil === 'chefe' && (
-            <Cartao className="flex flex-col gap-2">
-              <h2 className="font-display text-h2 font-normal">Código do celular</h2>
-              <p className="text-table text-ink-2">
-                {u.totpAtivo
-                  ? 'Ligado: cada entrada pede o código do aplicativo autenticador.'
-                  : 'Ainda não cadastrado. Ele é pedido na próxima entrada.'}{' '}
-                Trocou de celular? Na tela do código, use “Perdi o celular”, ou peça a outro dono em Configurações › Pessoas.
-              </p>
-            </Cartao>
-          )}
           {obras.length > 1 && (
             <Secao titulo="Trocar de obra">
               <FormAcao action={trocarObra} botao="Ir para a obra" className="flex flex-wrap items-end gap-3">

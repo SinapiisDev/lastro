@@ -66,38 +66,34 @@ export async function salvarFornecedor(id: number, _: Estado, d: FormData): Prom
   return { ok: 'Salvo.' }
 }
 
-// Pessoas: só o dono cria, desativa e redefine acessos.
+// Pessoas: só o dono cadastra, troca o número e desativa. Cada um entra pelo próprio WhatsApp.
 
 const obrasDoForm = (d: FormData) => [...new Set(d.getAll('obras').map(Number).filter(Number.isInteger))]
-const provisoriaInvalida = (senha: string) => (senha.length < 10 ? 'A senha provisória precisa ter pelo menos 10 caracteres.' : null)
+const MSG_CELULAR = 'Digite o celular com DDD, por exemplo (11) 98888-7777.'
 
 export async function criarPessoa(_: Estado, d: FormData): Promise<Estado> {
   const s = await exigirSessao('chefe')
   const nome = texto(d, 'nome')
-  const email = texto(d, 'email').toLowerCase()
+  const celular = normalizarWhatsapp(texto(d, 'celular'))
   const perfil = texto(d, 'perfil') as Perfil
-  const senha = String(d.get('senha') ?? '')
   const obras = obrasDoForm(d)
-  if (!nome || !email.includes('@')) return { erro: 'Informe o nome e um e-mail válido.' }
+  if (!nome) return { erro: 'Informe o nome.' }
+  if (!celular) return { erro: MSG_CELULAR }
   if (!PERFIS.includes(perfil)) return { erro: 'Escolha o tipo de acesso.' }
   if (perfil === 'obra' && obras.length === 0) return { erro: 'Marque pelo menos uma obra para o engenheiro.' }
-  const invalida = provisoriaInvalida(senha)
-  if (invalida) return { erro: invalida }
   try {
     await escrever(nomePerfil(s), async (tx) => {
       const [u] = await tx<{ id: number }[]>`
-        insert into usuarios (nome, email, perfil, senha)
-        values (${nome}, ${email}, ${perfil}, extensions.crypt(${senha}, extensions.gen_salt('bf')))
-        returning id`
+        insert into usuarios (nome, perfil, celular) values (${nome}, ${perfil}, ${celular}) returning id`
       if (perfil === 'obra')
         await tx`insert into usuario_obras ${tx(obras.map((obra_id) => ({ usuario_id: u.id, obra_id })))}`
     })
   } catch (e) {
-    if (erroUnico(e)) return { erro: 'Já existe uma pessoa com esse e-mail.' }
+    if (erroUnico(e)) return { erro: 'Já existe uma pessoa com esse celular.' }
     throw e
   }
   refresh()
-  return { ok: `Conta criada. Passe para ${nome} o e-mail e a senha provisória; no primeiro acesso a senha é trocada.` }
+  return { ok: `Pronto. ${nome} já pode entrar: é só digitar o celular na tela de entrada e usar o código que chega no WhatsApp.` }
 }
 
 export async function salvarObrasPessoa(id: number, _: Estado, d: FormData): Promise<Estado> {
@@ -112,6 +108,23 @@ export async function salvarObrasPessoa(id: number, _: Estado, d: FormData): Pro
   return { ok: 'Obras salvas.' }
 }
 
+// Número novo: derruba as sessões abertas, que estavam ligadas ao número antigo.
+export async function trocarCelular(id: number, _: Estado, d: FormData): Promise<Estado> {
+  const s = await exigirSessao('chefe')
+  const celular = normalizarWhatsapp(texto(d, 'celular'))
+  if (!celular) return { erro: MSG_CELULAR }
+  try {
+    await escrever(nomePerfil(s), (tx) => tx`
+      update usuarios set celular = ${celular}, sessao_versao = sessao_versao + 1, tentativas = 0, bloqueado_ate = null
+      where id = ${id}`)
+  } catch (e) {
+    if (erroUnico(e)) return { erro: 'Já existe uma pessoa com esse celular.' }
+    throw e
+  }
+  refresh()
+  return { ok: 'Número trocado. A pessoa entra de novo pelo número novo.' }
+}
+
 export async function alternarAtivo(id: number): Promise<Estado> {
   const s = await exigirSessao('chefe')
   if (id === s.usuarioId) return { erro: 'Você não pode desativar a própria conta.' }
@@ -120,27 +133,3 @@ export async function alternarAtivo(id: number): Promise<Estado> {
   refresh()
   return { ok: u?.ativo ? 'Conta reativada.' : 'Conta desativada. A pessoa sai do sistema na hora.' }
 }
-
-// Senha provisória nova: a pessoa troca no próximo acesso. Também desfaz o bloqueio por tentativas.
-export async function redefinirSenha(id: number, _: Estado, d: FormData): Promise<Estado> {
-  const s = await exigirSessao('chefe')
-  if (id === s.usuarioId) return { erro: 'Para a sua senha, use Minha conta.' }
-  const senha = String(d.get('senha') ?? '')
-  const invalida = provisoriaInvalida(senha)
-  if (invalida) return { erro: invalida }
-  await escrever(nomePerfil(s), (tx) => tx`
-    update usuarios set senha = extensions.crypt(${senha}, extensions.gen_salt('bf')), trocar_senha = true,
-      tentativas = 0, bloqueado_ate = null
-    where id = ${id}`)
-  refresh()
-  return { ok: 'Senha provisória definida. A pessoa troca no próximo acesso.' }
-}
-
-// Outro dono trocou de celular: na próxima entrada ele lê um QR Code novo.
-export async function redefinirCelular(id: number): Promise<Estado> {
-  const s = await exigirSessao('chefe')
-  await escrever(nomePerfil(s), (tx) => tx`update usuarios set totp_ativo = false, totp_segredo = null where id = ${id} and perfil = 'chefe'`)
-  refresh()
-  return { ok: 'Na próxima entrada, a pessoa cadastra o celular de novo.' }
-}
-

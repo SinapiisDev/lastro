@@ -4,14 +4,19 @@ import { Campo, Entrada, FormAcao } from '@ds'
 import { sql, lerConfig } from '@/lib/db'
 import { lerSessao } from '@/lib/sessao'
 import { Moldura } from './moldura'
-import { entrar, primeiroAcesso } from './acoes'
+import { pedirCodigo, primeiroAcesso } from './acoes'
 
 export const instant = false
+
+const campoCelular = <Entrada name="celular" type="tel" inputMode="tel" required autoComplete="tel" placeholder="(11) 98888-7777" className="min-h-12 text-[16px]" />
 
 export default async function Entrar() {
   await connection()
   if (await lerSessao()) redirect('/')
-  const [config, [{ instalado }]] = await Promise.all([lerConfig(), sql<{ instalado: boolean }[]>`select exists (select 1 from usuarios) as instalado`])
+  const [config, [{ instalado }]] = await Promise.all([
+    lerConfig(),
+    sql<{ instalado: boolean }[]>`select exists (select 1 from usuarios where celular is not null) as instalado`,
+  ])
 
   return (
     <Moldura
@@ -19,20 +24,15 @@ export default async function Entrar() {
       titulo={instalado ? 'Entrar' : 'Instalar o sistema'}
       subtitulo={
         instalado
-          ? 'Cada pessoa entra com o próprio e-mail. Contas novas são criadas pelo dono.'
-          : 'Crie a conta do dono. Depois, em Configurações › Pessoas, você cria as contas do financeiro e dos engenheiros.'
+          ? 'Digite seu celular. Mandamos um código de 6 números no seu WhatsApp.'
+          : 'Crie a conta do dono. Depois, em Configurações › Pessoas, você cadastra o celular do financeiro e dos engenheiros.'
       }
     >
       {instalado ? (
-        <FormAcao action={entrar} botao="Entrar" variante="primario" tamanho="lg" largura className="flex flex-1 flex-col gap-4">
-          <Campo rotulo="E-mail">
-            <Entrada name="email" type="email" required autoComplete="username" className="min-h-12" />
-          </Campo>
-          <Campo rotulo="Senha">
-            <Entrada name="senha" type="password" required autoComplete="current-password" className="min-h-12" />
-          </Campo>
+        <FormAcao action={pedirCodigo} botao="Receber código no WhatsApp" variante="primario" tamanho="lg" largura className="flex flex-1 flex-col gap-4">
+          <Campo rotulo="Celular (WhatsApp)">{campoCelular}</Campo>
           <span className="flex-1" />
-          <span className="order-last -mt-1 text-center text-label text-ink-3">Esqueceu a senha? O dono redefine em Configurações › Pessoas.</span>
+          <span className="order-last -mt-1 text-center text-label text-ink-3">Não tem acesso? O dono cadastra você em Configurações › Pessoas.</span>
         </FormAcao>
       ) : (
         <FormAcao action={primeiroAcesso} botao="Criar conta do dono" variante="primario" tamanho="lg" largura className="flex flex-1 flex-col gap-4">
@@ -42,21 +42,9 @@ export default async function Entrar() {
           <Campo rotulo="Seu nome">
             <Entrada name="nome" required autoComplete="name" className="min-h-12" />
           </Campo>
-          <Campo rotulo="Seu e-mail">
-            <Entrada name="email" type="email" required autoComplete="username" className="min-h-12" />
+          <Campo rotulo="Seu celular (WhatsApp)" ajuda="É por ele que você vai entrar: cada entrada manda um código para este WhatsApp.">
+            {campoCelular}
           </Campo>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Campo rotulo="Senha" ajuda="Mínimo de 10 caracteres.">
-              <Entrada name="senha" type="password" minLength={10} required autoComplete="new-password" className="min-h-12" />
-            </Campo>
-            <Campo rotulo="Repita a senha">
-              <Entrada name="confirmar" type="password" minLength={10} required autoComplete="new-password" className="min-h-12" />
-            </Campo>
-          </div>
-          <p className="rounded-md bg-surface-2 px-3.5 py-3 text-label leading-normal text-ink-2">
-            No próximo passo você liga a verificação pelo celular: instale um aplicativo autenticador (Google Authenticator ou Microsoft
-            Authenticator) para ler o QR Code.
-          </p>
         </FormAcao>
       )}
     </Moldura>

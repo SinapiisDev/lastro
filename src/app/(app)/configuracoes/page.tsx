@@ -4,7 +4,7 @@ import { sql, lerConfig } from '@/lib/db'
 import { exigirSessao, ROTULO_PERFIL, type Perfil } from '@/lib/sessao'
 import { brl } from '@/lib/regras'
 import { quando } from '@/lib/historico'
-import { salvarTetos, salvarEmpresa, salvarObra, salvarFornecedor, criarPessoa, salvarObrasPessoa, alternarAtivo, redefinirSenha, redefinirCelular } from './acoes'
+import { salvarTetos, salvarEmpresa, salvarObra, salvarFornecedor, criarPessoa, salvarObrasPessoa, alternarAtivo, trocarCelular } from './acoes'
 
 const ABAS = [
   ['pessoas', 'Pessoas'],
@@ -24,8 +24,8 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
       select id, nome, endereco, ativa from obras order by ativa desc, nome`,
     sql<{ id: number; nome: string; cnpj: string | null; telefone: string | null; whatsapp: string | null }[]>`
       select id, nome, cnpj, telefone, whatsapp from fornecedores order by nome`,
-    sql<{ id: number; nome: string; email: string; perfil: Perfil; ativo: boolean; trocarSenha: boolean; totpAtivo: boolean; bloqueado: boolean; ultimoAcesso: Date | null; obras: number[] }[]>`
-      select u.id, u.nome, u.email, u.perfil, u.ativo, u.trocar_senha as "trocarSenha", u.totp_ativo as "totpAtivo",
+    sql<{ id: number; nome: string; celular: string | null; perfil: Perfil; ativo: boolean; bloqueado: boolean; ultimoAcesso: Date | null; obras: number[] }[]>`
+      select u.id, u.nome, u.celular, u.perfil, u.ativo,
         coalesce(u.bloqueado_ate > now(), false) as bloqueado, u.ultimo_acesso_em as "ultimoAcesso",
         coalesce((select array_agg(obra_id order by obra_id) from usuario_obras where usuario_id = u.id), '{}') as obras
       from usuarios u order by u.ativo desc, u.perfil, u.nome`,
@@ -81,7 +81,7 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
             <Cartao className="flex flex-col gap-5 p-6!">
               <Titulo
                 titulo="Pessoas"
-                texto="Cada pessoa entra com o próprio e-mail e senha. O dono confirma a entrada com o código do celular. Ninguém se cadastra sozinho."
+                texto="Cada pessoa entra pelo próprio celular: digita o número e recebe um código no WhatsApp. Ninguém se cadastra sozinho."
               />
               <ul className="flex flex-col">
                 {pessoas.map((p) => (
@@ -93,12 +93,10 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
                           <Etiqueta tom={p.perfil === 'chefe' ? 'rosa' : p.perfil === 'financeiro' ? 'info' : 'neutro'}>{ROTULO_PERFIL[p.perfil]}</Etiqueta>
                           {!p.ativo && <Etiqueta tom="neg">Desativada</Etiqueta>}
                           {p.bloqueado && <Etiqueta tom="aviso">Bloqueada por tentativas</Etiqueta>}
-                          {p.ativo && p.trocarSenha && <Etiqueta>Ainda com senha provisória</Etiqueta>}
-                          {p.perfil === 'chefe' && p.ativo && !p.totpAtivo && <Etiqueta tom="aviso">Celular não cadastrado</Etiqueta>}
                           {p.id === s.usuarioId && <Etiqueta tom="ok">Você</Etiqueta>}
                         </span>
                         <span className="text-caption text-ink-3">
-                          {p.email} · {p.ultimoAcesso ? `último acesso ${quando(p.ultimoAcesso)}` : 'nunca entrou'}
+                          {p.celular ? `+${p.celular}` : 'sem celular'} · {p.ultimoAcesso ? `último acesso ${quando(p.ultimoAcesso)}` : 'nunca entrou'}
                           {p.perfil === 'obra' && ` · ${p.obras.map((id) => obras.find((o) => o.id === id)?.nome).filter(Boolean).join(', ') || 'sem obra'}`}
                         </span>
                       </div>
@@ -110,9 +108,9 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
                       <details className="rounded-md bg-surface-2 px-4 py-3">
                         <summary className="cursor-pointer text-table font-semibold">Gerenciar acesso de {p.nome}</summary>
                         <div className="mt-3 grid gap-4 lg:grid-cols-2">
-                          <FormAcao action={redefinirSenha.bind(null, p.id)} botao="Definir senha provisória" tamanho="sm" className="flex flex-col gap-2.5">
-                            <Campo rotulo="Nova senha provisória" ajuda="Também desbloqueia a conta. A pessoa troca no próximo acesso.">
-                              <Entrada name="senha" type="password" minLength={10} required autoComplete="new-password" className="bg-surface" />
+                          <FormAcao action={trocarCelular.bind(null, p.id)} botao="Trocar número" tamanho="sm" className="flex flex-col gap-2.5">
+                            <Campo rotulo="Celular novo (WhatsApp)" ajuda="Também desbloqueia a entrada. A pessoa sai dos aparelhos onde estava conectada.">
+                              <Entrada name="celular" type="tel" required placeholder="(11) 98888-7777" className="bg-surface" />
                             </Campo>
                           </FormAcao>
                           {p.perfil === 'obra' && (
@@ -121,11 +119,6 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
                               {obrasAtivas.map((o) => (
                                 <Marcacao key={o.id} name="obras" value={o.id} defaultChecked={p.obras.includes(o.id)} rotulo={o.nome} />
                               ))}
-                            </FormAcao>
-                          )}
-                          {p.perfil === 'chefe' && p.totpAtivo && (
-                            <FormAcao action={redefinirCelular.bind(null, p.id)} botao="Cadastrar outro celular" tamanho="sm" className="flex flex-col gap-2.5">
-                              <span className="text-label text-ink-2">Use se a pessoa trocou ou perdeu o celular. Na próxima entrada ela lê um QR Code novo.</span>
                             </FormAcao>
                           )}
                         </div>
@@ -137,24 +130,21 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
             </Cartao>
 
             <Cartao className="flex flex-col gap-5 p-6!">
-              <Titulo titulo="Nova pessoa" texto="Crie a conta com uma senha provisória e passe para a pessoa. Ela troca a senha no primeiro acesso." />
-              <FormAcao action={criarPessoa} botao="Criar conta" variante="primario" className="flex flex-col gap-4">
+              <Titulo titulo="Nova pessoa" texto="Cadastre o nome e o celular (WhatsApp). A pessoa já pode entrar: digita o número e recebe o código." />
+              <FormAcao action={criarPessoa} botao="Cadastrar pessoa" variante="primario" className="flex flex-col gap-4">
                 <div className="grid gap-3.5 sm:grid-cols-2">
                   <Campo rotulo="Nome">
                     <Entrada name="nome" required />
                   </Campo>
-                  <Campo rotulo="E-mail">
-                    <Entrada name="email" type="email" required autoComplete="off" />
+                  <Campo rotulo="Celular (WhatsApp)">
+                    <Entrada name="celular" type="tel" required placeholder="(11) 98888-7777" />
                   </Campo>
                   <Campo rotulo="Tipo de acesso">
                     <Selecao name="perfil" defaultValue="obra">
                       <option value="obra">Engenheiro (vê só as obras marcadas)</option>
                       <option value="financeiro">Financeiro</option>
-                      <option value="chefe">Dono (com código do celular)</option>
+                      <option value="chefe">Dono (vê e aprova tudo)</option>
                     </Selecao>
-                  </Campo>
-                  <Campo rotulo="Senha provisória" ajuda="Mínimo de 10 caracteres.">
-                    <Entrada name="senha" type="password" minLength={10} required autoComplete="new-password" />
                   </Campo>
                 </div>
                 <fieldset className="flex flex-col gap-2">
