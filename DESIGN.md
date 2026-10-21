@@ -158,5 +158,5 @@ Português do Brasil, frases curtas, verbo no botão ("Liberar pagamento", não 
 ## 6. No código
 
 - Componentes: `design-system/componentes/` (peças) e `design-system/padroes/` (barra superior, faixa escura, marca, prédio 3D). Importe sempre de `@ds`. Mapa completo em `design-system/README.md`.
-- Vitrine com todos os componentes e estados nos dois temas: rota `/design-system` (só perfil Chefe).
+- Vitrine com todos os componentes e estados: `design-system/referencias/Design System.dc.html`.
 - Telas de referência (abrem direto no navegador por um servidor local): `design-system/referencias/`.

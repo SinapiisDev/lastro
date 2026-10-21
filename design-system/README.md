@@ -48,16 +48,12 @@ design-system/
 
 As telas `.dc.html` exportadas do Claude Design, com `support.js`, `tema.js` e `predio-3d.js` ao lado. Abra por um servidor estático local servindo a raiz do projeto (o `support.js` carrega a barra superior por requisição), por exemplo `python -m http.server 8765`, e depois `http://localhost:8765/design-system/referencias/Indice.dc.html`. `Design System.dc.html` mostra a biblioteca original. O lint ignora esta pasta.
 
-## Vitrine
-
-A rota `/design-system` (só perfil Chefe, link no menu do avatar) mostra todos os componentes com seus estados, no tema claro e no escuro. Componente novo entra lá também.
-
 ## Como criar um componente
 
 1. Veja se já existe algo parecido aqui; prefira uma variante nova a um componente duplicado.
 2. Crie o arquivo em `componentes/` (peça) ou `padroes/` (composição), em português, com `'use client'` só se tiver estado ou evento.
 3. Use apenas as classes dos tokens (`bg-surface`, `text-ink-2`, `rounded-md`, `text-label`, `shadow-2`…). Cor, fonte, espaçamento ou raio escrito à mão não entram. Se faltar um token, acrescente no `DESIGN.md`, em `tokens.css` e no `@theme` de `src/app/globals.css`.
 4. Cubra os estados que fizerem sentido: padrão, hover, foco, ativo, selecionado, desabilitado, carregando, erro e vazio.
-5. Exporte em `index.ts` e mostre na vitrine (`src/app/(app)/design-system/page.tsx`).
+5. Exporte em `index.ts`.
 
 Exceção registrada: as cores dos materiais do prédio 3D (`predio-3d.tsx`) são hexadecimais do modelo, não cores de interface.
