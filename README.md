@@ -1,4 +1,4 @@
-# Gestão de Obras
+# Lastro
 
 Obras com etapas e subetapas, orçamento da obra (itens, margem/BDI, envio ao investidor, aprovação e revisões), cotação com fornecedores (a IA pede os preços pelo WhatsApp, lê as respostas e indica a opção mais viável), compras com vários itens ligadas ao orçamento e aprovação por faixa de valor, financeiro (fluxo de caixa, pagamentos, anexos), relatórios e histórico.
 

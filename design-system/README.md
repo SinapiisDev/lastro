@@ -1,6 +1,6 @@
 # design-system/
 
-Biblioteca de interface do Gestão de Obras. O contrato visual (cores, tipografia, espaçamento, raios, estados) está no `DESIGN.md` da raiz; aqui fica o código que o cumpre.
+Biblioteca de interface do Lastro. O contrato visual (cores, tipografia, espaçamento, raios, estados) está no `DESIGN.md` da raiz; aqui fica o código que o cumpre.
 
 ```
 design-system/

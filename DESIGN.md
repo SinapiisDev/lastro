@@ -1,4 +1,4 @@
-# Gestão de Obras — Design System
+# Lastro — Design System
 
 Sistema interno da construtora para financeiro, orçamento e compras de cada obra.
 Perfis: **Obra** (engenheiro, celular no canteiro), **Financeiro** (desktop, tabelas), **Dono** (aprova compras grandes).

@@ -445,7 +445,7 @@ export default async function OrcamentoObra({ params, searchParams }: PageProps<
           </div>
         </div>
         <footer className="mt-8 text-caption">
-          Gestão de Obras · {codObra}/v{sel.versao}
+          Lastro · {codObra}/v{sel.versao}
         </footer>
       </article>
     </>

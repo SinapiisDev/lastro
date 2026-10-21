@@ -1,4 +1,4 @@
-// Biblioteca do design system Gestão de Obras. Contrato visual: DESIGN.md (raiz). Mapa: design-system/README.md.
+// Biblioteca do design system Lastro. Contrato visual: DESIGN.md (raiz). Mapa: design-system/README.md.
 export * from './componentes/botao'
 export * from './componentes/campo'
 export * from './componentes/marcacao'
@@ -22,3 +22,4 @@ export * from './padroes/navegacao'
 export * from './padroes/barra-superior'
 export * from './padroes/faixa-escura'
 export * from './padroes/predio-3d'
+export * from './padroes/letreiro-3d'

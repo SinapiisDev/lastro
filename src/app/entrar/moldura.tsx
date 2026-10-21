@@ -1,16 +1,15 @@
 import type { ReactNode } from 'react'
-import { Marca, BotaoTema } from '@ds'
-import { HeroiPredio } from './heroi-predio'
+import { Marca, BotaoTema, Letreiro3D } from '@ds'
 
-// Moldura da entrada: prédio 3D à esquerda (telas grandes) e o cartão do formulário à direita.
+// Moldura da entrada: o nome LASTRO sendo construído em 3D à esquerda (telas grandes) e o cartão do formulário à direita.
 export function Moldura({ titulo, subtitulo, children }: { titulo: string; subtitulo: ReactNode; children: ReactNode }) {
   return (
     <main className="grid min-h-screen gap-4 bg-bg p-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(360px,520px)]">
-      {/* Três faixas que não se sobrepõem: marca, prédio 3D no centro, título. O prédio nunca passa por cima do texto. */}
+      {/* Três faixas que não se sobrepõem: marca, letreiro 3D no centro, título. O 3D nunca passa por cima do texto. */}
       <section className="hidden min-h-[600px] flex-col gap-4 overflow-hidden rounded-xl bg-surface p-8 lg:flex">
-        <Marca tamanho={44} subtitulo="Para construtoras" />
+        <Marca tamanho={44} comNome={false} />
         <div className="relative min-h-0 flex-1">
-          <HeroiPredio />
+          <Letreiro3D texto="LASTRO" rotulo="Lastro: o nome sendo construído em 3D, prédio por prédio" />
         </div>
         <div className="flex max-w-[420px] flex-col gap-2.5">
           <h1 className="font-display text-display font-light tracking-[-0.02em]">

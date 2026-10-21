@@ -14,7 +14,7 @@ export function Marca({ tamanho = 34, comNome = true, subtitulo }: { tamanho?: n
       </span>
       {comNome && (
         <span className="flex flex-col leading-[1.05] whitespace-nowrap">
-          <span className="font-display text-[16px] font-medium tracking-[-0.01em]">Gestão de Obras</span>
+          <span className="font-display text-[16px] font-medium tracking-[-0.01em]">Lastro</span>
           {subtitulo && <span className="text-[10.5px] font-semibold text-ink-3">{subtitulo}</span>}
         </span>
       )}
