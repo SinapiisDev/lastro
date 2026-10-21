@@ -14,7 +14,9 @@ const esperar = () => new Promise((r) => setTimeout(r, 1000))
 const MSG_BLOQUEIO = 'Muitas tentativas erradas. A entrada ficou bloqueada por 15 minutos.'
 
 // Sem WhatsApp configurado, o código aparece na tela, mas só em desenvolvimento (ou com CODIGO_NA_TELA=1 nos testes locais).
-const codigoNaTela = () => !whatsappReal() && (process.env.NODE_ENV !== 'production' || process.env.CODIGO_NA_TELA === '1')
+// Hospedado na Vercel, nunca: lá a entrada exige o WhatsApp de verdade.
+const codigoNaTela = () =>
+  !whatsappReal() && !process.env.VERCEL && (process.env.NODE_ENV !== 'production' || process.env.CODIGO_NA_TELA === '1')
 
 type Usuario = { id: number; nome: string; perfil: Perfil; celular: string; sessaoVersao: number; bloqueado: boolean; enviadoHaPouco: boolean }
 const CAMPOS = sql`id, nome, perfil, celular, sessao_versao as "sessaoVersao",

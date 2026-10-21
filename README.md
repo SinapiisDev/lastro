@@ -28,11 +28,30 @@ A IA nunca fecha compra nem negocia. Qualquer pessoa pode assumir uma conversa (
 
 Precisa de Node 20+ e do **Docker Desktop aberto** (o banco local roda dentro dele; depois de reiniciar o computador, abra o Docker antes).
 
+Crie o arquivo `.env.local` (fica só no seu computador, nunca vai para o Git) com as variáveis da tabela abaixo. No computador bastam `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (Secret key do `npx supabase status`), `SESSION_SECRET` e `CODIGO_INSTALACAO`.
+
 ```bash
 npm install
-cp .env.example .env.local # preencha SUPABASE_SERVICE_ROLE_KEY (Secret key do `npx supabase status`), SESSION_SECRET e CODIGO_INSTALACAO
-npm run dev                # liga o Supabase local (aplica supabase/migrations) e depois o site
+npm run dev # liga o Supabase local (aplica supabase/migrations) e depois o site
 ```
+
+### Variáveis de ambiente
+
+| Variável | Para que serve |
+|---|---|
+| `DATABASE_URL` | Conexão do Postgres do Supabase. No computador: `postgresql://postgres:postgres@127.0.0.1:54322/postgres`. Em produção, a do pooler em modo **Transaction** (porta 6543). |
+| `SUPABASE_URL` | Endereço do projeto Supabase (no computador: `http://127.0.0.1:54321`). |
+| `SUPABASE_SERVICE_ROLE_KEY` | Chave secreta do Supabase (service role / `sb_secret_...`). Só no servidor, nunca no navegador. |
+| `SESSION_SECRET` | Assina o cookie de entrada. Texto aleatório de 32+ caracteres. |
+| `CODIGO_INSTALACAO` | Libera criar a conta do dono na instalação. Texto aleatório de 12+ caracteres; guarde fora do sistema. |
+| `CRON_SECRET` | Senha da rotina diária de lembretes (a Vercel envia sozinha). Texto aleatório de 32+ caracteres. |
+| `ANTHROPIC_API_KEY` | IA que lê as respostas dos fornecedores e compara propostas (console.anthropic.com → API Keys; cobra por uso). Sem ela, os preços são preenchidos à mão. |
+| `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_ID` | WhatsApp Cloud API (Meta). Sem eles o WhatsApp fica simulado e, em produção, ninguém recebe o código de entrada. |
+| `WHATSAPP_APP_SECRET` | Segredo do app na Meta: confere a assinatura de cada mensagem que chega. |
+| `WHATSAPP_VERIFY_TOKEN` | Texto que você inventa e repete na Meta ao cadastrar o webhook. |
+| `CODIGO_NA_TELA` | Só para testar o build de produção no computador: `1` mostra o código de entrada na tela. Nunca em produção (na Vercel ele é ignorado). |
+
+Para gerar textos aleatórios: `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`.
 
 Testes das regras (faixas, parcelas, fluxo de caixa, fracionamento, frete, propostas, checagem do que a IA devolve): `npm test`.
 
@@ -40,12 +59,7 @@ Testes das regras (faixas, parcelas, fluxo de caixa, fracionamento, frete, propo
 
 1. Crie o projeto no Supabase na região São Paulo (plano Pro para ter backup diário).
 2. Aplique o banco: `npx supabase login`, `npx supabase link --project-ref <ref>`, `npx supabase db push`.
-3. Na Vercel, importe o repositório e defina as variáveis (todas estão explicadas em `.env.example`):
-   - `DATABASE_URL`: string de conexão do pooler em modo **Transaction** (porta 6543).
-   - `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` (Project Settings → API Keys).
-   - `SESSION_SECRET` e `CRON_SECRET`: textos aleatórios de 32+ caracteres.
-   - `CODIGO_INSTALACAO`: texto aleatório de 12+ caracteres; guarde num lugar seguro fora do sistema.
-   - `ANTHROPIC_API_KEY`: chave criada em console.anthropic.com → API Keys (cobra por uso; centavos por mensagem lida).
+3. Na Vercel, importe o repositório e defina as variáveis da tabela acima (menos `CODIGO_NA_TELA`). `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` ficam em Project Settings → API Keys do Supabase.
 4. Configure o WhatsApp oficial (abaixo): é por ele que chega o código de entrada.
 5. Abra o site, digite o código de instalação, seu nome e seu celular; entre com o código que chegar no WhatsApp e cadastre a equipe em Configurações › Pessoas.
 
