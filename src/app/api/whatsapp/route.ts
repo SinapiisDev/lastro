@@ -1,5 +1,5 @@
 import { after } from 'next/server'
-import { sql } from '@/lib/db'
+import { sqlSistema, comoEmpresa } from '@/lib/db'
 import { assinaturaValida, baixarMidia } from '@/lib/whatsapp'
 import { variantesWhatsapp } from '@/lib/cotacao'
 import { registrarEntrada, processarFornecedor, responderAudio, carregarFornecedor } from '@/lib/conversa'
@@ -26,17 +26,25 @@ export async function POST(req: Request) {
   if (!assinaturaValida(corpo, req.headers.get('x-hub-signature-256'))) return new Response('Assinatura inválida', { status: 401 })
   const mensagens = ((JSON.parse(corpo) as Corpo).entry ?? []).flatMap((e) => (e.changes ?? []).flatMap((c) => c.value?.messages ?? []))
 
-  const paraLer = new Set<number>()
-  const pedirTexto = new Set<number>()
+  // fornecedor -> empresa dele, para a IA trabalhar depois dentro da construtora certa
+  const paraLer = new Map<number, number>()
+  const pedirTexto = new Map<number, number>()
   for (const m of mensagens) {
-    const [f] = await sql<{ id: number }[]>`select id from fornecedores where whatsapp in ${sql(variantesWhatsapp(m.from))}`
+    // Um número só para todas as construtoras: se o fornecedor atende mais de uma, a mensagem vai para a
+    // que falou com ele por último.
+    // shortcut: fornecedor em duas construtoras ao mesmo tempo pode cair na errada; se acontecer, número por construtora.
+    const [f] = await sqlSistema<{ id: number; empresaId: number }[]>`
+      select f.id, f.empresa_id as "empresaId" from fornecedores f
+      where f.whatsapp in ${sqlSistema(variantesWhatsapp(m.from))}
+      order by (select max(id) from mensagens x where x.fornecedor_id = f.id and x.direcao = 'saida') desc nulls last, f.id desc
+      limit 1`
     // shortcut: número que não é de fornecedor cadastrado é ignorado; se precisar, criar uma caixa de "desconhecidos".
     if (!f) {
       console.warn('WhatsApp de número não cadastrado:', m.from)
       continue
     }
     if (m.type === 'audio' || m.type === 'voice') {
-      if (await registrarEntrada(f.id, { texto: '[áudio]', whatsappId: m.id, paraIA: false })) pedirTexto.add(f.id)
+      if (await comoEmpresa(f.empresaId, () => registrarEntrada(f.id, { texto: '[áudio]', whatsappId: m.id, paraIA: false }))) pedirTexto.set(f.id, f.empresaId)
       continue
     }
     const midia = m.image ?? m.document
@@ -56,17 +64,20 @@ export async function POST(req: Request) {
     }
     const texto = [m.text?.body ?? midia?.caption, aviso].filter(Boolean).join(' ') || (midia ? null : `[mensagem do tipo ${m.type}]`)
     const lerIA = m.type === 'text' || !!anexo || !!midia?.caption
-    if (await registrarEntrada(f.id, { texto, anexo, whatsappId: m.id, paraIA: lerIA }) && lerIA) paraLer.add(f.id)
+    if ((await comoEmpresa(f.empresaId, () => registrarEntrada(f.id, { texto, anexo, whatsappId: m.id, paraIA: lerIA }))) && lerIA)
+      paraLer.set(f.id, f.empresaId)
   }
 
   // Responde logo para a Meta (senão ela reenvia); a IA trabalha depois.
   after(async () => {
-    for (const id of pedirTexto) {
-      const f = await carregarFornecedor(id)
-      if (f) await responderAudio(f).catch((e) => console.error('Resposta de áudio falhou:', e))
+    for (const [id, empresaId] of pedirTexto) {
+      await comoEmpresa(empresaId, async () => {
+        const f = await carregarFornecedor(id)
+        if (f) await responderAudio(f).catch((e) => console.error('Resposta de áudio falhou:', e))
+      })
     }
-    for (const id of paraLer) {
-      const aviso = await processarFornecedor(id).catch((e) => `erro: ${e}`)
+    for (const [id, empresaId] of paraLer) {
+      const aviso = await comoEmpresa(empresaId, () => processarFornecedor(id)).catch((e) => `erro: ${e}`)
       if (aviso) console.warn(`IA no fornecedor ${id}:`, aviso)
     }
   })

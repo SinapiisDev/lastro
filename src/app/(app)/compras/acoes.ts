@@ -77,7 +77,7 @@ export async function criarCompra(_: Estado, d: FormData): Promise<Estado> {
       const [f] = await tx<{ id: number }[]>`
         insert into fornecedores (nome, cnpj, telefone)
         values (${novoFornecedor}, ${texto(d, 'fornecedor_cnpj') || null}, ${texto(d, 'fornecedor_telefone') || null})
-        on conflict (nome) do update set nome = excluded.nome
+        on conflict (empresa_id, nome) do update set nome = excluded.nome
         returning id`
       fid = f.id
     }

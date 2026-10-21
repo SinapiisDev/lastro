@@ -108,15 +108,14 @@ export async function salvarObrasPessoa(id: number, _: Estado, d: FormData): Pro
   return { ok: 'Obras salvas.' }
 }
 
-// Número novo: derruba as sessões abertas, que estavam ligadas ao número antigo.
+// Número novo: as sessões abertas eram do número antigo e deixam de valer.
 export async function trocarCelular(id: number, _: Estado, d: FormData): Promise<Estado> {
   const s = await exigirSessao('chefe')
   const celular = normalizarWhatsapp(texto(d, 'celular'))
   if (!celular) return { erro: MSG_CELULAR }
   try {
     await escrever(nomePerfil(s), (tx) => tx`
-      update usuarios set celular = ${celular}, sessao_versao = sessao_versao + 1, tentativas = 0, bloqueado_ate = null
-      where id = ${id}`)
+      update usuarios set celular = ${celular} where id = ${id}`)
   } catch (e) {
     if (erroUnico(e)) return { erro: 'Já existe uma pessoa com esse celular.' }
     throw e

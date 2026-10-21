@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import { BarraSuperior } from '@ds'
 import { sql, lerConfig } from '@/lib/db'
-import { exigirSessao, ROTULO_PERFIL } from '@/lib/sessao'
+import { exigirSessao, ehAdministrador, ROTULO_PERFIL } from '@/lib/sessao'
 import { PassoAPasso } from '@/components/passo-a-passo'
 import { sair } from '../entrar/acoes'
 
@@ -55,6 +55,11 @@ async function Cabecalho() {
           <Link href="/conta" className="rounded-sm px-2.5 py-2 text-[13px] font-semibold no-underline hover:bg-surface-2">
             Minha conta
           </Link>
+          {ehAdministrador(s) && (
+            <Link href="/admin" className="rounded-sm px-2.5 py-2 text-[13px] font-semibold no-underline hover:bg-surface-2">
+              Administração do sistema
+            </Link>
+          )}
           <form action={sair}>
             <button className="w-full cursor-pointer rounded-sm px-2.5 py-2 text-left text-[13px] font-semibold hover:bg-surface-2">Sair</button>
           </form>

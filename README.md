@@ -4,13 +4,20 @@ Obras com etapas e subetapas, orçamento da obra (itens, margem/BDI, envio ao in
 
 ## Acessos
 
-Cada pessoa entra pelo próprio celular, sem senha: digita o número, recebe um código de 6 números no WhatsApp da empresa e entra. O aparelho fica conectado por 30 dias (ou até clicar em Sair). Não existe cadastro aberto.
+Sistema para várias construtoras: cada uma tem os seus dados, e nenhuma enxerga nada da outra.
+
+Cada pessoa entra pelo próprio celular, sem senha: digita o número, recebe um código de 6 números no WhatsApp do sistema e entra. O aparelho fica conectado por 30 dias (ou até clicar em Sair).
+
+- **Construtora nova**: na tela de entrada, "Criar minha construtora" (nome da construtora, seu nome e celular). O código do WhatsApp confirma o celular e a construtora já nasce com você como dono.
+- **Mesma pessoa em mais de uma construtora** (ex.: engenheiro terceirizado): o mesmo celular pode ser cadastrado em várias; ao entrar, escolhe em qual.
 
 - **Dono**: vê tudo, aprova as compras acima do teto médio e é o único que mexe em Configurações (empresa, tetos, obras, fornecedores e **Pessoas**).
 - **Financeiro**: vê todas as obras, libera as compras da faixa média e registra pagamentos.
 - **Engenheiro**: vê só as obras marcadas para ele; se tiver mais de uma, escolhe ao entrar.
-- **Instalação**: a primeira tela pede o código de instalação (`CODIGO_INSTALACAO`, no servidor), o nome e o celular do dono. Depois o dono cadastra o nome e o celular de cada pessoa em Configurações › Pessoas.
-- **Proteções**: o código vale 10 minutos e uma vez só; 5 códigos errados bloqueiam a entrada por 15 minutos; um código novo só a cada minuto; desativar a pessoa ou trocar o número dela derruba as sessões abertas; em Minha conta dá para sair de todos os aparelhos. O histórico grava o nome de quem fez cada coisa.
+- **Equipe**: o dono cadastra o nome e o celular de cada pessoa em Configurações › Pessoas.
+- **Administração do sistema** (quem vende): os celulares em `PLATAFORMA_ADMINS` veem no menu do avatar a lista de todas as construtoras e podem bloquear ou liberar cada uma. Bloquear tira todo mundo dela na hora; os dados ficam guardados.
+- **Proteções**: o código vale 10 minutos e uma vez só; 5 códigos errados bloqueiam a entrada por 15 minutos; um código novo só a cada minuto por celular e no máximo 10 por hora por endereço de internet (o cadastro é aberto); desativar a pessoa, trocar o número dela ou bloquear a construtora derruba as sessões abertas; em Minha conta dá para sair de todos os aparelhos. O histórico grava o nome de quem fez cada coisa.
+- **Separação entre construtoras**: além de cada tela filtrar pela construtora, o próprio banco trava as linhas (RLS do Postgres): as telas usam o papel `app_web`, e cada consulta roda numa transação marcada com a construtora de quem está logado (`src/lib/db.ts`). Só a entrada, o webhook do WhatsApp, os lembretes e a administração usam a conexão sem trava (`sqlSistema`), e marcam a construtora explicitamente.
 - Sem o WhatsApp configurado, o código só aparece na tela em desenvolvimento (`npm run dev`); em produção a entrada exige o WhatsApp da Meta.
 - Na primeira entrada cada pessoa vê um passo a passo do próprio perfil; dá para rever em Minha conta.
 
@@ -28,7 +35,7 @@ A IA nunca fecha compra nem negocia. Qualquer pessoa pode assumir uma conversa (
 
 Precisa de Node 20+ e do **Docker Desktop aberto** (o banco local roda dentro dele; depois de reiniciar o computador, abra o Docker antes).
 
-Crie o arquivo `.env.local` (fica só no seu computador, nunca vai para o Git) com as variáveis da tabela abaixo. No computador bastam `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (Secret key do `npx supabase status`), `SESSION_SECRET` e `CODIGO_INSTALACAO`.
+Crie o arquivo `.env.local` (fica só no seu computador, nunca vai para o Git) com as variáveis da tabela abaixo. No computador bastam `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (Secret key do `npx supabase status`) e `SESSION_SECRET`.
 
 ```bash
 npm install
@@ -43,7 +50,7 @@ npm run dev # liga o Supabase local (aplica supabase/migrations) e depois o site
 | `SUPABASE_URL` | Endereço do projeto Supabase (no computador: `http://127.0.0.1:54321`). |
 | `SUPABASE_SERVICE_ROLE_KEY` | Chave secreta do Supabase (service role / `sb_secret_...`). Só no servidor, nunca no navegador. |
 | `SESSION_SECRET` | Assina o cookie de entrada. Texto aleatório de 32+ caracteres. |
-| `CODIGO_INSTALACAO` | Libera criar a conta do dono na instalação. Texto aleatório de 12+ caracteres; guarde fora do sistema. |
+| `PLATAFORMA_ADMINS` | Celulares de quem administra o sistema (vende), separados por vírgula, ex.: `11988887777`. Eles veem a Administração do sistema. |
 | `CRON_SECRET` | Senha da rotina diária de lembretes (a Vercel envia sozinha). Texto aleatório de 32+ caracteres. |
 | `ANTHROPIC_API_KEY` | IA que lê as respostas dos fornecedores e compara propostas (console.anthropic.com → API Keys; cobra por uso). Sem ela, os preços são preenchidos à mão. |
 | `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_ID` | WhatsApp Cloud API (Meta). Sem eles o WhatsApp fica simulado e, em produção, ninguém recebe o código de entrada. |
@@ -61,7 +68,7 @@ Testes das regras (faixas, parcelas, fluxo de caixa, fracionamento, frete, propo
 2. Aplique o banco: `npx supabase login`, `npx supabase link --project-ref <ref>`, `npx supabase db push`.
 3. Na Vercel, importe o repositório e defina as variáveis da tabela acima (menos `CODIGO_NA_TELA`). `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` ficam em Project Settings → API Keys do Supabase.
 4. Configure o WhatsApp oficial (abaixo): é por ele que chega o código de entrada.
-5. Abra o site, digite o código de instalação, seu nome e seu celular; entre com o código que chegar no WhatsApp e cadastre a equipe em Configurações › Pessoas.
+5. Abra o site, clique em "Criar minha construtora" e entre com o código que chegar no WhatsApp. Ponha o seu celular em `PLATAFORMA_ADMINS` para ver a Administração do sistema.
 
 ### WhatsApp oficial (Meta)
 

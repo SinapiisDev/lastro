@@ -24,9 +24,9 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
       select id, nome, endereco, ativa from obras order by ativa desc, nome`,
     sql<{ id: number; nome: string; cnpj: string | null; telefone: string | null; whatsapp: string | null }[]>`
       select id, nome, cnpj, telefone, whatsapp from fornecedores order by nome`,
-    sql<{ id: number; nome: string; celular: string | null; perfil: Perfil; ativo: boolean; bloqueado: boolean; ultimoAcesso: Date | null; obras: number[] }[]>`
+    sql<{ id: number; nome: string; celular: string | null; perfil: Perfil; ativo: boolean; ultimoAcesso: Date | null; obras: number[] }[]>`
       select u.id, u.nome, u.celular, u.perfil, u.ativo,
-        coalesce(u.bloqueado_ate > now(), false) as bloqueado, u.ultimo_acesso_em as "ultimoAcesso",
+        u.ultimo_acesso_em as "ultimoAcesso",
         coalesce((select array_agg(obra_id order by obra_id) from usuario_obras where usuario_id = u.id), '{}') as obras
       from usuarios u order by u.ativo desc, u.perfil, u.nome`,
   ])
@@ -92,7 +92,6 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
                           <span className={`text-body font-semibold ${p.ativo ? '' : 'text-ink-3 line-through'}`}>{p.nome}</span>
                           <Etiqueta tom={p.perfil === 'chefe' ? 'rosa' : p.perfil === 'financeiro' ? 'info' : 'neutro'}>{ROTULO_PERFIL[p.perfil]}</Etiqueta>
                           {!p.ativo && <Etiqueta tom="neg">Desativada</Etiqueta>}
-                          {p.bloqueado && <Etiqueta tom="aviso">Bloqueada por tentativas</Etiqueta>}
                           {p.id === s.usuarioId && <Etiqueta tom="ok">Você</Etiqueta>}
                         </span>
                         <span className="text-caption text-ink-3">
@@ -109,7 +108,7 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
                         <summary className="cursor-pointer text-table font-semibold">Gerenciar acesso de {p.nome}</summary>
                         <div className="mt-3 grid gap-4 lg:grid-cols-2">
                           <FormAcao action={trocarCelular.bind(null, p.id)} botao="Trocar número" tamanho="sm" className="flex flex-col gap-2.5">
-                            <Campo rotulo="Celular novo (WhatsApp)" ajuda="Também desbloqueia a entrada. A pessoa sai dos aparelhos onde estava conectada.">
+                            <Campo rotulo="Celular novo (WhatsApp)" ajuda="A pessoa sai dos aparelhos onde estava conectada e passa a entrar pelo número novo.">
                               <Entrada name="celular" type="tel" required placeholder="(11) 98888-7777" className="bg-surface" />
                             </Campo>
                           </FormAcao>

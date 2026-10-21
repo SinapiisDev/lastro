@@ -121,7 +121,6 @@ export function descreverEvento(e: Evento): string {
       if (e.acao === 'insert') return `Pessoa cadastrada: ${d.nome}, acesso ${PERFIL[d.perfil]}`
       if (mudou('ativo')) return `Conta de ${d.nome} ${d.ativo ? 'reativada' : 'desativada'}`
       if (mudou('celular')) return `Celular de ${d.nome} ${a.celular ? 'trocado' : 'cadastrado'}`
-      if (mudou('sessao_versao')) return `${d.nome} saiu de todos os aparelhos`
       return `Conta de ${d.nome} alterada`
     case 'usuario_obras': {
       const i = e.acao === 'delete' ? a : d

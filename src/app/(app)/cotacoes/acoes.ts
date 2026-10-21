@@ -61,7 +61,7 @@ export async function criarCotacao(_: Estado, d: FormData): Promise<Estado> {
     if (novoNome) {
       const [f] = await tx<{ id: number }[]>`
         insert into fornecedores (nome, whatsapp) values (${novoNome}, ${normalizarWhatsapp(novoZap)})
-        on conflict (nome) do update set whatsapp = coalesce(fornecedores.whatsapp, excluded.whatsapp)
+        on conflict (empresa_id, nome) do update set whatsapp = coalesce(fornecedores.whatsapp, excluded.whatsapp)
         returning id`
       fornecedores.push(f.id)
     }
