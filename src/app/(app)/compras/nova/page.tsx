@@ -1,5 +1,6 @@
 import { sql, lerConfig, hoje } from '@/lib/db'
 import { exigirSessao } from '@/lib/sessao'
+import { CabecalhoTela } from '@ds'
 import { FormCompra, type Inicial, type ItemOrcado } from './form-compra'
 
 export default async function NovaCompra({ searchParams }: PageProps<'/compras/nova'>) {
@@ -45,8 +46,8 @@ export default async function NovaCompra({ searchParams }: PageProps<'/compras/n
   }
 
   return (
-    <div className="grid max-w-3xl gap-4">
-      <h1>{de ? `Corrigir e reenviar a compra nº ${de}` : 'Nova compra'}</h1>
+    <>
+      <CabecalhoTela contexto="Compras" titulo={de ? `Corrigir e reenviar a compra nº ${de}` : 'Nova compra'} />
       <FormCompra
         etapas={etapas}
         itens={itens}
@@ -56,6 +57,6 @@ export default async function NovaCompra({ searchParams }: PageProps<'/compras/n
         hoje={dia}
         inicial={inicial}
       />
-    </div>
+    </>
   )
 }

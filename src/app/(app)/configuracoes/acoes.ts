@@ -4,7 +4,7 @@ import { refresh } from 'next/cache'
 import { escrever } from '@/lib/db'
 import { exigirSessao, criarSessao } from '@/lib/sessao'
 import { normalizarWhatsapp } from '@/lib/cotacao'
-import type { Estado } from '@/components/form-acao'
+import type { Estado } from '@ds'
 
 const texto = (d: FormData, campo: string) => String(d.get(campo) ?? '').trim()
 const erroUnico = (e: unknown) => (e as { code?: string }).code === '23505'

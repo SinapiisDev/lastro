@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="tema.js"></script>
+  <style>body{margin:0;background:var(--bg,#ECECEA);color:var(--ink,#111);font-family:Manrope,sans-serif;-webkit-font-smoothing:antialiased}a{color:var(--ink,#111)}a:hover{color:var(--accent-ink,#4C6110)}*{box-sizing:border-box}</style>
+</helmet>
+<div style="min-height:100vh; background:var(--bg,#ECECEA); display:flex; flex-direction:column;">
+  <dc-import name="Topbar" active="Compras" perfil="Financeiro" hint-size="100%,68px"></dc-import>
+  <main style="padding:8px 24px 40px; display:flex; flex-direction:column; gap:16px;">
+    <section style="display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; padding:8px 4px 0;">
+      <div style="display:flex; flex-direction:column; gap:4px;">
+        <span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">{{ contagem }}</span>
+        <h1 style="margin:0; font:300 40px/1.05 Outfit, sans-serif; letter-spacing:-0.02em;">Compras</h1>
+      </div>
+      <a href="Nova Compra.dc.html" style="height:40px; padding:0 18px; border-radius:999px; background:var(--ink,#111); color:var(--on-ink,#fff); font:600 13px Manrope, sans-serif; display:inline-flex; align-items:center; gap:8px; text-decoration:none;">+ Nova compra</a>
+    </section>
+
+    <section style="padding:14px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:12px;">
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+        <div style="position:relative;">
+          <button onClick="{{ toggleMenu }}" style="height:40px; padding:0 16px; border-radius:999px; border:none; background:{{ obraBg }}; color:{{ obraFg }}; font:600 13px Manrope, sans-serif; display:inline-flex; align-items:center; gap:10px; cursor:pointer;">{{ obraTxt }} <span style="opacity:.6;">▾</span></button>
+          <sc-if value="{{ menu }}">
+            <div style="position:absolute; top:46px; left:0; z-index:5; width:260px; padding:6px; border-radius:14px; background:var(--surface,#fff); border:1px solid var(--line,#E3E3DF); box-shadow:0 12px 32px rgba(17,17,17,.14); display:flex; flex-direction:column;">
+              <sc-for list="{{ obras }}" as="o">
+                <button onClick="{{ o.pick }}" style="padding:10px; border-radius:10px; border:none; background:{{ o.bg }}; color:var(--ink,#111); text-align:left; font:{{ o.fw }} 13px Manrope, sans-serif; display:flex; justify-content:space-between; cursor:pointer;" style-hover="background:var(--surface-2,#F5F5F3);">{{ o.nome }}<span>{{ o.ck }}</span></button>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+        <div style="display:flex; padding:4px; gap:2px; border-radius:999px; background:var(--surface-2,#F5F5F3);">
+          <sc-for list="{{ periodos }}" as="p" hint-placeholder-count="5">
+            <button onClick="{{ p.pick }}" style="height:32px; padding:0 12px; border-radius:999px; border:none; background:{{ p.bg }}; color:{{ p.fg }}; box-shadow:{{ p.sh }}; font:600 12.5px Manrope, sans-serif; cursor:pointer;">{{ p.t }}</button>
+          </sc-for>
+        </div>
+        <input value="{{ busca }}" onChange="{{ onBusca }}" placeholder="Buscar item, fornecedor ou nº" style="flex:1; min-width:220px; height:40px; border-radius:999px; border:1px solid transparent; background:var(--surface-2,#F5F5F3); padding:0 16px; font:500 13.5px Manrope, sans-serif; color:var(--ink,#111); outline:none;" style-focus="border-color:var(--ink,#111); background:var(--surface,#fff);">
+      </div>
+      <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+        <span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F); margin-right:4px;">Situação</span>
+        <sc-for list="{{ chips }}" as="c" hint-placeholder-count="6">
+          <button onClick="{{ c.pick }}" style="height:30px; padding:0 12px; border-radius:999px; border:1px solid {{ c.bd }}; background:{{ c.bg }}; color:{{ c.fg }}; font:600 12px Manrope, sans-serif; display:inline-flex; align-items:center; gap:6px; cursor:pointer;"><span style="width:6px; height:6px; border-radius:50%; background:{{ c.dot }};"></span>{{ c.t }} <span style="opacity:.6; font-variant-numeric:tabular-nums;">{{ c.n }}</span></button>
+        </sc-for>
+        <sc-if value="{{ temFiltro }}"><button onClick="{{ limpar }}" style="height:30px; padding:0 10px; border:none; background:transparent; color:var(--ink,#111); font:600 12px Manrope, sans-serif; text-decoration:underline; cursor:pointer;">Limpar filtros</button></sc-if>
+      </div>
+    </section>
+
+    <sc-if value="{{ temSel }}">
+      <section style="padding:10px 10px 10px 20px; border-radius:999px; background:var(--ink,#111); color:var(--on-ink,#fff); display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+        <span style="font:700 13px Manrope, sans-serif; font-variant-numeric:tabular-nums;">{{ selTxt }}</span>
+        <span style="flex:1;"></span>
+        <button onClick="{{ limparSel }}" style="height:34px; padding:0 14px; border-radius:999px; border:1px solid rgba(128,128,128,.5); background:transparent; color:var(--on-ink,#fff); font:600 12.5px Manrope, sans-serif; cursor:pointer;">Cancelar</button>
+        <button style="height:34px; padding:0 14px; border-radius:999px; border:none; background:var(--accent,#C6DF5F); color:#111; font:700 12.5px Manrope, sans-serif; cursor:pointer;">Liberar selecionadas</button>
+      </section>
+    </sc-if>
+
+    <section style="padding:8px 16px 16px; border-radius:22px; background:var(--surface,#fff); overflow-x:auto;">
+      <div style="display:grid; grid-template-columns:36px 92px minmax(200px,1.5fr) minmax(130px,1fr) minmax(130px,1fr) 96px 132px 176px; min-width:1040px; font:500 13.5px Manrope, sans-serif; font-variant-numeric:tabular-nums;">
+        <span style="padding:12px 6px; border-bottom:1px solid var(--line,#E3E3DF); display:flex; align-items:center;"><button onClick="{{ selTodas }}" style="width:18px; height:18px; padding:0; border-radius:6px; border:1.5px solid {{ allBd }}; background:{{ allBg }}; color:var(--on-ink,#fff); font:700 10px Manrope, sans-serif; cursor:pointer;">{{ allTick }}</button></span>
+        <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Nº</span>
+        <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Item</span>
+        <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Obra · etapa</span>
+        <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Fornecedor</span>
+        <button onClick="{{ ordData }}" style="padding:12px 8px; border:none; border-bottom:1px solid var(--line,#E3E3DF); background:transparent; text-align:left; font:600 12px Manrope, sans-serif; color:var(--ink-2,#55554F); cursor:pointer;">Data {{ setaData }}</button>
+        <button onClick="{{ ordValor }}" style="padding:12px 8px; border:none; border-bottom:1px solid var(--line,#E3E3DF); background:transparent; text-align:right; font:600 12px Manrope, sans-serif; color:var(--ink-2,#55554F); cursor:pointer;">Valor {{ setaValor }}</button>
+        <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Situação</span>
+        <sc-for list="{{ linhas }}" as="l" hint-placeholder-count="10">
+          <span style="padding:12px 6px; border-bottom:1px solid var(--line,#E3E3DF); background:{{ l.bg }}; display:flex; align-items:center;"><button onClick="{{ l.sel }}" style="width:18px; height:18px; padding:0; border-radius:6px; border:1.5px solid {{ l.ckBd }}; background:{{ l.ckBg }}; color:var(--on-ink,#fff); font:700 10px Manrope, sans-serif; cursor:pointer;">{{ l.tick }}</button></span>
+          <a href="Compra Detalhe.dc.html" style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); background:{{ l.bg }}; font-weight:700; text-decoration:none; display:flex; align-items:center;">{{ l.id }}</a>
+          <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); background:{{ l.bg }}; display:flex; flex-direction:column; gap:1px;"><span style="font-weight:600;">{{ l.item }}</span><span style="font:500 11.5px Manrope, sans-serif; color:var(--ink-3,#86867F);">{{ l.qtd }}</span></span>
+          <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); background:{{ l.bg }}; display:flex; flex-direction:column; gap:1px;"><span>{{ l.obra }}</span><span style="font:500 11.5px Manrope, sans-serif; color:var(--ink-3,#86867F);">{{ l.etapa }}</span></span>
+          <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); background:{{ l.bg }}; color:var(--ink-2,#55554F); display:flex; align-items:center;">{{ l.forn }}</span>
+          <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); background:{{ l.bg }}; color:var(--ink-2,#55554F); display:flex; align-items:center;">{{ l.data }}</span>
+          <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); background:{{ l.bg }}; text-align:right; font-weight:700; display:flex; align-items:center; justify-content:flex-end; color:{{ l.vc }};">{{ l.valor }}</span>
+          <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); background:{{ l.bg }}; display:flex; align-items:center;"><span style="display:inline-flex; align-items:center; gap:6px; height:24px; padding:0 10px; border-radius:999px; background:{{ l.sbg }}; color:{{ l.sfg }}; font:700 11.5px Manrope, sans-serif; white-space:nowrap;"><span style="width:6px; height:6px; border-radius:50%; background:currentColor;"></span>{{ l.sit }}</span></span>
+        </sc-for>
+        <sc-if value="{{ vazio }}">
+          <div style="grid-column:1 / -1; padding:56px 20px; display:flex; flex-direction:column; align-items:center; gap:8px; text-align:center;">
+            <span style="font:400 22px Outfit, sans-serif;">Nenhuma compra encontrada</span>
+            <span style="font:500 13px Manrope, sans-serif; color:var(--ink-3,#86867F);">Nenhum resultado para os filtros atuais. Tente outro período ou situação.</span>
+            <button onClick="{{ limpar }}" style="margin-top:8px; height:36px; padding:0 16px; border-radius:999px; border:1px solid var(--line,#E3E3DF); background:var(--surface,#fff); color:var(--ink,#111); font:600 13px Manrope, sans-serif; cursor:pointer;">Limpar filtros</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{ temLinhas }}" hint-placeholder-val="{{ true }}">
+          <span style="grid-column:1 / 7; padding:14px 8px; background:var(--surface-2,#F5F5F3); border-radius:12px 0 0 12px; margin-top:8px; font-weight:700;">Total filtrado · {{ nLinhas }}</span>
+          <span style="padding:14px 8px; background:var(--surface-2,#F5F5F3); margin-top:8px; text-align:right; font-weight:700;">{{ total }}</span>
+          <span style="padding:14px 8px; background:var(--surface-2,#F5F5F3); border-radius:0 12px 12px 0; margin-top:8px;"></span>
+        </sc-if>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { obra: 0, per: 2, sits: [], busca: '', sel: {}, ord: ['data', -1], menu: false };
+  brl(n) { return (n < 0 ? '−' : '') + 'R$ ' + Math.abs(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  renderVals() {
+    const v = k => `var(--${k})`, s = this.state;
+    const SIT = { r: ['Rascunho', v('surface-3'), v('ink-2')], f: ['Aguardando financeiro', v('warn-bg'), v('warn')], c: ['Aguardando chefe', v('pink-bg'), v('pink-ink')], a: ['Aprovada', v('ok-bg'), v('ok')], p: ['Paga', v('accent'), '#111'], x: ['Recusada', v('neg-bg'), v('neg')] };
+    const OB = ['Todas as obras', 'Residencial Vila Aurora', 'Edifício Jardim Botânico', 'Galpão Logístico Cajamar'];
+    const D = [
+      ['CP-0426', 'Aço CA-50/CA-60 e acessórios', '13.700 kg', 1, 'Estrutura', 'ArcelorMittal', '21/10/2026', 91150, 'r'],
+      ['CP-0423', 'Tubos PVC e conexões', '86 itens', 3, 'Instalações', 'Tigre Distribuição', '21/10/2026', 9412.3, 'f'],
+      ['CP-0422', 'Bloco cerâmico 14x19x29', '18.000 un', 2, 'Alvenaria', 'Cerâmica Pauluzzi', '21/10/2026', 36700, 'f'],
+      ['CP-0421', 'Concreto usinado fck 30', '48 m³', 1, 'Estrutura', 'Concreteira Supermix', '20/10/2026', 27840, 'f'],
+      ['CP-0419', 'Cimento CP-II 50 kg', '300 sc', 2, 'Alvenaria', 'Votorantim Cimentos', '20/10/2026', 9858.1, 'f'],
+      ['CP-0418', 'Aço CA-50 10 e 12,5 mm', '28.000 kg', 1, 'Estrutura', 'Gerdau Aços Longos', '20/10/2026', 186200, 'c'],
+      ['CP-0417', 'Porcelanato 60x60 acetinado', '1.200 m²', 2, 'Acabamento', 'Portobello', '18/10/2026', 112800, 'c'],
+      ['CP-0415', 'Locação de grua · out/2026', '1 mês', 1, 'Estrutura', 'Locaguindastes', '19/10/2026', 14900, 'a'],
+      ['CP-0412', 'Madeirite plastificado 18 mm', '420 ch', 1, 'Estrutura', 'Madeireira São Jorge', '14/10/2026', 22640, 'p'],
+      ['CP-0410', 'Cabos flexíveis 2,5 mm', '60 rolos', 3, 'Instalações', 'Eletro Forte Materiais', '10/10/2026', 8760, 'p'],
+      ['CP-0408', 'Brita 1 e areia média', '120 m³', 3, 'Fundação', 'Pedreira Embu', '08/10/2026', 18240, 'p'],
+      ['CP-0405', 'Esquadrias de alumínio · lote 1', '64 un', 2, 'Acabamento', 'Alumiaço Esquadrias', '02/10/2026', 148300, 'x'],
+      ['CP-0402', 'Devolução · argamassa vencida', '80 sc', 1, 'Alvenaria', 'Quartzolit', '01/10/2026', -2480, 'p']
+    ];
+    const ds = d => { const [a, b, c] = d.split('/'); return +(c + b + a); };
+    const limite = [20261021, 20261014, 20260921, 20260822, 0][s.per];
+    let L = D.filter(r => (s.obra === 0 || r[3] === s.obra) && ds(r[6]) >= limite && (!s.sits.length || s.sits.includes(r[8])) && (!s.busca || (r[0] + r[1] + r[5]).toLowerCase().includes(s.busca.toLowerCase())));
+    const [ok, dir] = s.ord;
+    L = L.slice().sort((a, b) => dir * (ok === 'data' ? ds(a[6]) - ds(b[6]) : a[7] - b[7]));
+    const base = D.filter(r => (s.obra === 0 || r[3] === s.obra) && ds(r[6]) >= limite);
+    const selIds = Object.keys(s.sel).filter(k => s.sel[k]);
+    const selTot = D.filter(r => s.sel[r[0]]).reduce((a, r) => a + r[7], 0);
+    const allSel = L.length && L.every(r => s.sel[r[0]]);
+    const ordem = k => () => this.setState(st => ({ ord: [k, st.ord[0] === k ? -st.ord[1] : -1] }));
+    return {
+      contagem: D.length + ' compras · ' + this.brl(D.reduce((a, r) => a + r[7], 0)) + ' em outubro',
+      menu: s.menu, toggleMenu: () => this.setState({ menu: !s.menu }),
+      obraTxt: s.obra === 0 ? 'Todas as obras' : 'Obra: ' + OB[s.obra].split(' ').slice(1).join(' '),
+      obraBg: s.obra ? v('ink') : v('surface-2'), obraFg: s.obra ? v('on-ink') : v('ink'),
+      obras: OB.map((nome, i) => ({ nome, bg: i === s.obra ? v('accent-bg') : 'transparent', fw: i === s.obra ? 700 : 500, ck: i === s.obra ? '✓' : '', pick: () => this.setState({ obra: i, menu: false }) })),
+      periodos: ['Hoje', '7 dias', '30 dias', '60 dias', 'Tudo'].map((t, i) => ({ t, bg: i === s.per ? v('surface') : 'transparent', fg: i === s.per ? v('ink') : v('ink-2'), sh: i === s.per ? '0 1px 2px rgba(0,0,0,.08)' : 'none', pick: () => this.setState({ per: i }) })),
+      busca: s.busca, onBusca: e => this.setState({ busca: e.target.value }),
+      chips: Object.entries(SIT).map(([k, [t, bg, fg]]) => { const on = s.sits.includes(k); return { t, n: base.filter(r => r[8] === k).length, bg: on ? bg : v('surface'), fg: on ? fg : v('ink-2'), bd: on ? fg : v('line'), dot: fg, pick: () => this.setState(st => ({ sits: on ? st.sits.filter(x => x !== k) : st.sits.concat(k) })) }; }),
+      temFiltro: !!(s.sits.length || s.obra || s.busca || s.per !== 2),
+      limpar: () => this.setState({ obra: 0, per: 2, sits: [], busca: '' }),
+      temSel: selIds.length > 0, selTxt: selIds.length + (selIds.length > 1 ? ' selecionadas · ' : ' selecionada · ') + this.brl(selTot),
+      limparSel: () => this.setState({ sel: {} }),
+      selTodas: () => { const n = {}; if (!allSel) L.forEach(r => n[r[0]] = true); this.setState({ sel: n }); },
+      allBd: allSel ? v('ink') : v('ink-3'), allBg: allSel ? v('ink') : 'transparent', allTick: allSel ? '✓' : '',
+      ordData: ordem('data'), ordValor: ordem('valor'),
+      setaData: ok === 'data' ? (dir < 0 ? '↓' : '↑') : '', setaValor: ok === 'valor' ? (dir < 0 ? '↓' : '↑') : '',
+      linhas: L.map(([id, item, qtd, ob, etapa, forn, data, val, st]) => {
+        const on = !!s.sel[id];
+        return { id, item, qtd, obra: OB[ob].split(' ').slice(1).join(' '), etapa, forn, data, valor: this.brl(val), vc: val < 0 ? v('neg') : v('ink'),
+          sit: SIT[st][0], sbg: SIT[st][1], sfg: SIT[st][2], bg: on ? v('accent-bg') : 'transparent',
+          ckBd: on ? v('ink') : v('ink-3'), ckBg: on ? v('ink') : 'transparent', tick: on ? '✓' : '',
+          sel: () => this.setState(x => ({ sel: { ...x.sel, [id]: !x.sel[id] } })) };
+      }),
+      vazio: L.length === 0, temLinhas: L.length > 0, nLinhas: L.length + (L.length === 1 ? ' compra' : ' compras'),
+      total: this.brl(L.reduce((a, r) => a + r[7], 0))
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,24 +1,24 @@
+import Link from 'next/link'
 import { Suspense } from 'react'
-import { exigirSessao, nomePerfil } from '@/lib/sessao'
+import { BarraSuperior } from '@ds'
+import { lerConfig } from '@/lib/db'
+import { exigirSessao } from '@/lib/sessao'
 import { sair } from '../entrar/acoes'
-import { Nav } from './nav'
 
 // Cada página confere o acesso por conta própria; aqui o login só monta o menu.
 export default function AppLayout({ children }: LayoutProps<'/'>) {
   return (
     <>
-      <header className="border-b border-linha bg-superficie print:hidden">
-        <Suspense fallback={<div className="h-[5.6rem]" />}>
-          <Cabecalho />
-        </Suspense>
-      </header>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">{children}</main>
+      <Suspense fallback={<div className="h-[68px]" aria-hidden />}>
+        <Cabecalho />
+      </Suspense>
+      <main className="mx-auto flex w-full max-w-[1720px] flex-1 flex-col gap-4 px-4 pt-2 pb-10 sm:px-6">{children}</main>
     </>
   )
 }
 
 async function Cabecalho() {
-  const s = await exigirSessao()
+  const [s, config] = await Promise.all([exigirSessao(), lerConfig()])
   const links: [string, string][] =
     s.perfil === 'obra'
       ? [
@@ -28,7 +28,7 @@ async function Cabecalho() {
           ['/compras', 'Compras'],
         ]
       : [
-          ['/financeiro', 'Financeiro'],
+          ['/financeiro', 'Painel'],
           ['/obras', 'Obras'],
           ['/orcamento', 'Orçamento'],
           ['/cotacoes', 'Cotações'],
@@ -38,19 +38,26 @@ async function Cabecalho() {
           ['/historico', 'Histórico'],
           ...(s.perfil === 'chefe' ? ([['/configuracoes', 'Configurações']] as [string, string][]) : []),
         ]
+  const perfil = { obra: 'Obra', financeiro: 'Financeiro', chefe: 'Chefe' }[s.perfil]
 
   return (
-    <>
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 pt-3">
-        <p className="font-semibold">Gestão de Obras</p>
-        <form action={sair} className="flex items-center gap-3 text-sm">
-          <span className="text-cinza">{nomePerfil(s)}</span>
-          <button className="underline">Sair</button>
-        </form>
-      </div>
-      <div className="mx-auto max-w-6xl px-2">
-        <Nav links={links} />
-      </div>
-    </>
+    <BarraSuperior
+      links={links}
+      perfil={perfil}
+      nome={s.perfil === 'obra' ? s.nome : perfil}
+      empresa={config.nomeEmpresa}
+      sair={
+        <>
+          {s.perfil === 'chefe' && (
+            <Link href="/design-system" className="rounded-sm px-2.5 py-2 text-[13px] font-semibold no-underline hover:bg-surface-2">
+              Design system
+            </Link>
+          )}
+          <form action={sair}>
+            <button className="w-full cursor-pointer rounded-sm px-2.5 py-2 text-left text-[13px] font-semibold hover:bg-surface-2">Sair</button>
+          </form>
+        </>
+      }
+    />
   )
 }

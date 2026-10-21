@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="tema.js"></script>
+  <style>body{margin:0;background:var(--bg,#ECECEA);color:var(--ink,#111);font-family:Manrope,sans-serif;-webkit-font-smoothing:antialiased}a{color:var(--ink,#111)}a:hover{color:var(--accent-ink,#4C6110)}*{box-sizing:border-box}</style>
+</helmet>
+<div style="min-height:100vh; background:var(--bg,#ECECEA); display:flex; flex-direction:column;">
+  <dc-import name="Topbar" active="Obra" perfil="Financeiro" hint-size="100%,68px"></dc-import>
+
+  <main style="padding:8px 24px 0; display:flex; flex-direction:column; gap:16px; flex:1;">
+    <section style="display:grid; grid-template-columns:minmax(0,1.3fr) minmax(320px,1fr); gap:16px;">
+      <div style="position:relative; height:640px; border-radius:30px; background:var(--surface,#fff); overflow:hidden;">
+        <div style="position:absolute; inset:0;">
+          <x-import component-from-global-scope="predio-3d" from="./predio-3d.js" progress="{{ progJson }}" enquadre-x="0.24" enquadre-y="0.04" zoom="1" style="position:absolute; inset:0; display:block;" hint-size="100%,100%"></x-import>
+        </div>
+        <div style="position:relative; padding:28px 28px 0; display:flex; flex-direction:column; gap:10px; pointer-events:none; max-width:420px;">
+          <span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Obra 014 · Torre residencial 8 pavimentos</span>
+          <h1 style="margin:0; font:300 40px/1.05 Outfit, sans-serif; letter-spacing:-0.02em; color:var(--ink,#111);">Residencial Vila Aurora</h1>
+          <span style="font:500 13px Manrope, sans-serif; color:var(--ink-2,#55554F);">Rua Coronel Oscar Porto, 812 · Paraíso, São Paulo/SP</span>
+        </div>
+        <div style="position:absolute; left:24px; top:190px; width:176px; padding:14px 16px; border-radius:18px; background:rgba(255,255,255,0.55); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border:1px solid rgba(255,255,255,0.7); box-shadow:0 12px 32px rgba(17,17,17,.08); color:#111; pointer-events:none;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline;">
+            <span style="font:600 11.5px Manrope, sans-serif; color:#55554F;">Físico</span>
+            <span style="font:300 30px Outfit, sans-serif; font-variant-numeric:tabular-nums;">{{ simFisico }}<span style="font-size:15px;">%</span></span>
+          </div>
+          <div style="height:6px; border-radius:999px; background:rgba(17,17,17,.1); margin-top:8px; overflow:hidden;"><div style="height:100%; width:{{ simFisicoW }}; background:#111; border-radius:999px;"></div></div>
+          <div style="font:600 11px Manrope, sans-serif; color:#55554F; margin-top:8px;">{{ simEtapa }}</div>
+        </div>
+        <div style="position:absolute; left:20px; right:20px; bottom:20px; padding:14px 18px; border-radius:20px; background:var(--night,#101010); color:#fff; display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+          <div style="display:flex; flex-direction:column; gap:2px; flex:none;">
+            <span style="font:600 11px Manrope, sans-serif; color:#9a9a94;">Linha do tempo</span>
+            <span style="font:500 14px Manrope, sans-serif; font-variant-numeric:tabular-nums;">{{ simData }}</span>
+          </div>
+          <input type="range" min="0" max="100" value="{{ sim }}" onChange="{{ onSim }}" style="flex:1; min-width:160px; accent-color:#C6DF5F; height:28px;">
+          <button onClick="{{ irHoje }}" style="height:32px; padding:0 14px; border-radius:999px; border:1px solid #3a3a3a; background:transparent; color:#fff; font:600 12px Manrope, sans-serif; cursor:pointer;" style-hover="background:#1C1C1C;">Hoje</button>
+          <button onClick="{{ irEntrega }}" style="height:32px; padding:0 14px; border-radius:999px; border:none; background:#C6DF5F; color:#111; font:700 12px Manrope, sans-serif; cursor:pointer;">Ver entrega</button>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; align-content:start;">
+        <div style="grid-column:1 / -1; padding:20px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+            <span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Gasto x previsto</span>
+            <span style="display:inline-flex; align-items:center; gap:6px; height:24px; padding:0 10px; border-radius:999px; background:var(--warn-bg,#FBF0DB); color:var(--warn,#A8650A); font:700 11.5px Manrope, sans-serif;"><span style="width:6px; height:6px; border-radius:50%; background:currentColor;"></span>2 etapas em alerta</span>
+          </div>
+          <div style="display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;">
+            <span style="font:300 40px Outfit, sans-serif; letter-spacing:-0.02em; font-variant-numeric:tabular-nums; color:var(--ink,#111);">R$ 2.050.400,00</span>
+            <span style="font:500 14px Manrope, sans-serif; color:var(--ink-3,#86867F); font-variant-numeric:tabular-nums;">de R$ 4.820.000,00</span>
+          </div>
+          <div style="position:relative; height:28px; border-radius:999px; background:var(--surface-3,#EBEBE7); overflow:hidden;">
+            <div style="position:absolute; inset:0 auto 0 0; width:42.5%; background:var(--ink,#111); border-radius:999px; display:flex; align-items:center; justify-content:flex-end; padding-right:10px; font:700 12px Manrope, sans-serif; color:var(--on-ink,#fff);">42,5% gasto</div>
+            <div style="position:absolute; top:0; bottom:0; left:46%; width:2px; background:var(--accent-ink,#4C6110);"></div>
+          </div>
+          <span style="font:500 12px Manrope, sans-serif; color:var(--ink-2,#55554F);">Físico executado 46% — custo 3,5 p.p. abaixo do avanço.</span>
+        </div>
+        <div style="padding:20px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:6px;">
+          <span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Saldo do orçamento</span>
+          <span style="font:300 24px Outfit, sans-serif; font-variant-numeric:tabular-nums; white-space:nowrap;">R$ 2.769.600,00</span>
+          <span style="font:500 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">57,5% disponível</span>
+        </div>
+        <div style="padding:20px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:6px;">
+          <span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Comprometido</span>
+          <span style="font:300 24px Outfit, sans-serif; font-variant-numeric:tabular-nums; white-space:nowrap;">R$ 318.940,00</span>
+          <span style="font:500 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">6 compras aprovadas a pagar</span>
+        </div>
+        <div style="padding:20px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:6px;">
+          <span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Prazo</span>
+          <span style="font:300 24px Outfit, sans-serif; font-variant-numeric:tabular-nums; white-space:nowrap;">14 meses</span>
+          <span style="font:500 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Entrega prevista 15/12/2027</span>
+        </div>
+        <div style="padding:20px; border-radius:22px; background:var(--pink-bg,#FBE6EF); display:flex; flex-direction:column; gap:6px;">
+          <span style="font:600 12px Manrope, sans-serif; color:var(--pink-ink,#9C2F5C);">Aguardando chefe</span>
+          <span style="font:300 24px Outfit, sans-serif; font-variant-numeric:tabular-nums; white-space:nowrap; color:var(--ink,#111);">R$ 186.200,00</span>
+          <a href="Compra Detalhe.dc.html" style="font:700 12px Manrope, sans-serif; color:var(--pink-ink,#9C2F5C); text-decoration:none;">CP-0418 · Aço CA-50 · Gerdau ›</a>
+        </div>
+      </div>
+    </section>
+
+    <section style="display:flex; flex-direction:column; gap:10px;">
+      <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap; padding:8px 4px 4px;">
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <h2 style="margin:0; font:400 24px Outfit, sans-serif; color:var(--ink,#111);">Etapas</h2>
+          <span style="font:500 13px Manrope, sans-serif; color:var(--ink-3,#86867F);">Atualizado pelo Eng. Rafael Lima em 20/10/2026 às 17:42</span>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <span style="display:inline-flex; align-items:center; gap:8px; font:600 12px Manrope, sans-serif; color:var(--ink-2,#55554F);"><span style="width:18px; height:10px; border-radius:999px; background:var(--accent,#C6DF5F);"></span>Feito</span>
+          <span style="display:inline-flex; align-items:center; gap:8px; font:600 12px Manrope, sans-serif; color:var(--ink-2,#55554F);"><span style="width:18px; height:10px; border-radius:999px; background:repeating-linear-gradient(135deg, var(--neg,#C3352D) 0 3px, transparent 3px 6px);"></span>Gasto acima do feito</span>
+          <button onClick="{{ abrirTodas }}" style="height:36px; padding:0 16px; border-radius:999px; border:1px solid var(--line,#E3E3DF); background:var(--surface,#fff); color:var(--ink,#111); font:600 13px Manrope, sans-serif; cursor:pointer;" style-hover="background:var(--surface-2,#F5F5F3);">{{ txtTodas }}</button>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:28px minmax(150px,1.1fr) minmax(220px,2fr) 150px 150px 28px; gap:16px; padding:0 20px; font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">
+        <span></span><span>Etapa</span><span>Executado</span><span style="text-align:right;">Gasto</span><span style="text-align:right;">Previsto</span><span></span>
+      </div>
+      <sc-for list="{{ etapas }}" as="e" hint-placeholder-count="6">
+        <div style="background:var(--surface,#fff); border-radius:22px; overflow:hidden;">
+          <button onClick="{{ e.toggle }}" style="display:grid; grid-template-columns:28px minmax(150px,1.1fr) minmax(220px,2fr) 150px 150px 28px; align-items:center; gap:16px; width:100%; padding:16px 20px; border:none; background:transparent; text-align:left; cursor:pointer; color:var(--ink,#111);" style-hover="background:var(--surface-2,#F5F5F3);">
+            <span style="width:28px; height:28px; border-radius:50%; background:var(--surface-2,#F5F5F3); display:flex; align-items:center; justify-content:center; font:700 12px Manrope, sans-serif; color:var(--ink-2,#55554F);">{{ e.n }}</span>
+            <span style="display:flex; flex-direction:column; gap:2px; min-width:0;">
+              <span style="font:600 15px Manrope, sans-serif;">{{ e.nome }}</span>
+              <span style="font:500 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">{{ e.qtdSub }}</span>
+            </span>
+            <span style="display:flex; flex-direction:column; gap:4px;">
+              <span style="position:relative; display:block; height:28px; border-radius:999px; background:var(--surface-3,#EBEBE7); overflow:hidden;">
+                <span style="position:absolute; left:0; top:0; bottom:0; width:{{ e.feitoW }}; background:var(--accent,#C6DF5F); border-radius:999px; display:flex; align-items:center; justify-content:flex-end; padding-right:10px; font:700 12px Manrope, sans-serif; color:#111; font-variant-numeric:tabular-nums;">{{ e.txtIn }}</span>
+                <sc-if value="{{ e.alerta }}"><span style="position:absolute; top:0; bottom:0; left:{{ e.excL }}; width:{{ e.excW }}; background:repeating-linear-gradient(135deg, var(--neg,#C3352D) 0 4px, transparent 4px 8px);"></span></sc-if>
+                <span style="position:absolute; left:{{ e.feitoW }}; top:0; bottom:0; display:flex; align-items:center; padding-left:8px; font:700 12px Manrope, sans-serif; color:var(--ink,#111);">{{ e.txtOut }}</span>
+              </span>
+              <sc-if value="{{ e.alerta }}"><span style="font:700 11.5px Manrope, sans-serif; color:var(--neg,#C3352D); font-variant-numeric:tabular-nums;">Gasto {{ e.pg }}% · feito {{ e.pf }}%</span></sc-if>
+            </span>
+            <span style="text-align:right; font:600 14px Manrope, sans-serif; font-variant-numeric:tabular-nums;">{{ e.gasto }}</span>
+            <span style="text-align:right; font:500 14px Manrope, sans-serif; color:var(--ink-2,#55554F); font-variant-numeric:tabular-nums;">{{ e.previsto }}</span>
+            <span style="width:28px; height:28px; border-radius:50%; border:1px solid var(--line,#E3E3DF); display:flex; align-items:center; justify-content:center; font:500 16px Manrope, sans-serif; color:var(--ink-2,#55554F);">{{ e.chev }}</span>
+          </button>
+          <sc-if value="{{ e.aberto }}">
+            <div style="padding:4px 20px 16px 64px; display:flex; flex-direction:column;">
+              <sc-for list="{{ e.subs }}" as="s">
+                <div style="display:grid; grid-template-columns:minmax(150px,1.1fr) minmax(220px,2fr) 150px 150px 28px; gap:16px; align-items:center; padding:10px 0; border-top:1px solid var(--line,#E3E3DF);">
+                  <span style="font:500 13.5px Manrope, sans-serif; color:var(--ink,#111);">{{ s.nome }}</span>
+                  <span style="position:relative; display:block; height:20px; border-radius:999px; background:var(--surface-3,#EBEBE7); overflow:hidden;">
+                    <span style="position:absolute; left:0; top:0; bottom:0; width:{{ s.w }}; background:var(--ink,#111); opacity:0.85; border-radius:999px;"></span>
+                    <span style="position:absolute; right:8px; top:0; bottom:0; display:flex; align-items:center; font:700 11px Manrope, sans-serif; color:var(--ink-2,#55554F); font-variant-numeric:tabular-nums;">{{ s.p }}%</span>
+                  </span>
+                  <span style="text-align:right; font:600 13.5px Manrope, sans-serif; font-variant-numeric:tabular-nums; color:var(--ink,#111);">{{ s.gasto }}</span>
+                  <span style="text-align:right; font:500 13.5px Manrope, sans-serif; font-variant-numeric:tabular-nums; color:var(--ink-2,#55554F);">{{ s.previsto }}</span>
+                  <span></span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </section>
+
+    <section style="margin:8px -24px 0; padding:32px 24px 40px; background:var(--night,#101010); border-radius:30px 30px 0 0; color:#fff; display:grid; grid-template-columns:minmax(0,1.4fr) minmax(280px,1fr); gap:24px;">
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline;">
+          <h2 style="margin:0; font:300 26px Outfit, sans-serif;">Físico x financeiro</h2>
+          <span style="font:600 12px Manrope, sans-serif; color:#9a9a94;">acumulado por mês · 2026</span>
+        </div>
+        <div style="display:flex; align-items:flex-end; gap:10px; height:170px; padding-top:8px;">
+          <sc-for list="{{ meses }}" as="m" hint-placeholder-count="10">
+            <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; height:100%; justify-content:flex-end;">
+              <div style="width:100%; display:flex; gap:3px; align-items:flex-end; height:100%;">
+                <div style="flex:1; height:{{ m.f }}; background:#C6DF5F; border-radius:8px 8px 3px 3px;"></div>
+                <div style="flex:1; height:{{ m.g }}; background:#3a3a3a; border-radius:8px 8px 3px 3px;"></div>
+              </div>
+              <span style="font:600 11px Manrope, sans-serif; color:#9a9a94;">{{ m.m }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex; gap:16px; font:600 12px Manrope, sans-serif; color:#cfcfca;">
+          <span style="display:inline-flex; gap:8px; align-items:center;"><span style="width:10px; height:10px; border-radius:3px; background:#C6DF5F;"></span>Físico executado</span>
+          <span style="display:inline-flex; gap:8px; align-items:center;"><span style="width:10px; height:10px; border-radius:3px; background:#3a3a3a;"></span>Gasto acumulado</span>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <h2 style="margin:0 0 6px; font:300 26px Outfit, sans-serif;">Próximos pagamentos</h2>
+        <sc-for list="{{ parcelas }}" as="p" hint-placeholder-count="4">
+          <div style="display:grid; grid-template-columns:1fr auto; gap:4px 12px; padding:14px 16px; border-radius:16px; background:#1C1C1C;">
+            <span style="font:600 13.5px Manrope, sans-serif;">{{ p.f }}</span>
+            <span style="font:600 14px Manrope, sans-serif; font-variant-numeric:tabular-nums; text-align:right;">{{ p.v }}</span>
+            <span style="font:500 12px Manrope, sans-serif; color:#9a9a94;">{{ p.d }}</span>
+            <span style="font:600 12px Manrope, sans-serif; color:#C6DF5F; text-align:right;">vence {{ p.dt }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { abertas: { 1: true }, sim: 58 };
+  brl(n) { return (n < 0 ? '−' : '') + 'R$ ' + Math.abs(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  dados() {
+    return [
+      { k: 'fundacao', nome: 'Fundação', feito: 100, gasto: 412300, prev: 405000, subs: [['Estacas hélice contínua', 100, 236400, 230000], ['Blocos e baldrames', 100, 175900, 175000]] },
+      { k: 'estrutura', nome: 'Estrutura', feito: 72, gasto: 1012800, prev: 1320000, subs: [['Formas e escoramento', 85, 268000, 310000], ['Armação (aço CA-50/60)', 78, 412900, 480000], ['Pilares', 70, 141300, 210000], ['Concretagem de lajes', 62, 190600, 320000]] },
+      { k: 'alvenaria', nome: 'Alvenaria e vedação', feito: 48, gasto: 268400, prev: 610000, subs: [['Bloco cerâmico 14x19x29', 55, 172800, 330000], ['Vergas e contravergas', 40, 38200, 90000], ['Chapisco e reboco interno', 31, 57400, 190000]] },
+      { k: 'instalacoes', nome: 'Instalações', feito: 30, gasto: 205900, prev: 780000, subs: [['Hidrossanitária', 34, 98200, 320000], ['Elétrica e SPDA', 28, 92300, 360000], ['Gás e incêndio', 18, 15400, 100000]] },
+      { k: 'cobertura', nome: 'Cobertura', feito: 0, gasto: 18600, prev: 240000, subs: [['Impermeabilização', 0, 18600, 140000], ['Telhado e calhas', 0, 0, 100000]] },
+      { k: 'acabamento', nome: 'Acabamento', feito: 12, gasto: 132400, prev: 1465000, subs: [['Contrapiso', 30, 76100, 210000], ['Revestimento cerâmico', 8, 41300, 520000], ['Esquadrias de alumínio', 5, 15000, 380000], ['Pintura', 0, 0, 355000]] }
+    ];
+  }
+  renderVals() {
+    const d = this.dados(), s = this.state.sim, H = 58;
+    const prog = {};
+    d.forEach(e => { prog[e.k] = s <= H ? e.feito * s / H : e.feito + (100 - e.feito) * (s - H) / (100 - H); });
+    if (s < H) { // sequência construtiva mais realista ao voltar no tempo
+      const r = s / H; prog.fundacao = Math.min(100, r * 300); prog.estrutura = Math.max(0, (r - 0.25) / 0.75) * 72; prog.alvenaria = Math.max(0, (r - 0.55) / 0.45) * 48; prog.instalacoes = Math.max(0, (r - 0.65) / 0.35) * 30; prog.acabamento = Math.max(0, (r - 0.85) / 0.15) * 12;
+    }
+    const pesos = { fundacao: .1, estrutura: .3, alvenaria: .15, instalacoes: .15, cobertura: .05, acabamento: .25 };
+    const fis = Object.keys(pesos).reduce((a, k) => a + prog[k] * pesos[k], 0);
+    const ini = new Date(2025, 2, 3).getTime(), fim = new Date(2027, 11, 15).getTime();
+    const dt = new Date(ini + (fim - ini) * s / 100);
+    const nomes = { fundacao: 'Fundação', estrutura: 'Estrutura', alvenaria: 'Alvenaria', instalacoes: 'Instalações', cobertura: 'Cobertura', acabamento: 'Acabamento' };
+    const atual = Object.keys(nomes).find(k => prog[k] < 99.5) || 'acabamento';
+    const allOpen = d.every((_, i) => this.state.abertas[i]);
+    return {
+      progJson: JSON.stringify(prog),
+      sim: s, simFisico: Math.round(fis), simFisicoW: fis.toFixed(1) + '%',
+      simEtapa: fis >= 99.5 ? 'Obra concluída' : 'Em andamento: ' + nomes[atual],
+      simData: s === H ? 'Hoje · 21/10/2026' : dt.toLocaleDateString('pt-BR'),
+      onSim: ev => this.setState({ sim: +ev.target.value }),
+      irHoje: () => this.setState({ sim: H }), irEntrega: () => this.setState({ sim: 100 }),
+      txtTodas: allOpen ? 'Fechar todas' : 'Abrir todas',
+      abrirTodas: () => { const a = {}; if (!allOpen) d.forEach((_, i) => a[i] = true); this.setState({ abertas: a }); },
+      etapas: d.map((e, i) => {
+        const pg = e.gasto / e.prev * 100, alerta = pg > e.feito + 0.5, small = e.feito < 14;
+        return {
+          n: i + 1, nome: e.nome, qtdSub: e.subs.length + ' subetapas', feitoW: e.feito + '%',
+          txtIn: small ? '' : e.feito + '%', txtOut: small ? e.feito + '%' : '',
+          alerta, excL: e.feito + '%', excW: Math.min(100, pg) - e.feito + '%', pg: Math.round(pg), pf: e.feito,
+          gasto: this.brl(e.gasto), previsto: this.brl(e.prev),
+          aberto: !!this.state.abertas[i], chev: this.state.abertas[i] ? '−' : '+',
+          toggle: () => this.setState(st => ({ abertas: { ...st.abertas, [i]: !st.abertas[i] } })),
+          subs: e.subs.map(([nome, p, g, pv]) => ({ nome, p, w: p + '%', gasto: this.brl(g), previsto: this.brl(pv) }))
+        };
+      }),
+      meses: [['jan', 21, 24], ['fev', 24, 27], ['mar', 28, 30], ['abr', 31, 32], ['mai', 34, 34], ['jun', 37, 36], ['jul', 39, 38], ['ago', 42, 39], ['set', 45, 41], ['out', 47, 42.5]].map(([m, f, g]) => ({ m, f: f * 2 + '%', g: g * 2 + '%' })),
+      parcelas: [
+        { f: 'Gerdau Aços Longos', d: 'Aço CA-50 · parcela 2/3', v: 'R$ 62.066,67', dt: '24/10/2026' },
+        { f: 'Concreteira Supermix', d: 'Concreto fck 30 · 48 m³', v: 'R$ 27.840,00', dt: '28/10/2026' },
+        { f: 'Cerâmica Pauluzzi', d: 'Bloco 14x19x29 · parcela 1/2', v: 'R$ 18.350,00', dt: '03/11/2026' },
+        { f: 'Tigre Distribuição', d: 'Tubos e conexões PVC', v: 'R$ 9.412,30', dt: '05/11/2026' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

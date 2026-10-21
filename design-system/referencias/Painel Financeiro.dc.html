@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="tema.js"></script>
+  <style>body{margin:0;background:var(--bg,#ECECEA);color:var(--ink,#111);font-family:Manrope,sans-serif;-webkit-font-smoothing:antialiased}a{color:var(--ink,#111)}a:hover{color:var(--accent-ink,#4C6110)}*{box-sizing:border-box}</style>
+</helmet>
+<div style="min-height:100vh; background:var(--bg,#ECECEA); display:flex; flex-direction:column;">
+  <dc-import name="Topbar" active="Painel" perfil="Financeiro" hint-size="100%,68px"></dc-import>
+  <main style="padding:8px 24px 0; display:flex; flex-direction:column; gap:16px; flex:1;">
+    <section style="display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; padding:8px 4px 0;">
+      <div style="display:flex; flex-direction:column; gap:4px;">
+        <span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Quarta-feira, 21/10/2026</span>
+        <h1 style="margin:0; font:300 40px/1.05 Outfit, sans-serif; letter-spacing:-0.02em;">Painel financeiro</h1>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+        <span style="height:40px; padding:0 16px; border-radius:999px; background:var(--surface,#fff); display:inline-flex; align-items:center; gap:10px; font:600 13px Manrope, sans-serif;">Todas as obras <span style="color:var(--ink-3,#86867F);">▾</span></span>
+        <div style="display:flex; padding:4px; gap:2px; border-radius:999px; background:var(--surface,#fff);">
+          <sc-for list="{{ periodos }}" as="p" hint-placeholder-count="4">
+            <button onClick="{{ p.pick }}" style="height:32px; padding:0 14px; border-radius:999px; border:none; background:{{ p.bg }}; color:{{ p.fg }}; font:600 12.5px Manrope, sans-serif; cursor:pointer;">{{ p.t }}</button>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <section style="display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:16px;">
+      <div style="padding:20px; border-radius:22px; background:var(--ink,#111); color:var(--on-ink,#fff); display:flex; flex-direction:column; gap:8px;">
+        <span style="font:600 12px Manrope, sans-serif; opacity:.65;">Saldo em caixa</span>
+        <span style="font:300 34px Outfit, sans-serif; letter-spacing:-0.01em; font-variant-numeric:tabular-nums; white-space:nowrap;">R$ 1.842.300,15</span>
+        <span style="font:600 12px Manrope, sans-serif; color:var(--accent,#C6DF5F);">+R$ 214.800,00 desde 01/10</span>
+      </div>
+      <div style="padding:20px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:8px;">
+        <span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">A pagar · {{ periodoTxt }}</span>
+        <span style="font:300 34px Outfit, sans-serif; letter-spacing:-0.01em; font-variant-numeric:tabular-nums; white-space:nowrap;">{{ aPagar }}</span>
+        <span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">{{ aPagarQt }}</span>
+      </div>
+      <div style="padding:20px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:8px;">
+        <span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Entradas previstas · {{ periodoTxt }}</span>
+        <span style="font:300 34px Outfit, sans-serif; letter-spacing:-0.01em; font-variant-numeric:tabular-nums; white-space:nowrap;">{{ aReceber }}</span>
+        <span style="font:600 12px Manrope, sans-serif; color:var(--accent-ink,#4C6110);">{{ aReceberQt }}</span>
+      </div>
+      <div style="padding:20px; border-radius:22px; background:var(--warn-bg,#FBF0DB); display:flex; flex-direction:column; gap:8px;">
+        <span style="font:600 12px Manrope, sans-serif; color:var(--warn,#A8650A);">Aguardando liberação</span>
+        <span style="font:300 34px Outfit, sans-serif; letter-spacing:-0.01em; font-variant-numeric:tabular-nums; white-space:nowrap;">R$ 284.910,40</span>
+        <span style="font:600 12px Manrope, sans-serif; color:var(--warn,#A8650A);">7 compras · 2 acima do teto</span>
+      </div>
+    </section>
+
+    <section style="padding:14px 16px; border-radius:22px; background:var(--surface,#fff); display:flex; align-items:center; gap:8px; overflow-x:auto;">
+      <span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F); padding:0 8px; flex:none;">Vencimentos<br>da semana</span>
+      <sc-for list="{{ dias }}" as="d" hint-placeholder-count="7">
+        <div style="flex:1; min-width:104px; padding:10px 12px; border-radius:16px; background:{{ d.bg }}; color:{{ d.fg }}; display:flex; flex-direction:column; gap:4px;">
+          <div style="display:flex; align-items:baseline; gap:6px;"><span style="font:300 24px Outfit, sans-serif; font-variant-numeric:tabular-nums;">{{ d.n }}</span><span style="font:600 11px Manrope, sans-serif; opacity:.6;">{{ d.s }}</span></div>
+          <span style="font:700 12.5px Manrope, sans-serif; font-variant-numeric:tabular-nums;">{{ d.v }}</span>
+          <div style="display:flex; gap:3px;"><sc-for list="{{ d.dots }}" as="x"><span style="width:6px; height:6px; border-radius:50%; background:{{ x.c }};"></span></sc-for></div>
+        </div>
+      </sc-for>
+    </section>
+
+    <section style="display:grid; grid-template-columns:minmax(0,1.7fr) minmax(320px,1fr); gap:16px; align-items:start;">
+      <div style="padding:20px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:12px; min-width:0;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; gap:12px;">
+          <h2 style="margin:0; font:400 22px Outfit, sans-serif;">Compras aguardando liberação</h2>
+          <a href="Compras.dc.html" style="font:700 12.5px Manrope, sans-serif; text-decoration:none;">Ver todas ›</a>
+        </div>
+        <div style="overflow-x:auto;">
+          <div style="display:grid; grid-template-columns:96px minmax(150px,1.3fr) minmax(130px,1fr) 128px 170px 92px; min-width:820px; font:500 13.5px Manrope, sans-serif; font-variant-numeric:tabular-nums;">
+            <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Compra</span>
+            <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Item · obra</span>
+            <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Fornecedor</span>
+            <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F); text-align:right;">Valor</span>
+            <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Situação</span>
+            <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF);"></span>
+            <sc-for list="{{ compras }}" as="c" hint-placeholder-count="6">
+              <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); font-weight:700;">{{ c.id }}</span>
+              <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); display:flex; flex-direction:column; gap:2px;"><span style="font-weight:600;">{{ c.item }}</span><span style="font:500 11.5px Manrope, sans-serif; color:var(--ink-3,#86867F);">{{ c.obra }} · {{ c.data }}</span></span>
+              <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); color:var(--ink-2,#55554F);">{{ c.forn }}</span>
+              <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); text-align:right; font-weight:700;">{{ c.valor }}</span>
+              <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); display:flex; align-items:center;"><span style="display:inline-flex; align-items:center; gap:6px; height:24px; padding:0 10px; border-radius:999px; background:{{ c.sbg }}; color:{{ c.sfg }}; font:700 11.5px Manrope, sans-serif; white-space:nowrap;"><span style="width:6px; height:6px; border-radius:50%; background:currentColor;"></span>{{ c.sit }}</span></span>
+              <span style="padding:8px; border-bottom:1px solid var(--line,#E3E3DF); display:flex; align-items:center; justify-content:flex-end;"><a href="Compra Detalhe.dc.html" style="height:32px; padding:0 14px; border-radius:999px; background:var(--ink,#111); color:var(--on-ink,#fff); font:600 12px Manrope, sans-serif; display:inline-flex; align-items:center; text-decoration:none;">Analisar</a></span>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:20px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline;">
+          <h2 style="margin:0; font:400 22px Outfit, sans-serif;">Parcelas a vencer</h2>
+          <span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">próximos 15 dias</span>
+        </div>
+        <sc-for list="{{ grupos }}" as="g" hint-placeholder-count="3">
+          <div style="display:flex; flex-direction:column;">
+            <div style="display:flex; justify-content:space-between; padding:8px 0 6px; font:700 12px Manrope, sans-serif; color:{{ g.cor }}; font-variant-numeric:tabular-nums;"><span>{{ g.nome }}</span><span>{{ g.total }}</span></div>
+            <sc-for list="{{ g.itens }}" as="p">
+              <div style="display:grid; grid-template-columns:52px 1fr auto; gap:12px; align-items:center; padding:10px 0; border-top:1px solid var(--line,#E3E3DF);">
+                <span style="font:600 12px Manrope, sans-serif; color:var(--ink-2,#55554F); font-variant-numeric:tabular-nums;">{{ p.dt }}</span>
+                <span style="display:flex; flex-direction:column; gap:1px; min-width:0;"><span style="font:600 13.5px Manrope, sans-serif;">{{ p.f }}</span><span style="font:500 11.5px Manrope, sans-serif; color:var(--ink-3,#86867F);">{{ p.d }}</span></span>
+                <span style="font:700 13.5px Manrope, sans-serif; font-variant-numeric:tabular-nums; color:{{ p.c }};">{{ p.v }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="margin:8px -24px 0; padding:32px 24px 40px; background:var(--night,#101010); border-radius:30px 30px 0 0; color:#fff; display:grid; grid-template-columns:minmax(0,1.7fr) minmax(320px,1fr); gap:24px;">
+      <div style="display:flex; flex-direction:column; gap:18px; min-width:0;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap;">
+          <h2 style="margin:0; font:300 28px Outfit, sans-serif;">Fluxo de caixa</h2>
+          <div style="display:flex; gap:16px; font:600 12px Manrope, sans-serif; color:#cfcfca;">
+            <span style="display:inline-flex; gap:8px; align-items:center;"><span style="width:10px; height:10px; border-radius:3px; background:#C6DF5F;"></span>Entradas</span>
+            <span style="display:inline-flex; gap:8px; align-items:center;"><span style="width:10px; height:10px; border-radius:3px; background:#4a4a4a;"></span>Saídas</span>
+            <span style="display:inline-flex; gap:8px; align-items:center;"><span style="width:10px; height:10px; border-radius:3px; background:#FF7A70;"></span>Mês negativo</span>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(8, minmax(0,1fr)); gap:10px;">
+          <sc-for list="{{ fluxo }}" as="m" hint-placeholder-count="8">
+            <div style="display:flex; flex-direction:column; gap:10px; padding:12px 10px; border-radius:18px; background:{{ m.bg }};">
+              <div style="height:150px; display:flex; gap:4px; align-items:flex-end;">
+                <div style="flex:1; height:{{ m.e }}; background:#C6DF5F; border-radius:8px 8px 3px 3px;"></div>
+                <div style="flex:1; height:{{ m.s }}; background:#4a4a4a; border-radius:8px 8px 3px 3px;"></div>
+              </div>
+              <span style="font:600 12px Manrope, sans-serif; color:#9a9a94;">{{ m.m }}</span>
+              <span style="font:700 12.5px Manrope, sans-serif; font-variant-numeric:tabular-nums; color:{{ m.c }}; white-space:nowrap;">{{ m.saldo }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <span style="font:500 12px Manrope, sans-serif; color:#9a9a94;">Saldo do mês em mil reais (k). Meses à direita de out/2026 são previsão: parcelas contratadas + entradas confirmadas.</span>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <h2 style="margin:0 0 6px; font:300 28px Outfit, sans-serif;">Entradas previstas</h2>
+        <sc-for list="{{ entradas }}" as="e" hint-placeholder-count="4">
+          <div style="display:grid; grid-template-columns:1fr auto; gap:4px 12px; padding:14px 16px; border-radius:16px; background:#1C1C1C;">
+            <span style="font:600 13.5px Manrope, sans-serif;">{{ e.o }}</span>
+            <span style="font:700 14px Manrope, sans-serif; font-variant-numeric:tabular-nums; text-align:right;">{{ e.v }}</span>
+            <span style="font:500 12px Manrope, sans-serif; color:#9a9a94;">{{ e.d }}</span>
+            <span style="font:600 12px Manrope, sans-serif; color:{{ e.c }}; text-align:right;">{{ e.st }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { per: 1 };
+  renderVals() {
+    const v = k => `var(--${k})`;
+    const per = this.state.per;
+    const pag = ['R$ 248.310,20', 'R$ 612.480,90', 'R$ 1.104.772,35', 'R$ 1.580.214,00'][per];
+    const rec = ['R$ 420.000,00', 'R$ 900.000,00', 'R$ 1.650.000,00', 'R$ 2.310.000,00'][per];
+    const sit = { f: ['Aguardando financeiro', v('warn-bg'), v('warn')], c: ['Aguardando chefe', v('pink-bg'), v('pink-ink')] };
+    const C = [
+      ['CP-0418', 'Aço CA-50 10 e 12,5 mm · 28 t', 'Vila Aurora', 'Gerdau Aços Longos', 'R$ 186.200,00', 'c', '20/10/2026'],
+      ['CP-0421', 'Concreto usinado fck 30 · 48 m³', 'Vila Aurora', 'Concreteira Supermix', 'R$ 27.840,00', 'f', '20/10/2026'],
+      ['CP-0422', 'Bloco cerâmico 14x19x29 · 18 mil', 'Jardim Botânico', 'Cerâmica Pauluzzi', 'R$ 36.700,00', 'f', '21/10/2026'],
+      ['CP-0415', 'Locação de grua · out/2026', 'Vila Aurora', 'Locaguindastes', 'R$ 14.900,00', 'f', '19/10/2026'],
+      ['CP-0423', 'Tubos PVC e conexões', 'Cajamar', 'Tigre Distribuição', 'R$ 9.412,30', 'f', '21/10/2026'],
+      ['CP-0419', 'Cimento CP-II 50 kg · 300 sc', 'Jardim Botânico', 'Votorantim Cimentos', 'R$ 9.858,10', 'f', '20/10/2026']
+    ];
+    return {
+      periodos: ['Este mês', '30 dias', '60 dias', '90 dias'].map((t, i) => ({ t, bg: i === per ? v('ink') : 'transparent', fg: i === per ? v('on-ink') : v('ink-2'), pick: () => this.setState({ per: i }) })),
+      periodoTxt: ['este mês', '30 dias', '60 dias', '90 dias'][per],
+      aPagar: pag, aPagarQt: ['14 parcelas', '31 parcelas', '52 parcelas', '74 parcelas'][per],
+      aReceber: rec, aReceberQt: ['2 aportes confirmados', '3 aportes + 1 medição', '5 entradas', '7 entradas'][per],
+      dias: [['19', 'seg', 'R$ 12.400,00', 1, 'past'], ['20', 'ter', 'R$ 0,00', 0, 'past'], ['21', 'qua', 'R$ 31.260,00', 3, 'hoje'], ['22', 'qui', 'R$ 8.920,00', 1], ['23', 'sex', 'R$ 44.180,50', 4], ['24', 'sáb', 'R$ 62.066,67', 1], ['26', 'seg', 'R$ 18.700,00', 2]].map(([n, s, val, q, t]) => ({
+        n, s, v: val, bg: t === 'hoje' ? v('ink') : v('surface-2'), fg: t === 'hoje' ? v('on-ink') : (t === 'past' ? v('ink-3') : v('ink')),
+        dots: Array.from({ length: q }, (_, i) => ({ c: t === 'hoje' ? v('accent') : (i === 0 && n === '23' ? v('neg') : v('ink-3')) }))
+      })),
+      compras: C.map(([id, item, obra, forn, valor, s, data]) => ({ id, item, obra, forn, valor, data, sit: sit[s][0], sbg: sit[s][1], sfg: sit[s][2] })),
+      grupos: [
+        { nome: 'Vencidas', total: '−R$ 4.380,00', cor: v('neg'), itens: [{ dt: '17/10', f: 'Eletro Forte Materiais', d: 'Cabos 2,5 mm · 2/2 · Cajamar', v: '−R$ 4.380,00', c: v('neg') }] },
+        { nome: 'Hoje', total: 'R$ 31.260,00', cor: v('ink'), itens: [
+          { dt: '21/10', f: 'Locaguindastes', d: 'Grua · 3/12 · Vila Aurora', v: 'R$ 14.900,00', c: v('ink') },
+          { dt: '21/10', f: 'Madeireira São Jorge', d: 'Madeirite 18 mm · 1/2', v: 'R$ 11.320,00', c: v('ink') },
+          { dt: '21/10', f: 'Quartzolit', d: 'Argamassa AC-II · 1/1', v: 'R$ 5.040,00', c: v('ink') }] },
+        { nome: 'Próximos dias', total: 'R$ 133.866,67', cor: v('ink-2'), itens: [
+          { dt: '23/10', f: 'Concreteira Supermix', d: 'fck 30 · 1/2 · Vila Aurora', v: 'R$ 27.840,00', c: v('ink') },
+          { dt: '24/10', f: 'Gerdau Aços Longos', d: 'CA-50 · 2/3 · Vila Aurora', v: 'R$ 62.066,67', c: v('ink') },
+          { dt: '26/10', f: 'Cerâmica Pauluzzi', d: 'Bloco 14x19x29 · 1/2', v: 'R$ 18.350,00', c: v('ink') }] }
+      ],
+      fluxo: [['mai', 820, 640, 0], ['jun', 610, 720, 0], ['jul', 900, 780, 0], ['ago', 540, 810, 0], ['set', 980, 760, 0], ['out', 900, 612, 1], ['nov', 760, 690, 2], ['dez', 520, 740, 2]].map(([m, e, s, f]) => {
+        const d = e - s;
+        return { m: m + (f === 2 ? ' · prev.' : f === 1 ? ' · atual' : ''), e: e / 10 + '%', s: s / 10 + '%', saldo: (d < 0 ? '−' : '+') + 'R$ ' + Math.abs(d) + 'k', c: d < 0 ? '#FF7A70' : '#fff', bg: f === 1 ? '#262626' : (f === 2 ? 'transparent' : '#1C1C1C') };
+      }),
+      entradas: [
+        { o: 'Aporte · Investidor Vila Aurora', d: 'Parcela 6/10 · 30/10/2026', v: 'R$ 450.000,00', st: 'Confirmado', c: '#C6DF5F' },
+        { o: 'Medição Caixa · Jardim Botânico', d: 'Plano Empresário · 05/11/2026', v: 'R$ 320.000,00', st: 'Em análise', c: '#F1B24E' },
+        { o: 'Venda unidade 704 · Vila Aurora', d: 'Sinal · 10/11/2026', v: 'R$ 130.000,00', st: 'Confirmado', c: '#C6DF5F' },
+        { o: 'Aporte · Grupo Cajamar Log', d: 'Parcela 3/6 · 18/11/2026', v: 'R$ 750.000,00', st: 'Aguardando', c: '#9a9a94' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

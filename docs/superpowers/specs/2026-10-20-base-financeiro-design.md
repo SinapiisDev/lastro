@@ -67,6 +67,8 @@ Lista que abre e fecha. Cada etapa é uma linha com:
 
 As subetapas aparecem recuadas, cada uma com sua barra, seu % e o gasto dela. A barra fica **laranja** quando o % gasto do previsto é maior que o % de serviço feito (ex.: 85% do dinheiro com 60% da etapa pronta). Tem que funcionar bem no celular, porque o engenheiro usa na obra. O modelo visual de referência está em `.superpowers/brainstorm/1410-1792524167/content/etapas.html` (opção A).
 
+> Atualização (redesign): o visual de todas as telas agora segue o `DESIGN.md` da raiz e a biblioteca em `design-system/`. O alerta de gasto acima do feito virou trecho hachurado em vermelho com marcador do gasto (componente `BarraEtapa`), no lugar da barra laranja.
+
 ## Compras
 
 Na parte 1, o engenheiro cadastra a compra num formulário simples (pelo acesso da obra).

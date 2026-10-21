@@ -8,7 +8,7 @@ import { normalizarWhatsapp } from '@/lib/cotacao'
 import { carregarFornecedor, mandarTexto, registrarEntrada, processarFornecedor, responderAudio } from '@/lib/conversa'
 import { whatsappReal } from '@/lib/whatsapp'
 import { validarArquivo, enviarArquivo } from '@/lib/storage'
-import type { Estado } from '@/components/form-acao'
+import type { Estado } from '@ds'
 
 // Engenheiro só conversa com fornecedor que está numa cotação da obra dele.
 async function fornecedorPermitido(s: Sessao, fornecedorId: number) {

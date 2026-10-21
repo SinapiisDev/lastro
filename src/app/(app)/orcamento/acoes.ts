@@ -4,7 +4,7 @@ import { notFound, redirect } from 'next/navigation'
 import { refresh } from 'next/cache'
 import { sql, escrever, type Tx } from '@/lib/db'
 import { exigirSessao, nomePerfil } from '@/lib/sessao'
-import type { Estado } from '@/components/form-acao'
+import type { Estado } from '@ds'
 
 // Orçamento é montado pelo chefe e pelo financeiro; o engenheiro só consulta.
 const exigir = () => exigirSessao('chefe', 'financeiro')

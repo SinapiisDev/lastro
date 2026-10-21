@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="tema.js"></script>
+  <style>body{margin:0;background:var(--bg,#ECECEA);color:var(--ink,#111);font-family:Manrope,sans-serif;-webkit-font-smoothing:antialiased}a{color:var(--ink,#111)}a:hover{color:var(--accent-ink,#4C6110)}*{box-sizing:border-box}</style>
+</helmet>
+<div style="min-height:100vh; background:var(--bg,#ECECEA); display:flex; flex-direction:column;">
+  <dc-import name="Topbar" active="Relatórios" perfil="Chefe" hint-size="100%,68px"></dc-import>
+  <main style="padding:8px 24px 40px; display:flex; flex-direction:column; gap:16px;">
+    <section style="display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; padding:8px 4px 0;">
+      <div style="display:flex; flex-direction:column; gap:4px;">
+        <span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Dados até 21/10/2026 · 4 obras ativas</span>
+        <h1 style="margin:0; font:300 40px/1.05 Outfit, sans-serif; letter-spacing:-0.02em;">Relatórios</h1>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+        <span style="height:40px; padding:0 16px; border-radius:999px; background:var(--surface,#fff); display:inline-flex; align-items:center; gap:10px; font:600 13px Manrope, sans-serif;">Todas as obras <span style="color:var(--ink-3,#86867F);">▾</span></span>
+        <span style="height:40px; padding:0 16px; border-radius:999px; background:var(--surface,#fff); display:inline-flex; align-items:center; gap:10px; font:600 13px Manrope, sans-serif; font-variant-numeric:tabular-nums;">01/01/2026 – 21/10/2026 <span style="color:var(--ink-3,#86867F);">▾</span></span>
+        <button style="height:40px; padding:0 18px; border-radius:999px; border:1px solid var(--line,#E3E3DF); background:var(--surface,#fff); color:var(--ink,#111); font:600 13px Manrope, sans-serif; cursor:pointer;">Exportar Excel</button>
+        <button style="height:40px; padding:0 18px; border-radius:999px; border:none; background:var(--ink,#111); color:var(--on-ink,#fff); font:600 13px Manrope, sans-serif; cursor:pointer;">Gerar PDF</button>
+      </div>
+    </section>
+
+    <section style="padding:20px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap;">
+        <h2 style="margin:0; font:400 22px Outfit, sans-serif;">Gasto por obra</h2>
+        <span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">barra preta = gasto · marcador lima = físico executado</span>
+      </div>
+      <div style="display:grid; grid-template-columns:minmax(180px,1.2fr) minmax(240px,2fr) 140px 140px 130px; min-width:0; font:500 13.5px Manrope, sans-serif; font-variant-numeric:tabular-nums; overflow-x:auto;">
+        <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Obra</span>
+        <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Gasto x físico</span>
+        <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F); text-align:right;">Gasto</span>
+        <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F); text-align:right;">Previsto</span>
+        <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F); text-align:right;">Desvio</span>
+        <sc-for list="{{ obras }}" as="o" hint-placeholder-count="4">
+          <span style="padding:14px 8px; border-bottom:1px solid var(--line,#E3E3DF); display:flex; flex-direction:column; gap:1px;"><span style="font-weight:600;">{{ o.n }}</span><span style="font:500 11.5px Manrope, sans-serif; color:var(--ink-3,#86867F);">{{ o.d }}</span></span>
+          <span style="padding:14px 8px; border-bottom:1px solid var(--line,#E3E3DF); display:flex; align-items:center;">
+            <span style="position:relative; display:block; width:100%; height:24px; border-radius:999px; background:var(--surface-3,#EBEBE7);">
+              <span style="position:absolute; left:0; top:0; bottom:0; width:{{ o.gw }}; background:var(--ink,#111); border-radius:999px; display:flex; align-items:center; justify-content:flex-end; padding-right:8px; font:700 11px Manrope, sans-serif; color:var(--on-ink,#fff);">{{ o.gp }}</span>
+              <span style="position:absolute; top:-4px; bottom:-4px; left:{{ o.fw }}; width:4px; margin-left:-2px; border-radius:2px; background:var(--accent,#C6DF5F); box-shadow:0 0 0 2px var(--surface,#fff);"></span>
+            </span>
+          </span>
+          <span style="padding:14px 8px; border-bottom:1px solid var(--line,#E3E3DF); text-align:right; font-weight:700; display:flex; align-items:center; justify-content:flex-end;">{{ o.g }}</span>
+          <span style="padding:14px 8px; border-bottom:1px solid var(--line,#E3E3DF); text-align:right; color:var(--ink-2,#55554F); display:flex; align-items:center; justify-content:flex-end;">{{ o.p }}</span>
+          <span style="padding:14px 8px; border-bottom:1px solid var(--line,#E3E3DF); text-align:right; font-weight:700; color:{{ o.dc }}; display:flex; align-items:center; justify-content:flex-end;">{{ o.dv }}</span>
+        </sc-for>
+        <span style="padding:14px 8px; background:var(--surface-2,#F5F5F3); border-radius:12px 0 0 12px; margin-top:6px; font-weight:700;">Total</span>
+        <span style="padding:14px 8px; background:var(--surface-2,#F5F5F3); margin-top:6px;"></span>
+        <span style="padding:14px 8px; background:var(--surface-2,#F5F5F3); margin-top:6px; text-align:right; font-weight:700;">R$ 9.358.900,00</span>
+        <span style="padding:14px 8px; background:var(--surface-2,#F5F5F3); margin-top:6px; text-align:right; font-weight:700;">R$ 21.560.000,00</span>
+        <span style="padding:14px 8px; background:var(--surface-2,#F5F5F3); border-radius:0 12px 12px 0; margin-top:6px; text-align:right; font-weight:700; color:var(--ok,#3C7421);">+1,2 p.p.</span>
+      </div>
+    </section>
+
+    <section style="padding:24px; border-radius:30px; background:var(--night,#101010); color:#fff; display:flex; flex-direction:column; gap:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap;">
+        <h2 style="margin:0; font:300 28px Outfit, sans-serif;">Fluxo 30 · 60 · 90 dias</h2>
+        <span style="font:600 12px Manrope, sans-serif; color:#9a9a94;">saldo inicial R$ 1.842.300,15 em 21/10/2026</span>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px;">
+        <sc-for list="{{ fluxo }}" as="f" hint-placeholder-count="3">
+          <div style="padding:18px; border-radius:22px; background:#1C1C1C; display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline;"><span style="font:400 20px Outfit, sans-serif;">{{ f.t }}</span><span style="font:600 12px Manrope, sans-serif; color:#9a9a94;">até {{ f.ate }}</span></div>
+            <div style="display:grid; grid-template-columns:1fr auto; gap:8px; font:500 13px Manrope, sans-serif; font-variant-numeric:tabular-nums;">
+              <span style="color:#a9a9a3;">Entradas</span><span style="text-align:right; color:#C6DF5F; font-weight:700;">{{ f.e }}</span>
+              <span style="color:#a9a9a3;">Saídas</span><span style="text-align:right; font-weight:700;">{{ f.s }}</span>
+              <span style="color:#a9a9a3;">Resultado do período</span><span style="text-align:right; font-weight:700; color:{{ f.rc }};">{{ f.r }}</span>
+            </div>
+            <div style="height:1px; background:#2b2b2b;"></div>
+            <span style="font:600 12px Manrope, sans-serif; color:#9a9a94;">Saldo projetado</span>
+            <span style="font:300 30px Outfit, sans-serif; font-variant-numeric:tabular-nums; color:{{ f.sc }};">{{ f.saldo }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); gap:16px; align-items:start;">
+      <div style="padding:20px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline;"><h2 style="margin:0; font:400 22px Outfit, sans-serif;">Compras por fornecedor</h2><span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">2026 · top 8</span></div>
+        <sc-for list="{{ forns }}" as="f" hint-placeholder-count="8">
+          <div style="display:grid; grid-template-columns:24px minmax(150px,1fr) minmax(120px,1.4fr) 130px; gap:12px; align-items:center; padding:8px 0; border-top:1px solid var(--line,#E3E3DF); font-variant-numeric:tabular-nums;">
+            <span style="font:700 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">{{ f.i }}</span>
+            <span style="display:flex; flex-direction:column; gap:1px;"><span style="font:600 13.5px Manrope, sans-serif;">{{ f.n }}</span><span style="font:500 11.5px Manrope, sans-serif; color:var(--ink-3,#86867F);">{{ f.c }}</span></span>
+            <span style="display:block; height:12px; border-radius:999px; background:var(--surface-3,#EBEBE7);"><span style="display:block; height:100%; width:{{ f.w }}; border-radius:999px; background:{{ f.bc }};"></span></span>
+            <span style="text-align:right; font:700 13.5px Manrope, sans-serif;">{{ f.v }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="padding:20px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline;"><h2 style="margin:0; font:400 22px Outfit, sans-serif;">Pendências</h2><span style="display:inline-flex; align-items:center; height:24px; padding:0 10px; border-radius:999px; background:var(--neg-bg,#FBEAE8); color:var(--neg,#C3352D); font:700 11.5px Manrope, sans-serif;">11 abertas</span></div>
+        <sc-for list="{{ pend }}" as="p" hint-placeholder-count="6">
+          <a href="{{ p.href }}" style="display:grid; grid-template-columns:36px 1fr auto; gap:12px; align-items:center; padding:12px; border-radius:16px; background:var(--surface-2,#F5F5F3); text-decoration:none; color:var(--ink,#111);" style-hover="background:var(--surface-3,#EBEBE7);">
+            <span style="width:36px; height:36px; border-radius:12px; background:{{ p.bg }}; color:{{ p.fg }}; display:flex; align-items:center; justify-content:center; font:800 14px Manrope, sans-serif; font-variant-numeric:tabular-nums;">{{ p.q }}</span>
+            <span style="display:flex; flex-direction:column; gap:1px;"><span style="font:600 13.5px Manrope, sans-serif;">{{ p.t }}</span><span style="font:500 11.5px Manrope, sans-serif; color:var(--ink-3,#86867F);">{{ p.d }}</span></span>
+            <span style="font:500 16px Manrope, sans-serif; color:var(--ink-3,#86867F);">›</span>
+          </a>
+        </sc-for>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const v = c => `var(--${c})`;
+    const brl = n => (n < 0 ? '−' : '') + 'R$ ' + Math.abs(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const O = [['Residencial Vila Aurora', 'OB-014 · São Paulo/SP', 2050400, 4820000, 46], ['Edifício Jardim Botânico', 'OB-011 · Curitiba/PR', 5214300, 8940000, 61], ['Galpão Logístico Cajamar', 'OB-016 · Cajamar/SP', 1694200, 5100000, 29], ['Casa Alphaville Lote 12', 'OB-017 · Barueri/SP', 400000, 2700000, 17]];
+    const F = [['Gerdau Aços Longos', 'Aço', 1284600], ['Concreteira Supermix', 'Concreto', 962300], ['Portobello', 'Revestimento', 541800], ['Cerâmica Pauluzzi', 'Bloco cerâmico', 488200], ['Locaguindastes', 'Equipamentos', 312000], ['Votorantim Cimentos', 'Cimento', 276400], ['Tigre Distribuição', 'Hidráulica', 198700], ['Madeireira São Jorge', 'Madeira', 164900]];
+    return {
+      obras: O.map(([n, d, g, p, f]) => { const gp = g / p * 100, dv = f - gp; return { n, d, g: brl(g), p: brl(p), gw: gp.toFixed(1) + '%', gp: gp.toFixed(1).replace('.', ',') + '%', fw: f + '%', dv: (dv < 0 ? '−' : '+') + Math.abs(dv).toFixed(1).replace('.', ',') + ' p.p.', dc: dv < 0 ? v('neg') : v('ok') }; }),
+      fluxo: [['30 dias', '20/11/2026', 900000, 612480.9], ['60 dias', '20/12/2026', 1650000, 2284772.35], ['90 dias', '19/01/2027', 2310000, 4380214]].map(([t, ate, e, s]) => {
+        const r = e - s, sal = 1842300.15 + r;
+        return { t, ate, e: brl(e), s: '−' + brl(s), r: (r < 0 ? '' : '+') + brl(r), rc: r < 0 ? '#FF7A70' : '#C6DF5F', saldo: brl(sal), sc: sal < 0 ? '#FF7A70' : '#fff' };
+      }),
+      forns: F.map(([n, c, val], i) => ({ i: i + 1, n, c, v: brl(val), w: (val / F[0][2] * 100) + '%', bc: i === 0 ? v('ink') : v('ink-3') })),
+      pend: [
+        { q: '4', t: 'Notas fiscais faltando', d: 'Compras pagas ou a pagar sem NF anexada', bg: v('neg-bg'), fg: v('neg'), href: 'Compras.dc.html' },
+        { q: '2', t: 'Aguardando o chefe há mais de 24 h', d: 'CP-0418 · CP-0417 — R$ 299.000,00', bg: v('pink-bg'), fg: v('pink-ink'), href: 'Compra Detalhe.dc.html' },
+        { q: '1', t: 'Parcela vencida', d: 'Eletro Forte · −R$ 4.380,00 desde 17/10/2026', bg: v('neg-bg'), fg: v('neg'), href: 'Painel Financeiro.dc.html' },
+        { q: '2', t: 'Etapas com gasto acima do feito', d: 'Vila Aurora: Fundação e Estrutura', bg: v('warn-bg'), fg: v('warn'), href: 'Obra.dc.html' },
+        { q: '1', t: 'Cotação sem resposta', d: 'COT-0089 · Esquadrias · enviada há 5 dias', bg: v('surface-3'), fg: v('ink-2'), href: 'Cotacao.dc.html' },
+        { q: '1', t: 'Orçamento aguardando investidor', d: 'Galpão Cajamar v2 · desde 09/10/2026', bg: v('info-bg'), fg: v('info'), href: 'Orcamento.dc.html' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

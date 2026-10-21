@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="tema.js"></script>
+  <style>body{margin:0;background:var(--bg,#ECECEA);color:var(--ink,#111);font-family:Manrope,sans-serif;-webkit-font-smoothing:antialiased}a{color:var(--ink,#111)}a:hover{color:var(--accent-ink,#4C6110)}*{box-sizing:border-box}</style>
+</helmet>
+<div style="min-height:100vh; background:var(--bg,#ECECEA); padding:40px 32px 64px; display:flex; flex-direction:column; gap:28px; max-width:1320px; margin:0 auto;">
+  <header style="display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap;">
+    <div style="display:flex; flex-direction:column; gap:10px; max-width:640px;">
+      <span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Construtora Alicerce · sistema interno</span>
+      <h1 style="margin:0; font:300 52px/1 Outfit, sans-serif; letter-spacing:-0.02em;">Gestão de Obras</h1>
+      <p style="margin:0; font:500 15px/1.6 Manrope, sans-serif; color:var(--ink-2,#55554F);">Design system e telas. Use ◐ na barra superior de qualquer tela para alternar o tema claro e escuro.</p>
+    </div>
+    <button onClick="{{ tema }}" style="height:40px; padding:0 18px; border-radius:999px; border:none; background:var(--ink,#111); color:var(--on-ink,#fff); font:600 13px Manrope, sans-serif; cursor:pointer;">◐ Alternar tema</button>
+  </header>
+  <sc-for list="{{ grupos }}" as="g" hint-placeholder-count="3">
+    <section style="display:flex; flex-direction:column; gap:12px;">
+      <h2 style="margin:0; font:400 22px Outfit, sans-serif;">{{ g.t }}</h2>
+      <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:12px;">
+        <sc-for list="{{ g.itens }}" as="i">
+          <a href="{{ i.href }}" style="padding:20px; min-height:132px; border-radius:22px; background:var(--surface,#fff); text-decoration:none; color:var(--ink,#111); display:flex; flex-direction:column; justify-content:space-between; gap:12px;" style-hover="background:var(--surface-2,#F5F5F3);">
+            <span style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;"><span style="font:600 16px Manrope, sans-serif;">{{ i.n }}</span><span style="height:22px; padding:0 9px; border-radius:999px; background:var(--surface-3,#EBEBE7); font:700 10.5px Manrope, sans-serif; color:var(--ink-2,#55554F); display:inline-flex; align-items:center; white-space:nowrap;">{{ i.tag }}</span></span>
+            <span style="font:500 12.5px/1.5 Manrope, sans-serif; color:var(--ink-3,#86867F);">{{ i.d }}</span>
+          </a>
+        </sc-for>
+      </div>
+    </section>
+  </sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const I = (n, href, tag, d) => ({ n, href, tag, d });
+    return {
+      tema: () => window.goTema && window.goTema.alternar(),
+      grupos: [
+        { t: 'Sistema', itens: [I('Design System', 'Design System.dc.html', 'tokens', 'Cores, tipografia, espaçamento, raio e todos os componentes com estados, nos dois temas.'), I('DESIGN.md', 'DESIGN.md', 'guia', 'Princípios, tokens, regras de uso e escrita.')] },
+        { t: 'Desktop', itens: [
+          I('Entrada', 'Entrada.dc.html', 'acesso', 'Perfil, obra e senha. Senha “0000” mostra o erro.'),
+          I('Painel financeiro', 'Painel Financeiro.dc.html', 'financeiro', 'Liberações, parcelas a vencer, fluxo mês a mês, entradas previstas.'),
+          I('Obra', 'Obra.dc.html', '3D', 'Prédio 3D construído pelas etapas, linha do tempo, etapas que abrem e fecham.'),
+          I('Orçamento', 'Orcamento.dc.html', 'BDI', 'Itens por etapa, BDI editável, valor ao investidor, rascunho → enviado → aprovado.'),
+          I('Orçamento · impressão', 'Orcamento Impressao.dc.html', 'PDF', 'Versão A4 em duas páginas para imprimir ou salvar.'),
+          I('Cotação', 'Cotacao.dc.html', 'IA', 'Comparativo lado a lado, indicação da IA, escolha e conversas.'),
+          I('Compras', 'Compras.dc.html', 'tabela', 'Listagem com filtros por obra, período e situação; seleção em lote.'),
+          I('Detalhe da compra', 'Compra Detalhe.dc.html', 'chefe', 'Itens, orçamento, análise, parcelas, documentos, histórico, aprovar/recusar.'),
+          I('Nova compra', 'Nova Compra.dc.html', 'formulário', 'Validação, parcelas calculadas, anexos e quem aprova pelo teto.'),
+          I('Relatórios', 'Relatorios.dc.html', 'análise', 'Gasto por obra, fluxo 30/60/90, fornecedores e pendências.'),
+          I('Configurações', 'Configuracoes.dc.html', 'admin', 'Tetos de aprovação, senhas, obras e fornecedores.')] },
+        { t: 'Celular', itens: [I('Telas do engenheiro', 'Telas Celular.dc.html', 'mobile', 'Entrada, obra com percentual por subetapa e nova compra.')] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

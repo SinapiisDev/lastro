@@ -8,7 +8,7 @@ import { faixaDaCompra, centavos, brl } from '@/lib/regras'
 import { registrarCompra } from '@/lib/compras'
 import { enviarPedido } from '@/lib/conversa'
 import { validarArquivo, enviarArquivo } from '@/lib/storage'
-import type { Estado } from '@/components/form-acao'
+import type { Estado } from '@ds'
 
 const texto = (d: FormData, campo: string) => String(d.get(campo) ?? '').trim()
 const dataValida = (x: string) => /^\d{4}-\d{2}-\d{2}$/.test(x) && !isNaN(Date.parse(x + 'T00:00:00Z'))

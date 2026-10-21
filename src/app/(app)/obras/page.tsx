@@ -1,10 +1,10 @@
 import Link from 'next/link'
+import { BarraEtapa, CabecalhoTela, Campo, Dinheiro, Entrada, EstadoVazio, FormAcao, Secao, Tabela, Td, Th, Tr } from '@ds'
 import { sql } from '@/lib/db'
 import { exigirSessao } from '@/lib/sessao'
-import { brl } from '@/lib/regras'
-import { FormAcao } from '@/components/form-acao'
-import { Secao, Trena, Vazio, Rolagem } from '@/components/ui'
 import { criarObra } from './acoes'
+
+const codigo = (id: number) => `OB-${String(id).padStart(3, '0')}`
 
 export default async function Obras() {
   await exigirSessao('chefe', 'financeiro')
@@ -18,67 +18,66 @@ export default async function Obras() {
         where e.obra_id = o.id group by e.id) x), 0)::int as progresso
     from obras o
     order by o.ativa desc, o.nome`
+  const ativas = obras.filter((o) => o.ativa).length
 
   return (
-    <div className="grid gap-6">
-      <h1>Obras</h1>
+    <>
+      <CabecalhoTela contexto={`${ativas} ${ativas === 1 ? 'obra ativa' : 'obras ativas'}`} titulo="Obras" />
       <Secao titulo="Todas as obras">
         {obras.length === 0 ? (
-          <Vazio>Nenhuma obra ainda. Cadastre a primeira logo abaixo.</Vazio>
+          <EstadoVazio titulo="Nenhuma obra ainda">Cadastre a primeira logo abaixo; ela já começa com a lista padrão de etapas.</EstadoVazio>
         ) : (
-          <Rolagem>
-            <table className="tabela">
-              <thead>
-                <tr>
-                  <th>Obra</th>
-                  <th className="w-1/3">Serviço feito</th>
-                  <th className="num">Gasto</th>
-                  <th className="num">Previsto</th>
-                </tr>
-              </thead>
-              <tbody>
-                {obras.map((o) => (
-                  <tr key={o.id}>
-                    <td>
-                      <Link href={`/obras/${o.id}`} className="font-medium underline">
-                        {o.nome}
-                      </Link>
-                      {!o.ativa && <span className="ml-2 text-sm text-cinza">(encerrada)</span>}
-                      {o.endereco && <p className="text-sm text-cinza">{o.endereco}</p>}
-                    </td>
-                    <td>
-                      <Trena pct={o.progresso} fina />
-                    </td>
-                    <td className="num">{brl(o.gasto)}</td>
-                    <td className="num">{brl(o.previsto)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </Rolagem>
+          <Tabela minimo={760}>
+            <thead>
+              <tr>
+                <Th>Obra</Th>
+                <Th className="w-[34%]">Serviço feito</Th>
+                <Th num>Gasto</Th>
+                <Th num>Previsto</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {obras.map((o) => (
+                <Tr key={o.id}>
+                  <Td>
+                    <Link href={`/obras/${o.id}`} className="flex flex-col gap-0.5 no-underline">
+                      <span className="font-semibold">
+                        <span className="text-ink-3">{codigo(o.id)}</span> · {o.nome}
+                        {!o.ativa && <span className="font-medium text-ink-3"> (encerrada)</span>}
+                      </span>
+                      {o.endereco && <span className="text-caption text-ink-3">{o.endereco}</span>}
+                    </Link>
+                  </Td>
+                  <Td>
+                    <BarraEtapa feito={o.progresso} gastoPct={o.previsto > 0 ? (o.gasto / o.previsto) * 100 : undefined} />
+                  </Td>
+                  <Td num forte>
+                    <Dinheiro valor={o.gasto} />
+                  </Td>
+                  <Td num className="text-ink-2">
+                    <Dinheiro valor={o.previsto} />
+                  </Td>
+                </Tr>
+              ))}
+            </tbody>
+          </Tabela>
         )}
       </Secao>
 
       <Secao titulo="Cadastrar obra">
-        <p className="mb-3 text-sm text-cinza">
-          A obra já começa com a lista padrão de etapas, que pode ser ajustada depois. A senha é a que o engenheiro usa para
-          entrar.
-        </p>
-        <FormAcao action={criarObra} botao="Cadastrar obra" principal className="grid gap-3 sm:max-w-md">
-          <label>
-            <span className="rotulo">Nome da obra</span>
-            <input name="nome" required className="campo" />
-          </label>
-          <label>
-            <span className="rotulo">Endereço</span>
-            <input name="endereco" className="campo" />
-          </label>
-          <label>
-            <span className="rotulo">Senha de acesso da obra</span>
-            <input name="senha" type="password" minLength={8} required className="campo" autoComplete="new-password" />
-          </label>
+        <p className="text-table text-ink-3">A obra começa com a lista padrão de etapas, que pode ser ajustada depois. A senha é a que o engenheiro usa para entrar.</p>
+        <FormAcao action={criarObra} botao="Cadastrar obra" variante="primario" className="grid gap-3.5 sm:max-w-xl">
+          <Campo rotulo="Nome da obra">
+            <Entrada name="nome" required />
+          </Campo>
+          <Campo rotulo="Endereço">
+            <Entrada name="endereco" />
+          </Campo>
+          <Campo rotulo="Senha de acesso da obra" ajuda="Mínimo de 8 caracteres.">
+            <Entrada name="senha" type="password" minLength={8} required autoComplete="new-password" />
+          </Campo>
         </FormAcao>
       </Secao>
-    </div>
+    </>
   )
 }

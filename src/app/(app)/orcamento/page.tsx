@@ -1,9 +1,9 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { CabecalhoTela, Dinheiro, EstadoVazio, Secao, Situacao, Tabela, Td, Th, Tr } from '@ds'
 import { sql } from '@/lib/db'
 import { exigirSessao } from '@/lib/sessao'
-import { brl, comBdi } from '@/lib/regras'
-import { Situacao, Vazio, Rolagem } from '@/components/ui'
+import { comBdi } from '@/lib/regras'
 
 export default async function Orcamentos() {
   const s = await exigirSessao()
@@ -16,51 +16,52 @@ export default async function Orcamentos() {
     order by o.ativa desc, o.nome`
 
   return (
-    <div className="grid gap-4">
-      <h1>Orçamentos</h1>
-      <p className="text-cinza">O orçamento de cada obra é o que vai para o investidor e define o previsto de cada etapa.</p>
-      <section className="cartao">
+    <>
+      <CabecalhoTela contexto="O que vai para o investidor e define o previsto de cada etapa" titulo="Orçamentos" />
+      <Secao titulo="Orçamento vigente por obra">
         {obras.length === 0 ? (
-          <Vazio>Nenhuma obra cadastrada ainda.</Vazio>
+          <EstadoVazio titulo="Nenhuma obra cadastrada ainda">Cadastre uma obra para montar o orçamento dela.</EstadoVazio>
         ) : (
-          <Rolagem>
-            <table className="tabela">
-              <thead>
-                <tr>
-                  <th>Obra</th>
-                  <th>Investidor</th>
-                  <th>Versão</th>
-                  <th className="num">Custo</th>
-                  <th className="num">Valor ao investidor</th>
-                </tr>
-              </thead>
-              <tbody>
-                {obras.map((o) => (
-                  <tr key={o.id}>
-                    <td>
-                      <Link href={`/orcamento/${o.id}`} className="font-medium underline">
-                        {o.nome}
-                      </Link>
-                    </td>
-                    <td>{o.investidor ?? <span className="text-cinza">não informado</span>}</td>
-                    <td>
-                      {o.situacao ? (
-                        <>
-                          v{o.versao} <Situacao status={o.situacao} />
-                        </>
-                      ) : (
-                        <span className="text-cinza">sem orçamento</span>
-                      )}
-                    </td>
-                    <td className="num">{brl(o.custo)}</td>
-                    <td className="num">{brl(comBdi(o.custo, o.bdi))}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </Rolagem>
+          <Tabela minimo={760}>
+            <thead>
+              <tr>
+                <Th>Obra</Th>
+                <Th>Investidor</Th>
+                <Th>Versão</Th>
+                <Th num>Custo</Th>
+                <Th num>Valor ao investidor</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {obras.map((o) => (
+                <Tr key={o.id}>
+                  <Td>
+                    <Link href={`/orcamento/${o.id}`} className="font-semibold">
+                      {o.nome}
+                    </Link>
+                  </Td>
+                  <Td className={o.investidor ? '' : 'text-ink-3'}>{o.investidor ?? 'não informado'}</Td>
+                  <Td>
+                    {o.situacao ? (
+                      <span className="inline-flex items-center gap-2">
+                        <span className="font-semibold">v{o.versao}</span> <Situacao status={o.situacao} />
+                      </span>
+                    ) : (
+                      <span className="text-ink-3">sem orçamento</span>
+                    )}
+                  </Td>
+                  <Td num className="text-ink-2">
+                    <Dinheiro valor={o.custo} />
+                  </Td>
+                  <Td num forte>
+                    <Dinheiro valor={comBdi(o.custo, o.bdi)} />
+                  </Td>
+                </Tr>
+              ))}
+            </tbody>
+          </Tabela>
         )}
-      </section>
-    </div>
+      </Secao>
+    </>
   )
 }

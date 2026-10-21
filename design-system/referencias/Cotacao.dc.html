@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="tema.js"></script>
+  <style>body{margin:0;background:var(--bg,#ECECEA);color:var(--ink,#111);font-family:Manrope,sans-serif;-webkit-font-smoothing:antialiased}a{color:var(--ink,#111)}a:hover{color:var(--accent-ink,#4C6110)}*{box-sizing:border-box}</style>
+</helmet>
+<div style="min-height:100vh; background:var(--bg,#ECECEA); display:flex; flex-direction:column;">
+  <dc-import name="Topbar" active="Cotação" perfil="Financeiro" hint-size="100%,68px"></dc-import>
+  <main style="padding:8px 24px 40px; display:flex; flex-direction:column; gap:16px;">
+    <section style="display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; padding:8px 4px 0;">
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">COT-0087 · Residencial Vila Aurora · Estrutura › Armação · aberta em 15/10/2026</span>
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+          <h1 style="margin:0; font:300 40px/1.05 Outfit, sans-serif; letter-spacing:-0.02em;">Aço para lajes do 6º e 7º pavimento</h1>
+          <span style="display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 12px; border-radius:999px; background:var(--warn-bg,#FBF0DB); color:var(--warn,#A8650A); font:700 12px Manrope, sans-serif;"><span style="width:6px; height:6px; border-radius:50%; background:currentColor;"></span>Respondida · 3 de 3</span>
+        </div>
+      </div>
+      <span style="font:600 13px Manrope, sans-serif; color:var(--ink-2,#55554F);">Material necessário na obra até <b style="color:var(--ink,#111);">03/11/2026</b> (concretagem)</span>
+    </section>
+
+    <section style="display:grid; grid-template-columns:minmax(0,1fr) 380px; gap:16px; align-items:start;">
+      <div style="padding:8px 20px 20px; border-radius:22px; background:var(--surface,#fff); overflow-x:auto;">
+        <div style="display:grid; grid-template-columns:minmax(200px,1.2fr) 80px repeat(3, minmax(150px,1fr)); min-width:820px; font:500 13.5px Manrope, sans-serif; font-variant-numeric:tabular-nums;">
+          <span style="padding:14px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F); align-self:end;">Item</span>
+          <span style="padding:14px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F); text-align:right; align-self:end;">Qtd.</span>
+          <sc-for list="{{ forns }}" as="f" hint-placeholder-count="3">
+            <button onClick="{{ f.pick }}" style="margin:8px 4px 0; padding:12px; border-radius:16px 16px 0 0; border:none; border-bottom:1px solid var(--line,#E3E3DF); background:{{ f.colBg }}; color:var(--ink,#111); text-align:right; cursor:pointer; display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+              <span style="display:flex; align-items:center; gap:8px; font:700 13.5px Manrope, sans-serif;">{{ f.nome }}<span style="width:18px; height:18px; border-radius:50%; border:1.5px solid {{ f.rb }}; display:flex; align-items:center; justify-content:center;"><span style="width:8px; height:8px; border-radius:50%; background:{{ f.dot }};"></span></span></span>
+              <span style="font:500 11.5px Manrope, sans-serif; color:var(--ink-3,#86867F);">{{ f.resp }}</span>
+            </button>
+          </sc-for>
+          <sc-for list="{{ linhas }}" as="l" hint-placeholder-count="5">
+            <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); display:flex; flex-direction:column; gap:1px;"><span style="font-weight:600;">{{ l.nome }}</span><span style="font:500 11.5px Manrope, sans-serif; color:var(--ink-3,#86867F);">{{ l.spec }}</span></span>
+            <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); text-align:right; color:var(--ink-2,#55554F);">{{ l.qtd }}</span>
+            <sc-for list="{{ l.cel }}" as="c">
+              <span style="margin:0 4px; padding:10px 12px; border-bottom:1px solid var(--line,#E3E3DF); background:{{ c.colBg }}; display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
+                <span style="display:inline-flex; align-items:center; gap:6px; padding:2px 8px; margin-right:-8px; border-radius:8px; background:{{ c.bg }}; font-weight:700; color:{{ c.fg }};">{{ c.min }}{{ c.total }}</span>
+                <span style="font:500 11.5px Manrope, sans-serif; color:var(--ink-3,#86867F);">{{ c.unit }}</span>
+              </span>
+            </sc-for>
+          </sc-for>
+          <sc-for list="{{ rodape }}" as="r" hint-placeholder-count="4">
+            <span style="grid-column:1 / 3; padding:11px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12.5px Manrope, sans-serif; color:var(--ink-2,#55554F);">{{ r.nome }}</span>
+            <sc-for list="{{ r.cel }}" as="c">
+              <span style="margin:0 4px; padding:11px 12px; border-bottom:1px solid var(--line,#E3E3DF); background:{{ c.colBg }}; text-align:right; font:600 12.5px Manrope, sans-serif; color:{{ c.fg }};">{{ c.t }}</span>
+            </sc-for>
+          </sc-for>
+          <span style="grid-column:1 / 3; padding:16px 8px; font:700 14px Manrope, sans-serif;">Total com frete</span>
+          <sc-for list="{{ totais }}" as="t" hint-placeholder-count="3">
+            <span style="margin:0 4px; padding:14px 12px; border-radius:0 0 16px 16px; background:{{ t.colBg }}; text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
+              <span style="font:300 22px Outfit, sans-serif; color:{{ t.fg }};">{{ t.v }}</span>
+              <span style="font:700 11px Manrope, sans-serif; color:{{ t.nfg }};">{{ t.nota }}</span>
+            </span>
+          </sc-for>
+        </div>
+        <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap; padding:14px 8px 0; border-top:1px solid var(--line,#E3E3DF); margin-top:8px;">
+          <span style="display:inline-flex; align-items:center; gap:8px; font:600 12px Manrope, sans-serif; color:var(--ink-2,#55554F);"><span style="width:18px; height:12px; border-radius:4px; background:var(--accent,#C6DF5F);"></span>Menor preço do item</span>
+          <button onClick="{{ dividir }}" style="display:inline-flex; align-items:center; gap:8px; height:34px; padding:0 14px; border-radius:999px; border:1px solid {{ divBd }}; background:{{ divBg }}; color:var(--ink,#111); font:600 12.5px Manrope, sans-serif; cursor:pointer;"><span style="width:28px; height:16px; border-radius:999px; background:{{ divTr }}; position:relative;"><span style="position:absolute; top:2px; left:{{ divL }}; width:12px; height:12px; border-radius:50%; background:#111;"></span></span>Dividir por item (menor preço de cada)</button>
+        </div>
+      </div>
+
+      <aside style="display:flex; flex-direction:column; gap:16px;">
+        <div style="padding:20px; border-radius:22px; background:var(--night,#101010); color:#fff; display:flex; flex-direction:column; gap:12px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="padding:2px 8px; border-radius:6px; background:#C6DF5F; color:#111; font:800 11px Manrope, sans-serif;">IA</span><span style="font:600 13px Manrope, sans-serif; color:#C6DF5F;">Indicação</span></div>
+          <span style="font:300 24px/1.2 Outfit, sans-serif;">Comprar tudo da ArcelorMittal</span>
+          <p style="margin:0; font:500 13px/1.6 Manrope, sans-serif; color:#cfcfca; text-wrap:pretty;">É o menor total completo (R$ 91.150,00). Dividir por item economiza R$ 880,00 em material, mas o frete da Ferro Forte (R$ 1.850,00) anula a diferença. Entrega em 4 dias úteis — antes da concretagem de 03/11.</p>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button onClick="{{ seguirIA }}" style="height:36px; padding:0 16px; border-radius:999px; border:none; background:#C6DF5F; color:#111; font:700 12.5px Manrope, sans-serif; cursor:pointer;">Seguir indicação</button>
+            <span style="font:500 11.5px Manrope, sans-serif; color:#9a9a94; align-self:center;">baseado em preço, frete, prazo e 14 compras anteriores</span>
+          </div>
+        </div>
+
+        <div style="padding:20px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:12px;">
+          <span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Sua escolha</span>
+          <span style="font:600 16px Manrope, sans-serif;">{{ escolhaNome }}</span>
+          <div style="display:flex; justify-content:space-between; align-items:baseline;"><span style="font:500 13px Manrope, sans-serif; color:var(--ink-2,#55554F);">Total</span><span style="font:300 30px Outfit, sans-serif; font-variant-numeric:tabular-nums;">{{ escolhaTotal }}</span></div>
+          <div style="display:flex; justify-content:space-between; font:600 12.5px Manrope, sans-serif; font-variant-numeric:tabular-nums;"><span style="color:var(--ink-2,#55554F);">vs. previsto no orçamento (R$ 96.000,00)</span><span style="color:{{ difCor }};">{{ dif }}</span></div>
+          <sc-if value="{{ divergeIA }}"><span style="padding:10px 12px; border-radius:12px; background:var(--warn-bg,#FBF0DB); color:var(--warn,#A8650A); font:600 12px/1.5 Manrope, sans-serif;">Escolha diferente da indicação da IA. Informe o motivo ao gerar a compra.</span></sc-if>
+          <sc-if value="{{ gerado }}"><span style="padding:10px 12px; border-radius:12px; background:var(--ok-bg,#E8F2DC); color:var(--ok,#3C7421); font:600 12px/1.5 Manrope, sans-serif;">Compra CP-0426 criada e enviada ao financeiro.</span></sc-if>
+          <button onClick="{{ gerar }}" style="height:44px; border-radius:999px; border:none; background:var(--ink,#111); color:var(--on-ink,#fff); font:700 14px Manrope, sans-serif; cursor:pointer;">Gerar compra</button>
+        </div>
+      </aside>
+    </section>
+
+    <section style="display:grid; grid-template-columns:260px minmax(0,1fr); gap:16px; padding:16px; border-radius:30px; background:var(--surface,#fff); min-height:520px;">
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <h2 style="margin:4px 8px 10px; font:400 22px Outfit, sans-serif;">Conversas</h2>
+        <sc-for list="{{ abas }}" as="a" hint-placeholder-count="3">
+          <button onClick="{{ a.pick }}" style="display:grid; grid-template-columns:40px 1fr auto; gap:10px; align-items:center; padding:10px; border-radius:16px; border:none; background:{{ a.bg }}; color:var(--ink,#111); text-align:left; cursor:pointer;">
+            <span style="width:40px; height:40px; border-radius:50%; background:var(--surface-3,#EBEBE7); display:flex; align-items:center; justify-content:center; font:700 13px Manrope, sans-serif;">{{ a.ini }}</span>
+            <span style="display:flex; flex-direction:column; gap:1px; min-width:0;"><span style="font:600 13.5px Manrope, sans-serif;">{{ a.nome }}</span><span style="font:500 11.5px Manrope, sans-serif; color:var(--ink-3,#86867F); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ a.ult }}</span></span>
+            <span style="font:600 11px Manrope, sans-serif; color:var(--ink-3,#86867F);">{{ a.h }}</span>
+          </button>
+        </sc-for>
+      </div>
+      <div style="border-radius:22px; background:var(--surface-2,#F5F5F3); display:flex; flex-direction:column; overflow:hidden;">
+        <div style="padding:14px 18px; border-bottom:1px solid var(--line,#E3E3DF); display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; flex-direction:column;"><span style="font:600 14px Manrope, sans-serif;">{{ chatNome }}</span><span style="font:500 11.5px Manrope, sans-serif; color:var(--ink-3,#86867F);">{{ chatContato }}</span></div>
+          <span style="font:600 11.5px Manrope, sans-serif; color:var(--ok,#3C7421);">● WhatsApp conectado</span>
+        </div>
+        <div style="flex:1; padding:18px; display:flex; flex-direction:column; gap:10px; overflow-y:auto; max-height:460px;">
+          <sc-for list="{{ msgs }}" as="m" hint-placeholder-count="5">
+            <sc-if value="{{ m.sis }}"><span style="align-self:center; padding:4px 12px; border-radius:999px; background:var(--surface-3,#EBEBE7); font:600 11px Manrope, sans-serif; color:var(--ink-2,#55554F); font-variant-numeric:tabular-nums;">{{ m.t }}</span></sc-if>
+            <sc-if value="{{ m.forn }}"><div style="align-self:flex-start; max-width:70%; padding:10px 12px 6px; border-radius:16px 16px 16px 4px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:2px;"><span style="font:700 11.5px Manrope, sans-serif; color:var(--info,#2D5DB0);">{{ m.quem }}</span><span style="font:500 13.5px/1.45 Manrope, sans-serif; white-space:pre-line;">{{ m.t }}</span><span style="align-self:flex-end; font:500 10.5px Manrope, sans-serif; color:var(--ink-3,#86867F);">{{ m.h }}</span></div></sc-if>
+            <sc-if value="{{ m.ia }}"><div style="align-self:flex-start; max-width:70%; padding:10px 12px 6px; border-radius:16px 16px 16px 4px; background:var(--night,#101010); color:#fff; display:flex; flex-direction:column; gap:2px;"><span style="display:inline-flex; gap:6px; align-items:center; font:700 11.5px Manrope, sans-serif; color:#C6DF5F;"><span style="padding:1px 6px; border-radius:5px; background:#C6DF5F; color:#111; font:800 10px Manrope, sans-serif;">IA</span>Assistente de compras</span><span style="font:500 13.5px/1.45 Manrope, sans-serif;">{{ m.t }}</span><span style="align-self:flex-end; font:500 10.5px Manrope, sans-serif; color:#9a9a94;">{{ m.h }}</span></div></sc-if>
+            <sc-if value="{{ m.eu }}"><div style="align-self:flex-end; max-width:70%; padding:10px 12px 6px; border-radius:16px 16px 4px 16px; background:var(--ink,#111); color:var(--on-ink,#fff); display:flex; flex-direction:column; gap:2px;"><span style="font:700 11.5px Manrope, sans-serif; opacity:.6;">{{ m.quem }}</span><span style="font:500 13.5px/1.45 Manrope, sans-serif;">{{ m.t }}</span><span style="align-self:flex-end; font:500 10.5px Manrope, sans-serif; opacity:.6;">{{ m.h }} ✓✓</span></div></sc-if>
+          </sc-for>
+        </div>
+        <div style="padding:12px; display:flex; gap:8px; border-top:1px solid var(--line,#E3E3DF); background:var(--surface,#fff);">
+          <button title="Anexar" style="width:44px; height:44px; border-radius:50%; border:1px solid var(--line,#E3E3DF); background:var(--surface,#fff); color:var(--ink,#111); font:500 18px Manrope, sans-serif; cursor:pointer;">+</button>
+          <input value="{{ rascunho }}" onChange="{{ onRasc }}" onKeyDown="{{ onKey }}" placeholder="Escreva para o fornecedor…" style="flex:1; height:44px; border-radius:999px; border:1px solid transparent; background:var(--surface-2,#F5F5F3); padding:0 16px; font:500 14px Manrope, sans-serif; color:var(--ink,#111); outline:none;" style-focus="border-color:var(--ink,#111);">
+          <button onClick="{{ enviar }}" style="height:44px; padding:0 18px; border-radius:999px; border:none; background:var(--ink,#111); color:var(--on-ink,#fff); font:700 13px Manrope, sans-serif; cursor:pointer;">Enviar</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { esc: 1, chat: 0, gerado: false, rascunho: '', extra: { 0: [], 1: [], 2: [] } };
+  brl(n) { return 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  renderVals() {
+    const v = k => `var(--${k})`, s = this.state;
+    const F = [['Gerdau', 'Aços Longos', 'respondeu 16/10'], ['ArcelorMittal', 'Distribuição', 'respondeu 16/10'], ['Ferro Forte', 'Comercial', 'respondeu 17/10']];
+    const I = [['Aço CA-50 10 mm', 'barra 12 m', 'kg', 8000, [6.48, 6.39, 6.62]], ['Aço CA-50 12,5 mm', 'barra 12 m', 'kg', 4000, [6.35, 6.41, 6.29]], ['Aço CA-60 5 mm', 'rolo', 'kg', 1500, [6.90, 6.84, null]], ['Arame recozido nº 18', 'rolo 1 kg', 'kg', 200, [14.20, 13.90, 12.80]], ['Espaçador circular 25 mm', 'plástico', 'un', 3000, [0.42, 0.45, 0.39]]];
+    const frete = [0, 0, 1850];
+    const sub = F.map((_, j) => I.reduce((a, it) => a + (it[4][j] == null ? 0 : it[3] * it[4][j]), 0));
+    const tot = sub.map((x, j) => x + frete[j]);
+    const div = I.reduce((a, it) => a + it[3] * Math.min(...it[4].filter(x => x != null)), 0) + 1850;
+    const col = j => (s.esc === j ? v('accent-bg') : 'transparent');
+    const fmtQ = n => n.toLocaleString('pt-BR');
+    const M = [
+      [['s', 'Cotação COT-0087 enviada · 15/10/2026 14:02'], ['f', 'Gerdau · Juliana', 'Boa tarde! Recebido. Retorno amanhã cedo com preço e prazo.', '14:20'], ['f', 'Gerdau · Juliana', 'Segue: CA-50 10 mm R$ 6,48/kg, 12,5 mm R$ 6,35/kg, CA-60 R$ 6,90/kg. CIF, entrega 5 dias úteis. Pagamento 28/56/84.', '16/10 08:47'], ['ia', 'Preço do CA-50 10 mm 1,4% acima da ArcelorMittal. Prazo de 5 dias úteis entrega em 23/10 — ok para a concretagem.', '08:48'], ['e', 'Marina Costa', 'Obrigada, Juliana. Consegue igualar R$ 6,39 no 10 mm?', '09:10']],
+      [['s', 'Cotação COT-0087 enviada · 15/10/2026 14:02'], ['f', 'ArcelorMittal · Ricardo', 'Olá Marina! Preços no anexo cotacao-0087.pdf.\nCIF São Paulo, 4 dias úteis, 30/60.', '16/10 10:31'], ['ia', 'Menor total completo: R$ 91.150,00. Única proposta com todos os itens abaixo do orçado.', '10:32'], ['e', 'Marina Costa', 'Ricardo, se fecharmos hoje vocês garantem entrega até 29/10?', '10:40'], ['f', 'ArcelorMittal · Ricardo', 'Garanto sim, sai do CD de Guarulhos dia 27.', '10:52'], ['s', 'Prazo de entrega registrado: 29/10/2026']],
+      [['s', 'Cotação COT-0087 enviada · 15/10/2026 14:02'], ['f', 'Ferro Forte · Edson', 'Bom dia. CA-60 5 mm estamos sem estoque, o resto segue na tabela. Frete R$ 1.850,00, à vista 2% de desconto.', '17/10 07:58'], ['ia', 'Proposta incompleta: falta o CA-60 (1.500 kg). Menor preço em 3 dos 5 itens, mas o frete encarece o total.', '07:59']]
+    ];
+    const msgs = M[s.chat].concat(s.extra[s.chat]).map(m => m[0] === 's' ? { sis: true, t: m[1] } : m[0] === 'ia' ? { ia: true, t: m[1], h: m[2] } : m[0] === 'f' ? { forn: true, quem: m[1], t: m[2], h: m[3] } : { eu: true, quem: m[1], t: m[2], h: m[3] });
+    const escTot = s.esc === 3 ? div : tot[s.esc];
+    const d = escTot - 96000;
+    const enviar = () => { const t = s.rascunho.trim(); if (!t) return; this.setState(st => ({ rascunho: '', extra: { ...st.extra, [st.chat]: st.extra[st.chat].concat([['e', 'Marina Costa', t, 'agora']]) } })); };
+    return {
+      forns: F.map(([n, sub2, resp], j) => ({ nome: n, resp, colBg: col(j), rb: s.esc === j ? v('ink') : v('ink-3'), dot: s.esc === j ? v('ink') : 'transparent', pick: () => this.setState({ esc: j, gerado: false }) })),
+      linhas: I.map(([nome, spec, un, q, p]) => {
+        const mn = Math.min(...p.filter(x => x != null));
+        return { nome, spec, qtd: fmtQ(q) + ' ' + un, cel: p.map((x, j) => x == null ? { colBg: col(j), total: 'não cotou', unit: '—', bg: 'transparent', fg: v('ink-3'), min: '' } : { colBg: col(j), total: this.brl(q * x), unit: this.brl(x) + '/' + un, bg: x === mn ? v('accent') : 'transparent', fg: x === mn ? '#111' : v('ink'), min: x === mn ? '↓ ' : '' }) };
+      }),
+      rodape: [
+        { nome: 'Subtotal material', cel: sub.map((x, j) => ({ t: this.brl(x), colBg: col(j), fg: v('ink') })) },
+        { nome: 'Frete', cel: frete.map((x, j) => ({ t: x ? this.brl(x) : 'CIF · grátis', colBg: col(j), fg: x ? v('neg') : v('ink-2') })) },
+        { nome: 'Prazo de entrega', cel: ['5 dias úteis', '4 dias úteis', '7 dias úteis'].map((t, j) => ({ t, colBg: col(j), fg: j === 2 ? v('warn') : v('ink') })) },
+        { nome: 'Pagamento', cel: ['28/56/84 dias', '30/60 dias', 'à vista −2%'].map((t, j) => ({ t, colBg: col(j), fg: v('ink') })) }
+      ],
+      totais: tot.map((x, j) => ({ v: this.brl(x), colBg: col(j), fg: j === 1 ? v('accent-ink') : v('ink'), nota: j === 1 ? 'Menor total completo' : j === 2 ? 'Incompleto · falta CA-60' : '+' + this.brl(x - tot[1]), nfg: j === 2 ? v('neg') : (j === 1 ? v('accent-ink') : v('ink-3')) })),
+      dividir: () => this.setState({ esc: s.esc === 3 ? 1 : 3, gerado: false }),
+      divBd: s.esc === 3 ? v('ink') : v('line'), divBg: s.esc === 3 ? v('accent-bg') : v('surface'), divTr: s.esc === 3 ? v('accent') : v('surface-3'), divL: s.esc === 3 ? '14px' : '2px',
+      seguirIA: () => this.setState({ esc: 1, gerado: false }),
+      escolhaNome: s.esc === 3 ? 'Dividido: ArcelorMittal + Ferro Forte' : F[s.esc][0] + ' ' + F[s.esc][1],
+      escolhaTotal: this.brl(escTot), dif: (d < 0 ? '−' : '+') + this.brl(Math.abs(d)), difCor: d < 0 ? v('ok') : v('neg'),
+      divergeIA: s.esc !== 1, gerado: s.gerado, gerar: () => this.setState({ gerado: true }),
+      abas: [['GE', 'Gerdau', 'Obrigada, Juliana. Consegue igualar…', '09:10'], ['AM', 'ArcelorMittal', 'Garanto sim, sai do CD de Guarulhos…', '10:52'], ['FF', 'Ferro Forte', 'CA-60 5 mm estamos sem estoque…', '17/10']].map(([ini, nome, ult, h], i) => ({ ini, nome, ult, h, bg: s.chat === i ? v('surface-2') : 'transparent', pick: () => this.setState({ chat: i }) })),
+      chatNome: ['Gerdau Aços Longos', 'ArcelorMittal Distribuição', 'Comercial Ferro Forte'][s.chat],
+      chatContato: ['Juliana Prado · (11) 98412-3301', 'Ricardo Tavares · (11) 99730-1188', 'Edson Ramos · (11) 97655-0412'][s.chat],
+      msgs, rascunho: s.rascunho, onRasc: e => this.setState({ rascunho: e.target.value }), onKey: e => { if (e.key === 'Enter') enviar(); }, enviar
+    };
+  }
+}
+</script>
+</body>
+</html>

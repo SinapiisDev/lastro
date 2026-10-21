@@ -3,7 +3,7 @@
 import { refresh } from 'next/cache'
 import { sql, escrever } from '@/lib/db'
 import { exigirSessao, nomePerfil } from '@/lib/sessao'
-import type { Estado } from '@/components/form-acao'
+import type { Estado } from '@ds'
 
 const texto = (d: FormData, campo: string) => String(d.get(campo) ?? '').trim()
 const dataValida = (x: string) => /^\d{4}-\d{2}-\d{2}$/.test(x) && !isNaN(Date.parse(x + 'T00:00:00Z'))

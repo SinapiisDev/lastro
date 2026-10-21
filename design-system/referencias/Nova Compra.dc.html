@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="tema.js"></script>
+  <style>body{margin:0;background:var(--bg,#ECECEA);color:var(--ink,#111);font-family:Manrope,sans-serif;-webkit-font-smoothing:antialiased}a{color:var(--ink,#111)}a:hover{color:var(--accent-ink,#4C6110)}*{box-sizing:border-box}@keyframes go-spin{to{transform:rotate(360deg)}}</style>
+</helmet>
+<div style="min-height:100vh; background:var(--bg,#ECECEA); display:flex; flex-direction:column;">
+  <dc-import name="Topbar" active="Compras" perfil="Obra" hint-size="100%,68px"></dc-import>
+  <main style="padding:8px 24px 40px; display:flex; flex-direction:column; gap:16px; max-width:1360px; width:100%; margin:0 auto;">
+    <section style="display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; padding:8px 4px 0;">
+      <div style="display:flex; flex-direction:column; gap:4px;">
+        <a href="Compras.dc.html" style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F); text-decoration:none;">‹ Compras</a>
+        <h1 style="margin:0; font:300 40px/1.05 Outfit, sans-serif; letter-spacing:-0.02em;">Nova compra</h1>
+      </div>
+      <a href="Telas Celular.dc.html" style="font:600 12.5px Manrope, sans-serif;">Ver versão celular ›</a>
+    </section>
+
+    <sc-if value="{{ erroGeral }}">
+      <div style="padding:14px 16px; border-radius:16px; background:var(--neg-bg,#FBEAE8); display:flex; gap:12px; align-items:flex-start;">
+        <span style="width:22px; height:22px; border-radius:50%; background:var(--neg,#C3352D); color:#fff; display:flex; align-items:center; justify-content:center; font:700 12px Manrope, sans-serif; flex:none;">!</span>
+        <div style="display:flex; flex-direction:column; gap:2px;"><span style="font:700 13.5px Manrope, sans-serif; color:var(--neg,#C3352D);">{{ erroTitulo }}</span><sc-for list="{{ erros }}" as="e"><span style="font:500 12.5px/1.6 Manrope, sans-serif; color:var(--ink-2,#55554F);">· {{ e }}</span></sc-for></div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ ok }}">
+      <div style="padding:14px 16px; border-radius:16px; background:var(--ok-bg,#E8F2DC); display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+        <span style="width:22px; height:22px; border-radius:50%; background:var(--ok,#3C7421); color:#fff; display:flex; align-items:center; justify-content:center; font:700 12px Manrope, sans-serif; flex:none;">✓</span>
+        <div style="display:flex; flex-direction:column; gap:2px; flex:1;"><span style="font:700 13.5px Manrope, sans-serif; color:var(--ok,#3C7421);">Compra CP-0427 enviada ao financeiro</span><span style="font:500 12.5px Manrope, sans-serif; color:var(--ink-2,#55554F);">{{ okTxt }}</span></div>
+        <a href="Compra Detalhe.dc.html" style="font:700 12.5px Manrope, sans-serif;">Acompanhar ›</a>
+      </div>
+    </sc-if>
+
+    <section style="display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,340px); gap:16px; align-items:start;">
+      <div style="display:flex; flex-direction:column; gap:16px; min-width:0;">
+        <div style="padding:20px; border-radius:22px; background:var(--surface,#fff); display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:14px;">
+          <span style="grid-column:1 / -1; font:600 15px Manrope, sans-serif;">Onde e de quem</span>
+          <label style="display:flex; flex-direction:column; gap:6px;"><span style="font:600 12px Manrope, sans-serif; color:var(--ink-2,#55554F);">Obra</span>
+            <select value="{{ obra }}" onChange="{{ onObra }}" style="height:44px; border-radius:14px; border:1.5px solid transparent; background:var(--surface-2,#F5F5F3); padding:0 12px; font:500 14px Manrope, sans-serif; color:var(--ink,#111);"><option>Residencial Vila Aurora</option><option>Edifício Jardim Botânico</option><option>Galpão Logístico Cajamar</option></select></label>
+          <label style="display:flex; flex-direction:column; gap:6px;"><span style="font:600 12px Manrope, sans-serif; color:var(--ink-2,#55554F);">Etapa › subetapa</span>
+            <select value="{{ etapa }}" onChange="{{ onEtapa }}" style="height:44px; border-radius:14px; border:1.5px solid transparent; background:var(--surface-2,#F5F5F3); padding:0 12px; font:500 14px Manrope, sans-serif; color:var(--ink,#111);"><option>Alvenaria › Bloco cerâmico</option><option>Estrutura › Concretagem de lajes</option><option>Instalações › Elétrica e SPDA</option></select></label>
+          <label style="display:flex; flex-direction:column; gap:6px;"><span style="font:600 12px Manrope, sans-serif; color:{{ fornLbl }};">Fornecedor</span>
+            <input value="{{ forn }}" onChange="{{ onForn }}" placeholder="Buscar fornecedor" list="fornecedores" style="height:44px; border-radius:14px; border:1.5px solid {{ fornBd }}; background:{{ fornBg }}; padding:0 14px; font:500 14px Manrope, sans-serif; color:var(--ink,#111); outline:none;" style-focus="border-color:var(--ink,#111);">
+            <datalist id="fornecedores"><option value="Cerâmica Pauluzzi"></option><option value="Concreteira Supermix"></option><option value="Votorantim Cimentos"></option><option value="Quartzolit"></option></datalist>
+            <sc-if value="{{ fornErro }}"><span style="font:600 11.5px Manrope, sans-serif; color:var(--neg,#C3352D);">Escolha um fornecedor cadastrado.</span></sc-if></label>
+        </div>
+
+        <div style="padding:20px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:10px; overflow-x:auto;">
+          <div style="display:flex; justify-content:space-between; align-items:center; min-width:680px;"><span style="font:600 15px Manrope, sans-serif;">Itens</span><button onClick="{{ addItem }}" style="height:32px; padding:0 14px; border-radius:999px; border:none; background:var(--surface-2,#F5F5F3); color:var(--ink,#111); font:600 12px Manrope, sans-serif; cursor:pointer;">+ Adicionar item</button></div>
+          <div style="display:grid; grid-template-columns:minmax(180px,1fr) 70px 100px 120px 130px 32px; min-width:680px; gap:8px; font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);"><span>Descrição</span><span>Un.</span><span style="text-align:right;">Qtd.</span><span style="text-align:right;">Unitário (R$)</span><span style="text-align:right;">Total</span><span></span></div>
+          <sc-for list="{{ itens }}" as="i" hint-placeholder-count="2">
+            <div style="display:grid; grid-template-columns:minmax(180px,1fr) 70px 100px 120px 130px 32px; min-width:680px; gap:8px; align-items:center;">
+              <input value="{{ i.d }}" onChange="{{ i.onD }}" placeholder="Material ou serviço" style="height:40px; border-radius:12px; border:1.5px solid {{ i.bd }}; background:var(--surface-2,#F5F5F3); padding:0 12px; font:500 13.5px Manrope, sans-serif; color:var(--ink,#111); outline:none;">
+              <input value="{{ i.u }}" onChange="{{ i.onU }}" style="height:40px; border-radius:12px; border:1.5px solid transparent; background:var(--surface-2,#F5F5F3); padding:0 10px; font:500 13.5px Manrope, sans-serif; color:var(--ink,#111); outline:none;">
+              <input value="{{ i.q }}" onChange="{{ i.onQ }}" inputmode="decimal" style="height:40px; border-radius:12px; border:1.5px solid {{ i.qbd }}; background:var(--surface-2,#F5F5F3); padding:0 10px; text-align:right; font:600 13.5px Manrope, sans-serif; font-variant-numeric:tabular-nums; color:var(--ink,#111); outline:none;">
+              <input value="{{ i.p }}" onChange="{{ i.onP }}" inputmode="decimal" style="height:40px; border-radius:12px; border:1.5px solid {{ i.pbd }}; background:var(--surface-2,#F5F5F3); padding:0 10px; text-align:right; font:600 13.5px Manrope, sans-serif; font-variant-numeric:tabular-nums; color:var(--ink,#111); outline:none;">
+              <span style="text-align:right; font:700 13.5px Manrope, sans-serif; font-variant-numeric:tabular-nums;">{{ i.t }}</span>
+              <button onClick="{{ i.rm }}" title="Remover" style="width:32px; height:32px; border-radius:50%; border:none; background:transparent; color:var(--ink-3,#86867F); font:500 16px Manrope, sans-serif; cursor:pointer;" style-hover="background:var(--neg-bg,#FBEAE8); color:var(--neg,#C3352D);">×</button>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="padding:20px; border-radius:22px; background:var(--surface,#fff); display:grid; grid-template-columns:repeat(auto-fit, minmax(160px,1fr)); gap:14px;">
+          <span style="grid-column:1 / -1; font:600 15px Manrope, sans-serif;">Pagamento</span>
+          <label style="display:flex; flex-direction:column; gap:6px;"><span style="font:600 12px Manrope, sans-serif; color:var(--ink-2,#55554F);">Forma</span><select style="height:44px; border-radius:14px; border:1.5px solid transparent; background:var(--surface-2,#F5F5F3); padding:0 12px; font:500 14px Manrope, sans-serif; color:var(--ink,#111);"><option>Boleto</option><option>Pix</option><option>Transferência</option></select></label>
+          <label style="display:flex; flex-direction:column; gap:6px;"><span style="font:600 12px Manrope, sans-serif; color:var(--ink-2,#55554F);">Parcelas</span>
+            <div style="display:flex; height:44px; border-radius:14px; background:var(--surface-2,#F5F5F3); align-items:center; justify-content:space-between; padding:0 4px;">
+              <button onClick="{{ menosP }}" style="width:36px; height:36px; border-radius:10px; border:none; background:var(--surface,#fff); color:var(--ink,#111); font:600 16px Manrope, sans-serif; cursor:pointer;">−</button>
+              <span style="font:700 14px Manrope, sans-serif; font-variant-numeric:tabular-nums;">{{ np }}x</span>
+              <button onClick="{{ maisP }}" style="width:36px; height:36px; border-radius:10px; border:none; background:var(--surface,#fff); color:var(--ink,#111); font:600 16px Manrope, sans-serif; cursor:pointer;">+</button>
+            </div></label>
+          <label style="display:flex; flex-direction:column; gap:6px;"><span style="font:600 12px Manrope, sans-serif; color:{{ vencLbl }};">1º vencimento</span>
+            <input value="{{ venc }}" onChange="{{ onVenc }}" placeholder="dd/mm/aaaa" style="height:44px; border-radius:14px; border:1.5px solid {{ vencBd }}; background:{{ vencBg }}; padding:0 14px; font:600 14px Manrope, sans-serif; font-variant-numeric:tabular-nums; color:var(--ink,#111); outline:none;">
+            <sc-if value="{{ vencErro }}"><span style="font:600 11.5px Manrope, sans-serif; color:var(--neg,#C3352D);">{{ vencErroTxt }}</span></sc-if></label>
+          <div style="grid-column:1 / -1; display:flex; gap:8px; flex-wrap:wrap;">
+            <sc-for list="{{ parcelas }}" as="p" hint-placeholder-count="2">
+              <span style="padding:10px 14px; border-radius:14px; background:var(--surface-2,#F5F5F3); display:flex; flex-direction:column; gap:2px; font-variant-numeric:tabular-nums;"><span style="font:600 11.5px Manrope, sans-serif; color:var(--ink-3,#86867F);">{{ p.n }} · {{ p.d }}</span><span style="font:700 13.5px Manrope, sans-serif;">{{ p.v }}</span></span>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="padding:20px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:12px;">
+          <span style="font:600 15px Manrope, sans-serif;">Anexos</span>
+          <div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px;">
+            <sc-for list="{{ anexos }}" as="a" hint-placeholder-count="3">
+              <button onClick="{{ a.pick }}" style="padding:14px; min-height:104px; border-radius:14px; border:1.5px dashed {{ a.bd }}; background:{{ a.bg }}; color:var(--ink,#111); display:flex; flex-direction:column; gap:4px; justify-content:center; align-items:center; text-align:center; cursor:pointer;">
+                <span style="font:700 10.5px Manrope, sans-serif; color:{{ a.tc }};">{{ a.tag }}</span>
+                <span style="font:700 12.5px Manrope, sans-serif;">{{ a.t }}</span>
+                <span style="font:500 11px Manrope, sans-serif; color:{{ a.dc }};">{{ a.d }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <aside style="position:sticky; top:16px; display:flex; flex-direction:column; gap:16px;">
+        <div style="padding:20px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:12px;">
+          <span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Total da compra</span>
+          <span style="font:300 36px Outfit, sans-serif; font-variant-numeric:tabular-nums;">{{ total }}</span>
+          <div style="display:grid; grid-template-columns:1fr auto; gap:8px; font:500 13px Manrope, sans-serif; font-variant-numeric:tabular-nums; padding-top:10px; border-top:1px solid var(--line,#E3E3DF);">
+            <span style="color:var(--ink-2,#55554F);">Saldo da subetapa</span><span style="text-align:right; font-weight:600;">{{ saldo }}</span>
+            <span style="color:var(--ink-2,#55554F);">Após esta compra</span><span style="text-align:right; font-weight:700; color:{{ aposCor }};">{{ apos }}</span>
+          </div>
+          <div style="padding:12px 14px; border-radius:14px; background:{{ apBg }}; display:flex; flex-direction:column; gap:2px;">
+            <span style="font:700 12.5px Manrope, sans-serif; color:{{ apFg }};">{{ apT }}</span>
+            <span style="font:500 12px Manrope, sans-serif; color:var(--ink-2,#55554F);">{{ apD }}</span>
+          </div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button onClick="{{ enviar }}" style="height:48px; border-radius:999px; border:none; background:var(--ink,#111); color:var(--on-ink,#fff); font:700 14px Manrope, sans-serif; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer;">
+            <sc-if value="{{ enviando }}"><span style="width:16px; height:16px; border-radius:50%; border:2px solid var(--on-ink,#fff); border-right-color:transparent; animation:go-spin .8s linear infinite;"></span></sc-if>{{ btnTxt }}</button>
+          <button style="height:44px; border-radius:999px; border:1px solid var(--line,#E3E3DF); background:var(--surface,#fff); color:var(--ink,#111); font:600 13.5px Manrope, sans-serif; cursor:pointer;">Salvar rascunho</button>
+        </div>
+      </aside>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { obra: 'Residencial Vila Aurora', etapa: 'Alvenaria › Bloco cerâmico', forn: 'Cerâmica Pauluzzi', np: 2, venc: '31/11/2026', tent: false, enviando: false, ok: false, anexos: [0, 0, 0],
+    itens: [{ d: 'Bloco cerâmico 14x19x29', u: 'un', q: '18000', p: '1,85' }, { d: 'Argamassa de assentamento', u: 'sc', q: '', p: '18,90' }] };
+  brl(n) { return (n < 0 ? '−' : '') + 'R$ ' + Math.abs(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  n(x) { const v = parseFloat(String(x).replace(/\./g, '').replace(',', '.')); return isNaN(v) ? 0 : v; }
+  data(s) { const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(s); if (!m) return null; const d = new Date(+m[3], +m[2] - 1, +m[1]); return d.getDate() === +m[1] && d.getMonth() === +m[2] - 1 ? d : 'inv'; }
+  renderVals() {
+    const v = k => `var(--${k})`, s = this.state;
+    const tot = s.itens.reduce((a, i) => a + this.n(i.q) * this.n(i.p), 0);
+    const saldo = 157200;
+    const d = this.data(s.venc);
+    const vencErro = s.tent && (d === null || d === 'inv');
+    const fornErro = s.tent && !s.forn.trim();
+    const itErr = s.itens.map(i => ({ d: !i.d.trim(), q: this.n(i.q) <= 0, p: this.n(i.p) <= 0 }));
+    const erros = [];
+    if (fornErro) erros.push('Fornecedor não informado');
+    itErr.forEach((e, k) => { if (e.d || e.q || e.p) erros.push(`Item ${k + 1}: ${[e.d && 'descrição', e.q && 'quantidade', e.p && 'valor unitário'].filter(Boolean).join(', ')}`); });
+    if (s.tent && (d === null || d === 'inv')) erros.push(d === 'inv' ? '1º vencimento: data inexistente (novembro tem 30 dias)' : '1º vencimento: use dd/mm/aaaa');
+    if (tot > 5000 && !s.anexos[0]) erros.push('Anexe a nota fiscal ou o orçamento do fornecedor (obrigatório acima de R$ 5.000,00)');
+    const showErr = s.tent && erros.length > 0;
+    const parc = [];
+    const base = d instanceof Date ? d : null;
+    for (let k = 0; k < s.np; k++) { const dt = base ? new Date(base.getFullYear(), base.getMonth() + k, base.getDate()) : null; parc.push({ n: `${k + 1}/${s.np}`, d: dt ? dt.toLocaleDateString('pt-BR') : '—', v: this.brl(tot / s.np) }); }
+    const ap = tot <= 20000 ? ['Libera: Financeiro', 'Até R$ 20.000,00 o financeiro libera direto.', v('ok-bg'), v('ok')] : tot <= 100000 ? ['Libera: Financeiro', 'Entre R$ 20.000,00 e R$ 100.000,00 — conferência do financeiro.', v('warn-bg'), v('warn')] : ['Aprovação do chefe', 'Acima de R$ 100.000,00 — financeiro libera e o chefe aprova.', v('pink-bg'), v('pink-ink')];
+    const setIt = (k, f) => e => { const val = e.target.value; this.setState(st => ({ itens: st.itens.map((x, j) => j === k ? { ...x, [f]: val } : x) })); };
+    const AN = [['Nota fiscal / orçamento', 'PDF, XML ou foto'], ['Boleto', 'opcional'], ['Comprovante', 'após o pagamento']];
+    return {
+      erroGeral: showErr, erroTitulo: `Corrija ${erros.length} ${erros.length > 1 ? 'pontos' : 'ponto'} para enviar`, erros,
+      ok: s.ok, okTxt: `${this.brl(tot)} · ${s.forn}. ${ap[0]} — você será avisado no celular.`,
+      obra: s.obra, onObra: e => this.setState({ obra: e.target.value }), etapa: s.etapa, onEtapa: e => this.setState({ etapa: e.target.value }),
+      forn: s.forn, onForn: e => this.setState({ forn: e.target.value }), fornErro, fornLbl: fornErro ? v('neg') : v('ink-2'), fornBd: fornErro ? v('neg') : 'transparent', fornBg: fornErro ? v('neg-bg') : v('surface-2'),
+      itens: s.itens.map((i, k) => ({ ...i, t: this.brl(this.n(i.q) * this.n(i.p)),
+        bd: s.tent && itErr[k].d ? v('neg') : 'transparent', qbd: s.tent && itErr[k].q ? v('neg') : 'transparent', pbd: s.tent && itErr[k].p ? v('neg') : 'transparent',
+        onD: setIt(k, 'd'), onU: setIt(k, 'u'), onQ: setIt(k, 'q'), onP: setIt(k, 'p'),
+        rm: () => this.setState(st => ({ itens: st.itens.filter((_, j) => j !== k) })) })),
+      addItem: () => this.setState(st => ({ itens: st.itens.concat({ d: '', u: 'un', q: '', p: '' }) })),
+      np: s.np, menosP: () => this.setState({ np: Math.max(1, s.np - 1) }), maisP: () => this.setState({ np: Math.min(12, s.np + 1) }),
+      venc: s.venc, onVenc: e => this.setState({ venc: e.target.value }), vencErro, vencErroTxt: d === 'inv' ? 'Novembro tem 30 dias.' : 'Use o formato dd/mm/aaaa.',
+      vencLbl: vencErro ? v('neg') : v('ink-2'), vencBd: vencErro ? v('neg') : 'transparent', vencBg: vencErro ? v('neg-bg') : v('surface-2'),
+      parcelas: parc,
+      anexos: AN.map(([t, dd], k) => { const st = s.anexos[k]; return { t: st === 2 ? ['nf-pauluzzi-8812.pdf', 'boleto-pauluzzi.pdf', 'comprovante.pdf'][k] : st === 1 ? 'Enviando…' : '+ ' + t, d: st === 2 ? '184 KB · enviado' : st === 1 ? '62%' : dd, tag: st === 2 ? '✓ ' + t : (k === 0 && tot > 5000 ? 'Obrigatório' : ''),
+        tc: st === 2 ? v('ok') : (s.tent && k === 0 ? v('neg') : v('ink-3')), dc: v('ink-3'),
+        bd: st === 2 ? 'transparent' : (s.tent && k === 0 && !st ? v('neg') : v('ink-3')), bg: st === 2 ? v('ok-bg') : (s.tent && k === 0 && !st ? v('neg-bg') : 'transparent'),
+        pick: () => { if (st) return; this.setState(x => ({ anexos: x.anexos.map((a, j) => j === k ? 1 : a) })); setTimeout(() => this.setState(x => ({ anexos: x.anexos.map((a, j) => j === k ? 2 : a) })), 1000); } }; }),
+      total: this.brl(tot), saldo: this.brl(saldo), apos: this.brl(saldo - tot), aposCor: saldo - tot < 0 ? v('neg') : v('ink'),
+      apT: ap[0], apD: ap[1], apBg: ap[2], apFg: ap[3],
+      enviando: s.enviando, btnTxt: s.enviando ? 'Enviando…' : s.ok ? 'Enviada ✓' : 'Enviar ao financeiro',
+      enviar: () => { if (s.enviando || s.ok) return; if (erros.length) return this.setState({ tent: true }); this.setState({ tent: true, enviando: true }); setTimeout(() => this.setState({ enviando: false, ok: true }), 1200); }
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="tema.js"></script>
+  <style>body{margin:0;background:var(--bg,#ECECEA);color:var(--ink,#111);font-family:Manrope,sans-serif;-webkit-font-smoothing:antialiased}a{color:var(--ink,#111)}a:hover{color:var(--accent-ink,#4C6110)}*{box-sizing:border-box}input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}</style>
+</helmet>
+<div style="min-height:100vh; background:var(--bg,#ECECEA); display:flex; flex-direction:column;">
+  <dc-import name="Topbar" active="Orçamento" perfil="Financeiro" hint-size="100%,68px"></dc-import>
+  <main style="padding:8px 24px 40px; display:flex; flex-direction:column; gap:16px;">
+    <section style="display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; padding:8px 4px 0;">
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">OB-014 · Orçamento v3 · base SINAPI 09/2026</span>
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+          <h1 style="margin:0; font:300 40px/1.05 Outfit, sans-serif; letter-spacing:-0.02em;">Orçamento · Residencial Vila Aurora</h1>
+          <span style="display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 12px; border-radius:999px; background:{{ sitBg }}; color:{{ sitFg }}; font:700 12px Manrope, sans-serif;"><span style="width:6px; height:6px; border-radius:50%; background:currentColor;"></span>{{ sitTxt }}</span>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <a href="Orcamento Impressao.dc.html" style="height:40px; padding:0 18px; border-radius:999px; border:1px solid var(--line,#E3E3DF); background:var(--surface,#fff); color:var(--ink,#111); font:600 13px Manrope, sans-serif; display:inline-flex; align-items:center; text-decoration:none;">Imprimir / PDF</a>
+        <sc-if value="{{ isRasc }}" hint-placeholder-val="{{ true }}"><button onClick="{{ enviar }}" style="height:40px; padding:0 18px; border-radius:999px; border:none; background:var(--ink,#111); color:var(--on-ink,#fff); font:600 13px Manrope, sans-serif; cursor:pointer;">Enviar ao investidor</button></sc-if>
+        <sc-if value="{{ isEnv }}"><button onClick="{{ voltar }}" style="height:40px; padding:0 18px; border-radius:999px; border:1px solid var(--line,#E3E3DF); background:var(--surface,#fff); color:var(--ink,#111); font:600 13px Manrope, sans-serif; cursor:pointer;">Voltar a rascunho</button></sc-if>
+        <sc-if value="{{ isEnv }}"><button onClick="{{ aprovar }}" style="height:40px; padding:0 18px; border-radius:999px; border:none; background:var(--accent,#C6DF5F); color:#111; font:700 13px Manrope, sans-serif; cursor:pointer;">Registrar aprovação</button></sc-if>
+      </div>
+    </section>
+
+    <section style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px; padding:8px; border-radius:22px; background:var(--surface,#fff);">
+      <sc-for list="{{ passos }}" as="p" hint-placeholder-count="3">
+        <button onClick="{{ p.pick }}" style="display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:16px; border:none; background:{{ p.bg }}; color:{{ p.fg }}; text-align:left; cursor:pointer;">
+          <span style="width:28px; height:28px; border-radius:50%; background:{{ p.dotBg }}; color:{{ p.dotFg }}; display:flex; align-items:center; justify-content:center; font:700 12px Manrope, sans-serif; flex:none;">{{ p.ico }}</span>
+          <span style="display:flex; flex-direction:column; gap:1px;"><span style="font:600 14px Manrope, sans-serif;">{{ p.t }}</span><span style="font:500 11.5px Manrope, sans-serif; opacity:.7; font-variant-numeric:tabular-nums;">{{ p.d }}</span></span>
+        </button>
+      </sc-for>
+    </section>
+
+    <sc-if value="{{ isEnv }}"><div style="padding:14px 18px; border-radius:16px; background:var(--info-bg,#E5ECF8); color:var(--info,#2D5DB0); font:600 13px Manrope, sans-serif;">Enviado a Patrícia Moraes (investidora) em 14/10/2026 às 10:22. Itens e BDI ficam bloqueados até a resposta.</div></sc-if>
+    <sc-if value="{{ isApr }}"><div style="padding:14px 18px; border-radius:16px; background:var(--ok-bg,#E8F2DC); color:var(--ok,#3C7421); font:600 13px Manrope, sans-serif;">Aprovado pela investidora em 18/10/2026. Este orçamento agora é a base de controle da obra — alterações geram uma nova versão (v4).</div></sc-if>
+
+    <section style="display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:16px; align-items:start;">
+      <div style="padding:8px 20px 20px; border-radius:22px; background:var(--surface,#fff); overflow-x:auto;">
+        <div style="display:grid; grid-template-columns:64px minmax(220px,1fr) 44px 92px 112px 140px 72px; min-width:780px; font:500 13.5px Manrope, sans-serif; font-variant-numeric:tabular-nums;">
+          <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Código</span>
+          <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Descrição</span>
+          <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Un.</span>
+          <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F); text-align:right;">Qtd.</span>
+          <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F); text-align:right;">Custo unit.</span>
+          <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F); text-align:right;">Custo total</span>
+          <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F); text-align:right;">% obra</span>
+          <sc-for list="{{ etapas }}" as="e" hint-placeholder-count="6">
+            <button onClick="{{ e.toggle }}" style="grid-column:1 / -1; display:grid; grid-template-columns:64px minmax(220px,1fr) 44px 92px 112px 140px 72px; padding:0; margin-top:8px; border:none; border-radius:12px; background:var(--surface-2,#F5F5F3); color:var(--ink,#111); text-align:left; cursor:pointer; font:inherit;">
+              <span style="padding:12px 8px; font-weight:700;">{{ e.cod }}</span>
+              <span style="padding:12px 8px; font-weight:700; display:flex; gap:8px; align-items:center;"><span style="width:18px; color:var(--ink-3,#86867F);">{{ e.chev }}</span>{{ e.nome }}</span>
+              <span></span><span></span><span></span>
+              <span style="padding:12px 8px; text-align:right; font-weight:700;">{{ e.total }}</span>
+              <span style="padding:12px 8px; text-align:right; color:var(--ink-2,#55554F); font-weight:600;">{{ e.pct }}</span>
+            </button>
+            <sc-if value="{{ e.aberto }}">
+              <sc-for list="{{ e.itens }}" as="i">
+                <span style="padding:11px 8px; border-bottom:1px solid var(--line,#E3E3DF); color:var(--ink-3,#86867F);">{{ i.cod }}</span>
+                <span style="padding:11px 8px 11px 34px; border-bottom:1px solid var(--line,#E3E3DF);">{{ i.desc }}</span>
+                <span style="padding:11px 8px; border-bottom:1px solid var(--line,#E3E3DF); color:var(--ink-3,#86867F);">{{ i.un }}</span>
+                <span style="padding:11px 8px; border-bottom:1px solid var(--line,#E3E3DF); text-align:right;">{{ i.qtd }}</span>
+                <span style="padding:11px 8px; border-bottom:1px solid var(--line,#E3E3DF); text-align:right; color:var(--ink-2,#55554F);">{{ i.unit }}</span>
+                <span style="padding:11px 8px; border-bottom:1px solid var(--line,#E3E3DF); text-align:right; font-weight:600;">{{ i.total }}</span>
+                <span style="padding:11px 8px; border-bottom:1px solid var(--line,#E3E3DF); text-align:right; color:var(--ink-3,#86867F);">{{ i.pct }}</span>
+              </sc-for>
+            </sc-if>
+          </sc-for>
+          <span style="grid-column:1 / 6; padding:14px 8px; margin-top:8px; border-top:2px solid var(--ink,#111); font-weight:700;">Custo direto total</span>
+          <span style="padding:14px 8px; margin-top:8px; border-top:2px solid var(--ink,#111); text-align:right; font-weight:700;">{{ custo }}</span>
+          <span style="padding:14px 8px; margin-top:8px; border-top:2px solid var(--ink,#111); text-align:right; font-weight:700;">100%</span>
+        </div>
+      </div>
+
+      <aside style="display:flex; flex-direction:column; gap:16px; position:sticky; top:16px;">
+        <div style="padding:20px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline;">
+            <span style="font:600 15px Manrope, sans-serif;">Margem (BDI)</span>
+            <span style="font:300 28px Outfit, sans-serif; font-variant-numeric:tabular-nums;">{{ bdiTxt }}</span>
+          </div>
+          <sc-for list="{{ bdi }}" as="b" hint-placeholder-count="6">
+            <label style="display:grid; grid-template-columns:1fr 92px; gap:10px; align-items:center;">
+              <span style="font:500 13px Manrope, sans-serif; color:var(--ink-2,#55554F);">{{ b.nome }}</span>
+              <span style="height:36px; border-radius:10px; background:{{ b.bg }}; display:flex; align-items:center; padding:0 10px; gap:4px;">
+                <input type="number" step="0.1" value="{{ b.v }}" onChange="{{ b.set }}" disabled="{{ bloqueado }}" style="width:100%; border:none; background:transparent; text-align:right; font:600 13.5px Manrope, sans-serif; font-variant-numeric:tabular-nums; color:var(--ink,#111); outline:none;">
+                <span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">%</span>
+              </span>
+            </label>
+          </sc-for>
+          <span style="font:500 11.5px/1.5 Manrope, sans-serif; color:var(--ink-3,#86867F);">BDI = (1+AC+S+R)(1+DF)(1+L)/(1−I) − 1</span>
+        </div>
+        <div style="padding:22px; border-radius:22px; background:var(--night,#101010); color:#fff; display:flex; flex-direction:column; gap:12px;">
+          <div style="display:flex; justify-content:space-between; font:500 13px Manrope, sans-serif; color:#cfcfca; font-variant-numeric:tabular-nums;"><span>Custo direto</span><span>{{ custo }}</span></div>
+          <div style="display:flex; justify-content:space-between; font:500 13px Manrope, sans-serif; color:#cfcfca; font-variant-numeric:tabular-nums;"><span>BDI {{ bdiTxt }}</span><span>{{ bdiValor }}</span></div>
+          <div style="height:1px; background:#2b2b2b;"></div>
+          <span style="font:600 12px Manrope, sans-serif; color:#C6DF5F;">Valor ao investidor</span>
+          <span style="font:300 38px Outfit, sans-serif; letter-spacing:-0.01em; font-variant-numeric:tabular-nums;">{{ investidor }}</span>
+          <span style="font:500 12px Manrope, sans-serif; color:#9a9a94; font-variant-numeric:tabular-nums;">{{ m2 }} por m² · 3.920 m² de área construída</span>
+        </div>
+      </aside>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { sit: 0, abertas: { 1: true }, bdi: { ac: 4.0, s: 0.8, r: 1.2, df: 1.1, l: 8.0, i: 9.65 } };
+  brl(n) { return 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  num(n, d = 0) { return n.toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+  renderVals() {
+    const v = k => `var(--${k})`, s = this.state;
+    const E = [
+      ['01', 'Fundação', [['01.01', 'Estaca hélice contínua Ø 40 cm', 'm', 1840, 125], ['01.02', 'Blocos e vigas baldrame', 'm³', 280, 625]]],
+      ['02', 'Estrutura', [['02.01', 'Formas em madeirite plastificado', 'm²', 6200, 50], ['02.02', 'Armação aço CA-50/CA-60', 'kg', 75000, 6.4], ['02.03', 'Pilares · concreto fck 30', 'm³', 300, 700], ['02.04', 'Lajes · concreto fck 30 bombeado', 'm³', 640, 500]]],
+      ['03', 'Alvenaria e vedação', [['03.01', 'Alvenaria bloco cerâmico 14x19x29', 'm²', 5500, 60], ['03.02', 'Vergas e contravergas pré-moldadas', 'm', 3000, 30], ['03.03', 'Chapisco e reboco interno', 'm²', 9500, 20]]],
+      ['04', 'Instalações', [['04.01', 'Instalações hidrossanitárias', 'vb', 1, 320000], ['04.02', 'Instalações elétricas e SPDA', 'vb', 1, 360000], ['04.03', 'Gás e combate a incêndio', 'vb', 1, 100000]]],
+      ['05', 'Cobertura', [['05.01', 'Impermeabilização manta asfáltica 4 mm', 'm²', 700, 200], ['05.02', 'Telhado termoacústico e calhas', 'm²', 500, 200]]],
+      ['06', 'Acabamento', [['06.01', 'Contrapiso e regularização', 'm²', 4200, 50], ['06.02', 'Revestimento cerâmico e porcelanato', 'm²', 6500, 80], ['06.03', 'Esquadrias de alumínio', 'm²', 760, 500], ['06.04', 'Pintura látex acrílica', 'm²', 14200, 25]]]
+    ];
+    const custo = E.reduce((a, e) => a + e[2].reduce((b, i) => b + i[3] * i[4], 0), 0);
+    const b = s.bdi, f = x => x / 100;
+    const bdi = (1 + f(b.ac) + f(b.s) + f(b.r)) * (1 + f(b.df)) * (1 + f(b.l)) / (1 - f(b.i)) - 1;
+    const inv = custo * (1 + bdi);
+    const bloq = s.sit !== 0;
+    const P = [['Rascunho', 'editado 13/10/2026'], ['Enviado ao investidor', '14/10/2026 10:22'], ['Aprovado', '18/10/2026 15:03']];
+    const sit = [['Rascunho', v('surface-3'), v('ink-2')], ['Enviado ao investidor', v('info-bg'), v('info')], ['Aprovado', v('ok-bg'), v('ok')]][s.sit];
+    return {
+      sitTxt: sit[0], sitBg: sit[1], sitFg: sit[2],
+      isRasc: s.sit === 0, isEnv: s.sit === 1, isApr: s.sit === 2,
+      enviar: () => this.setState({ sit: 1 }), voltar: () => this.setState({ sit: 0 }), aprovar: () => this.setState({ sit: 2 }),
+      passos: P.map(([t, d], i) => ({ t, d: i <= s.sit ? d : 'pendente', pick: () => this.setState({ sit: i }),
+        bg: i === s.sit ? v('ink') : 'transparent', fg: i === s.sit ? v('on-ink') : (i < s.sit ? v('ink') : v('ink-3')),
+        dotBg: i < s.sit ? v('accent') : (i === s.sit ? v('accent') : v('surface-3')), dotFg: '#111', ico: i < s.sit ? '✓' : String(i + 1) })),
+      etapas: E.map(([cod, nome, it], k) => {
+        const t = it.reduce((a, i) => a + i[3] * i[4], 0);
+        return { cod, nome, total: this.brl(t), pct: this.num(t / custo * 100, 1) + '%', aberto: !!s.abertas[k], chev: s.abertas[k] ? '−' : '+',
+          toggle: () => this.setState(st => ({ abertas: { ...st.abertas, [k]: !st.abertas[k] } })),
+          itens: it.map(([c, d, un, q, u]) => ({ cod: c, desc: d, un, qtd: this.num(q), unit: this.brl(u), total: this.brl(q * u), pct: this.num(q * u / custo * 100, 1) + '%' })) };
+      }),
+      custo: this.brl(custo), bloqueado: bloq,
+      bdi: [['ac', 'Administração central'], ['s', 'Seguro e garantia'], ['r', 'Risco'], ['df', 'Despesas financeiras'], ['l', 'Lucro'], ['i', 'Tributos (PIS, COFINS, ISS)']].map(([k, nome]) => ({
+        nome, v: b[k], bg: bloq ? 'transparent' : v('surface-2'),
+        set: e => { const val = parseFloat(e.target.value); this.setState(st => ({ bdi: { ...st.bdi, [k]: isNaN(val) ? 0 : val } })); } })),
+      bdiTxt: this.num(bdi * 100, 2) + '%', bdiValor: this.brl(custo * bdi), investidor: this.brl(inv), m2: this.brl(inv / 3920)
+    };
+  }
+}
+</script>
+</body>
+</html>

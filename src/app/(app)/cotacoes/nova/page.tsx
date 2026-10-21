@@ -1,8 +1,7 @@
+import { CabecalhoTela, Campo, Entrada, EstadoVazio, FormAcao, Marcacao, Secao } from '@ds'
 import { sql, hoje } from '@/lib/db'
 import { exigirSessao } from '@/lib/sessao'
 import { somarDias } from '@/lib/regras'
-import { FormAcao } from '@/components/form-acao'
-import { Secao, Vazio } from '@/components/ui'
 import { criarCotacao } from '../acoes'
 import { ItensLivres } from './itens-livres'
 
@@ -29,75 +28,86 @@ export default async function NovaCotacao() {
   ])
 
   return (
-    <div className="grid max-w-4xl gap-4">
-      <h1>Nova cotação</h1>
-      <FormAcao action={criarCotacao} botao="Criar cotação" principal className="grid gap-5">
-        <section className="cartao grid gap-3 sm:grid-cols-[1fr_12rem]">
-          <label>
-            <span className="rotulo">Nome da cotação</span>
-            <input name="titulo" required placeholder="Ex.: Concreto e aço da fundação" className="campo" />
-          </label>
-          <label>
-            <span className="rotulo">Fornecedores respondem até</span>
-            <input name="prazo_resposta" type="date" required min={dia} defaultValue={somarDias(dia, 2)} className="campo" />
-          </label>
-        </section>
+    <>
+      <CabecalhoTela contexto="Cotações" titulo="Nova cotação">
+        <p className="max-w-2xl text-table text-ink-2">Escolha os itens e os fornecedores. A IA pede os preços pelo WhatsApp e monta a comparação.</p>
+      </CabecalhoTela>
+      <FormAcao action={criarCotacao} botao="Criar cotação" variante="primario" tamanho="lg" className="grid max-w-4xl gap-4">
+        <Secao titulo="Identificação">
+          <div className="grid gap-3.5 sm:grid-cols-[1fr_14rem]">
+            <Campo rotulo="Nome da cotação">
+              <Entrada name="titulo" required placeholder="Ex.: Concreto e aço da fundação" />
+            </Campo>
+            <Campo rotulo="Fornecedores respondem até">
+              <Entrada name="prazo_resposta" type="date" required min={dia} defaultValue={somarDias(dia, 2)} />
+            </Campo>
+          </div>
+        </Secao>
 
         <Secao titulo="O que cotar">
           {itens.length === 0 ? (
-            <Vazio>O orçamento desta obra não tem itens de material ou equipamento. Inclua itens fora do orçamento abaixo.</Vazio>
+            <EstadoVazio titulo="Nada de material ou equipamento no orçamento" compacto>
+              Inclua itens fora do orçamento logo abaixo.
+            </EstadoVazio>
           ) : (
-            <div className="grid gap-1">
+            <div className="flex flex-col">
               {itens.map((i) => (
-                <div key={i.chave} className="grid items-center gap-2 border-b border-linha py-2 sm:grid-cols-[1.5rem_1fr_8rem]">
-                  <input type="checkbox" name="item" value={i.chave} id={`i${i.chave}`} className="size-4" />
-                  <label htmlFor={`i${i.chave}`}>
-                    {i.descricao}{' '}
-                    <span className="text-sm text-cinza">
-                      ({i.etapa} / {i.subetapa}, orçado {qtd(i.quantidade)} {i.unidade})
-                    </span>
-                  </label>
-                  <label className="flex items-center gap-1 text-sm">
+                <div key={i.chave} className="grid items-center gap-2 border-b border-line py-2.5 sm:grid-cols-[1fr_11rem]">
+                  <Marcacao
+                    name="item"
+                    value={i.chave}
+                    rotulo={
+                      <span className="flex flex-col">
+                        <span className="font-semibold">{i.descricao}</span>
+                        <span className="text-caption text-ink-3">
+                          {i.etapa} / {i.subetapa} · orçado {qtd(i.quantidade)} {i.unidade}
+                        </span>
+                      </span>
+                    }
+                  />
+                  <label className="flex items-center gap-2 text-label font-semibold text-ink-2">
                     <span className="sr-only">Quantidade de {i.descricao}</span>
-                    <input name={`qtd_${i.chave}`} type="number" min="0.001" step="0.001" defaultValue={i.quantidade} className="campo" />
-                    {i.unidade}
+                    <Entrada name={`qtd_${i.chave}`} type="number" min="0.001" step="0.001" defaultValue={i.quantidade} className="text-right" />
+                    <span className="w-10 shrink-0">{i.unidade}</span>
                   </label>
                 </div>
               ))}
             </div>
           )}
-          <div className="mt-4">
-            <ItensLivres subetapas={subetapas} />
-          </div>
+          <ItensLivres subetapas={subetapas} />
         </Secao>
 
         <Secao titulo="Para quem pedir preço">
-          <div className="grid gap-1 sm:grid-cols-2">
+          <div className="grid gap-x-4 gap-y-2.5 sm:grid-cols-2">
             {fornecedores.map((f) => (
-              <label key={f.id} className="flex items-center gap-2 py-1">
-                <input type="checkbox" name="fornecedor" value={f.id} defaultChecked={f.vendas > 0} className="size-4" />
-                <span>
-                  {f.nome}
-                  <span className="text-sm text-cinza">
-                    {f.vendas > 0 && ', já vendeu para esta obra'}
-                    {!f.whatsapp && ', sem WhatsApp'}
+              <Marcacao
+                key={f.id}
+                name="fornecedor"
+                value={f.id}
+                defaultChecked={f.vendas > 0}
+                rotulo={
+                  <span className="flex flex-col">
+                    <span className="font-semibold">{f.nome}</span>
+                    {(f.vendas > 0 || !f.whatsapp) && (
+                      <span className="text-caption text-ink-3">
+                        {[f.vendas > 0 && 'já vendeu para esta obra', !f.whatsapp && 'sem WhatsApp'].filter(Boolean).join(' · ')}
+                      </span>
+                    )}
                   </span>
-                </span>
-              </label>
+                }
+              />
             ))}
           </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <label>
-              <span className="rotulo">Novo fornecedor (opcional)</span>
-              <input name="novo_nome" className="campo" />
-            </label>
-            <label>
-              <span className="rotulo">WhatsApp dele</span>
-              <input name="novo_whatsapp" type="tel" placeholder="(11) 99999-8888" className="campo" />
-            </label>
+          <div className="grid gap-3.5 border-t border-line pt-4 sm:grid-cols-2">
+            <Campo rotulo="Novo fornecedor (opcional)">
+              <Entrada name="novo_nome" />
+            </Campo>
+            <Campo rotulo="WhatsApp dele">
+              <Entrada name="novo_whatsapp" type="tel" placeholder="(11) 99999-8888" />
+            </Campo>
           </div>
         </Secao>
       </FormAcao>
-    </div>
+    </>
   )
 }

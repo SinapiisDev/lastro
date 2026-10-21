@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<header style="display:flex; align-items:center; gap:16px; padding:14px 24px; font-family:Manrope, sans-serif; flex-wrap:wrap;">
+  <a href="Indice.dc.html" style="display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--ink,#111); flex:none;">
+    <div style="width:34px; height:34px; border-radius:11px; background:var(--ink,#111); display:flex; align-items:flex-end; justify-content:center; gap:3px; padding:8px 0; box-sizing:border-box;">
+      <div style="width:4px; height:8px; background:var(--accent,#C6DF5F); border-radius:1px;"></div>
+      <div style="width:4px; height:13px; background:var(--on-ink,#fff); border-radius:1px;"></div>
+      <div style="width:4px; height:18px; background:var(--on-ink,#fff); border-radius:1px;"></div>
+    </div>
+    <div style="display:flex; flex-direction:column; line-height:1.05;">
+      <span style="font:500 16px Outfit, sans-serif; letter-spacing:-0.01em;">Gestão de Obras</span>
+      <span style="font:600 10.5px Manrope, sans-serif; color:var(--ink-3,#86867F);">Construtora Alicerce</span>
+    </div>
+  </a>
+  <nav style="flex:1; display:flex; justify-content:center; min-width:0;">
+    <div style="display:flex; gap:4px; padding:4px; background:var(--surface,#fff); border-radius:999px; overflow-x:auto; max-width:100%; scrollbar-width:none;">
+      <sc-for list="{{ itens }}" as="it" hint-placeholder-count="7">
+        <sc-if value="{{ it.ativo }}">
+          <a href="{{ it.href }}" style="padding:8px 16px; border-radius:999px; background:var(--ink,#111); color:var(--on-ink,#fff); font:600 13px Manrope, sans-serif; text-decoration:none; white-space:nowrap;">{{ it.nome }}</a>
+        </sc-if>
+        <sc-if value="{{ it.inativo }}" hint-placeholder-val="{{ true }}">
+          <a href="{{ it.href }}" style="padding:8px 16px; border-radius:999px; color:var(--ink-2,#55554F); font:600 13px Manrope, sans-serif; text-decoration:none; white-space:nowrap;" style-hover="background:var(--surface-2,#F5F5F3); color:var(--ink,#111);">{{ it.nome }}</a>
+        </sc-if>
+      </sc-for>
+    </div>
+  </nav>
+  <div style="display:flex; align-items:center; gap:8px; flex:none;">
+    <div style="display:flex; align-items:center; gap:8px; height:40px; padding:0 14px 0 6px; background:var(--surface,#fff); border-radius:999px; font:600 13px Manrope, sans-serif; color:var(--ink,#111);">
+      <span style="padding:4px 9px; border-radius:999px; background:var(--surface-2,#F5F5F3); font:700 11px Manrope, sans-serif; color:var(--ink-2,#55554F);">{{ perfil }}</span>
+      <span>{{ usuario }}</span>
+    </div>
+    <button onClick="{{ alternarTema }}" title="Alternar tema claro/escuro" style="width:40px; height:40px; border-radius:999px; border:none; background:var(--surface,#fff); color:var(--ink,#111); font:500 16px Manrope, sans-serif; cursor:pointer;" style-hover="background:var(--surface-2,#F5F5F3);">◐</button>
+    <button title="Notificações" style="position:relative; width:40px; height:40px; border-radius:999px; border:none; background:var(--surface,#fff); color:var(--ink,#111); font:600 14px Manrope, sans-serif; cursor:pointer;">3<span style="position:absolute; top:9px; right:9px; width:7px; height:7px; border-radius:50%; background:var(--neg,#C3352D);"></span></button>
+    <div style="width:40px; height:40px; border-radius:50%; background:var(--pink,#F4A6C6); color:#111; display:flex; align-items:center; justify-content:center; font:700 13px Manrope, sans-serif;">{{ iniciais }}</div>
+  </div>
+</header>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;1280px&quot;,&quot;height&quot;:&quot;80px&quot;},&quot;active&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Painel&quot;,&quot;Obra&quot;,&quot;Orçamento&quot;,&quot;Cotação&quot;,&quot;Compras&quot;,&quot;Relatórios&quot;,&quot;Configurações&quot;],&quot;default&quot;:&quot;Painel&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;perfil&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Financeiro&quot;,&quot;Obra&quot;,&quot;Chefe&quot;],&quot;default&quot;:&quot;Financeiro&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const a = this.props.active ?? 'Painel';
+    const nav = [['Painel','Painel Financeiro.dc.html'],['Obra','Obra.dc.html'],['Orçamento','Orcamento.dc.html'],['Cotação','Cotacao.dc.html'],['Compras','Compras.dc.html'],['Relatórios','Relatorios.dc.html'],['Configurações','Configuracoes.dc.html']];
+    const perfil = this.props.perfil ?? 'Financeiro';
+    const usuarios = { Financeiro: ['Marina Costa','MC'], Obra: ['Eng. Rafael Lima','RL'], Chefe: ['Carlos Alencar','CA'] };
+    const u = usuarios[perfil] || usuarios.Financeiro;
+    return {
+      itens: nav.map(([nome, href]) => ({ nome, href, ativo: nome === a, inativo: nome !== a })),
+      perfil, usuario: u[0], iniciais: u[1],
+      alternarTema: () => window.goTema && window.goTema.alternar()
+    };
+  }
+}
+</script>
+</body>
+</html>

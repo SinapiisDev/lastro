@@ -62,5 +62,6 @@ O WhatsApp só deixa mandar mensagem livre até 24 horas depois da última mensa
 - `src/lib/regras.ts` e `src/lib/cotacao.ts`: regras de negócio puras, com testes ao lado.
 - `src/lib/ia.ts`: as duas tarefas da IA (ler mensagens e comparar propostas), com resposta em formato validado; `src/lib/conversa.ts` liga IA, WhatsApp e cotação.
 - `src/app/(app)`: os painéis. Toda leitura e escrita acontece no servidor; o navegador nunca fala com o banco.
+- Interface: o contrato visual está em `DESIGN.md`; os componentes, em `design-system/` (mapa em `design-system/README.md`), com tema claro e escuro. A vitrine de componentes fica em `/design-system` (perfil Chefe).
 - `src/app/api/whatsapp`: webhook da Meta (só aceita chamada assinada); `src/app/api/cron/lembretes`: lembrete diário.
 - Anexos ficam num bucket privado; o link de download vale 60 segundos e só sai para quem tem acesso à obra.

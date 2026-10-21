@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="tema.js"></script>
+  <style>body{margin:0;background:#ECECEA;color:#111;font-family:Manrope,sans-serif;-webkit-font-smoothing:antialiased}a{color:#111}a:hover{color:#4C6110}*{box-sizing:border-box}@keyframes go-spin{to{transform:rotate(360deg)}}@keyframes go-pulse{0%,100%{opacity:1}50%{opacity:.45}}</style>
+</helmet>
+<div style="min-height:100vh; background:#ECECEA; padding:40px 40px 80px; display:flex; flex-direction:column; gap:40px; max-width:1720px; margin:0 auto;">
+  <header style="display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap;">
+    <div style="display:flex; flex-direction:column; gap:10px; max-width:720px;">
+      <span style="font:600 12px Manrope, sans-serif; color:#86867F;">Gestão de Obras · Design System v1.0 · 21/10/2026</span>
+      <h1 style="margin:0; font:300 56px/1 Outfit, sans-serif; letter-spacing:-0.02em;">Fundamentos e componentes</h1>
+      <p style="margin:0; font:500 15px/1.6 Manrope, sans-serif; color:#55554F; text-wrap:pretty;">Cinza claro, cartões brancos de raio grande, faixa preta e acento lima. Feito para números: algarismos tabulares, valores à direita e cor só com significado. Guia completo em <a href="../../DESIGN.md">DESIGN.md</a>.</p>
+    </div>
+    <a href="Indice.dc.html" style="height:40px; padding:0 18px; border-radius:999px; background:#111; color:#fff; display:inline-flex; align-items:center; font:600 13px Manrope, sans-serif; text-decoration:none;">Ver todas as telas ›</a>
+  </header>
+
+  <section style="display:flex; flex-direction:column; gap:16px;">
+    <h2 style="margin:0; font:400 28px Outfit, sans-serif;">Cor</h2>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(560px, 1fr)); gap:16px;">
+      <sc-for list="{{ paletas }}" as="pa" hint-placeholder-count="2">
+        <div style="padding:24px; border-radius:30px; background:{{ pa.bg }}; color:{{ pa.ink }}; display:flex; flex-direction:column; gap:16px;">
+          <span style="font:500 18px Outfit, sans-serif;">Tema {{ pa.nome }}</span>
+          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(118px, 1fr)); gap:10px;">
+            <sc-for list="{{ pa.cores }}" as="c" hint-placeholder-count="24">
+              <div style="display:flex; flex-direction:column; gap:6px;">
+                <div style="height:54px; border-radius:14px; background:{{ c.v }}; border:1px solid rgba(128,128,128,.22);"></div>
+                <span style="font:700 11.5px Manrope, sans-serif;">--{{ c.k }}</span>
+                <span style="font:500 11px Manrope, sans-serif; opacity:.6; font-variant-numeric:tabular-nums;">{{ c.v }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display:grid; grid-template-columns:minmax(0,1.4fr) minmax(0,1fr); gap:16px;">
+    <div style="padding:28px; border-radius:30px; background:#fff; display:flex; flex-direction:column; gap:18px;">
+      <div style="display:flex; justify-content:space-between; align-items:baseline;">
+        <h2 style="margin:0; font:400 28px Outfit, sans-serif;">Tipografia</h2>
+        <span style="font:600 12px Manrope, sans-serif; color:#86867F;">Outfit (títulos, KPI) · Manrope (interface, tabelas)</span>
+      </div>
+      <div style="display:grid; grid-template-columns:110px 1fr 140px; gap:14px 20px; align-items:baseline;">
+        <span style="font:600 12px Manrope, sans-serif; color:#86867F;">display</span><span style="font:300 44px/48px Outfit, sans-serif; letter-spacing:-0.02em;">Residencial Vila Aurora</span><span style="font:500 12px Manrope, sans-serif; color:#86867F;">Outfit 300 · 44/48</span>
+        <span style="font:600 12px Manrope, sans-serif; color:#86867F;">kpi</span><span style="font:300 36px/40px Outfit, sans-serif; font-variant-numeric:tabular-nums;">R$ 1.284.906,40</span><span style="font:500 12px Manrope, sans-serif; color:#86867F;">Outfit 300 · 36 · tnum</span>
+        <span style="font:600 12px Manrope, sans-serif; color:#86867F;">h1</span><span style="font:300 32px/38px Outfit, sans-serif;">Painel financeiro</span><span style="font:500 12px Manrope, sans-serif; color:#86867F;">Outfit 300 · 32/38</span>
+        <span style="font:600 12px Manrope, sans-serif; color:#86867F;">h2</span><span style="font:400 22px/28px Outfit, sans-serif;">Compras aguardando liberação</span><span style="font:500 12px Manrope, sans-serif; color:#86867F;">Outfit 400 · 22/28</span>
+        <span style="font:600 12px Manrope, sans-serif; color:#86867F;">h3</span><span style="font:600 15px/22px Manrope, sans-serif;">Aço CA-50 10 mm — 12 t</span><span style="font:500 12px Manrope, sans-serif; color:#86867F;">Manrope 600 · 15/22</span>
+        <span style="font:600 12px Manrope, sans-serif; color:#86867F;">body</span><span style="font:500 14px/21px Manrope, sans-serif;">Pedido enviado ao financeiro. O pagamento será liberado após a conferência da nota.</span><span style="font:500 12px Manrope, sans-serif; color:#86867F;">Manrope 500 · 14/21</span>
+        <span style="font:600 12px Manrope, sans-serif; color:#86867F;">table</span><span style="font:600 13.5px/20px Manrope, sans-serif; font-variant-numeric:tabular-nums;">R$ 48.920,00 · −R$ 3.120,50 · 24/10/2026</span><span style="font:500 12px Manrope, sans-serif; color:#86867F;">Manrope 600 · 13.5/20</span>
+        <span style="font:600 12px Manrope, sans-serif; color:#86867F;">label</span><span style="font:600 12px/16px Manrope, sans-serif; color:#55554F;">Valor previsto</span><span style="font:500 12px Manrope, sans-serif; color:#86867F;">Manrope 600 · 12/16</span>
+        <span style="font:600 12px Manrope, sans-serif; color:#86867F;">caption</span><span style="font:500 11.5px/16px Manrope, sans-serif; color:#86867F;">Atualizado em 20/10/2026 às 17:42</span><span style="font:500 12px Manrope, sans-serif; color:#86867F;">Manrope 500 · 11.5/16</span>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; padding-top:6px;">
+        <div style="padding:16px; border-radius:14px; background:#E8F2DC; display:flex; flex-direction:column; gap:4px;">
+          <span style="font:700 12px Manrope, sans-serif; color:#3C7421;">Certo — tabular, à direita</span>
+          <span style="font:600 14px/1.6 Manrope, sans-serif; font-variant-numeric:tabular-nums; text-align:right;">R$ 1.111,11<br>R$ 48.920,00<br>−R$ 3.120,50</span>
+        </div>
+        <div style="padding:16px; border-radius:14px; background:#FBEAE8; display:flex; flex-direction:column; gap:4px;">
+          <span style="font:700 12px Manrope, sans-serif; color:#C3352D;">Errado — proporcional, centralizado</span>
+          <span style="font:600 14px/1.6 Manrope, sans-serif; font-variant-numeric:proportional-nums; text-align:center;">R$ 1.111,11<br>R$ 48.920,00<br>-3120.5</span>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:16px;">
+      <div style="padding:28px; border-radius:30px; background:#fff; display:flex; flex-direction:column; gap:14px;">
+        <h2 style="margin:0; font:400 28px Outfit, sans-serif;">Espaçamento</h2>
+        <sc-for list="{{ espacos }}" as="e" hint-placeholder-count="9">
+          <div style="display:grid; grid-template-columns:60px 1fr 40px; align-items:center; gap:12px;">
+            <span style="font:700 12px Manrope, sans-serif;">--s-{{ e.k }}</span>
+            <div style="height:12px; width:{{ e.w }}; background:#111; border-radius:3px;"></div>
+            <span style="font:500 12px Manrope, sans-serif; color:#86867F; text-align:right;">{{ e.v }}px</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="padding:28px; border-radius:30px; background:#fff; display:flex; flex-direction:column; gap:14px;">
+        <h2 style="margin:0; font:400 28px Outfit, sans-serif;">Raio e elevação</h2>
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+          <sc-for list="{{ raios }}" as="r" hint-placeholder-count="6">
+            <div style="display:flex; flex-direction:column; gap:6px; align-items:center;">
+              <div style="width:64px; height:64px; background:#EBEBE7; border:1.5px solid #111; border-radius:{{ r.v }};"></div>
+              <span style="font:700 11.5px Manrope, sans-serif;">{{ r.k }}</span>
+              <span style="font:500 11px Manrope, sans-serif; color:#86867F;">{{ r.d }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:14px; background:#ECECEA; border-radius:22px;">
+          <div style="height:72px; border-radius:22px; background:#fff; box-shadow:0 1px 2px rgba(17,17,17,.04); display:flex; align-items:center; justify-content:center; font:600 12px Manrope, sans-serif;">shadow-1 · cartão</div>
+          <div style="height:72px; border-radius:22px; background:#fff; box-shadow:0 12px 32px rgba(17,17,17,.10); display:flex; align-items:center; justify-content:center; font:600 12px Manrope, sans-serif;">shadow-2 · menu, modal</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:flex; flex-direction:column; gap:16px;">
+    <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+      <h2 style="margin:0; font:400 28px Outfit, sans-serif;">Componentes e estados</h2>
+      <span style="font:600 12px Manrope, sans-serif; color:#86867F;">mesmo componente, tokens do tema claro (esq.) e escuro (dir.)</span>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(680px, 1fr)); gap:16px;">
+      <sc-for list="{{ temas }}" as="t" hint-placeholder-count="2">
+        <div ref="{{ t.ref }}" style="padding:24px; border-radius:30px; background:var(--bg,#ECECEA); color:var(--ink,#111); display:flex; flex-direction:column; gap:16px;">
+          <span style="font:500 18px Outfit, sans-serif;">Tema {{ t.nome }}</span>
+
+          <div style="padding:20px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:14px;">
+            <span style="font:600 15px Manrope, sans-serif;">Botões</span>
+            <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
+              <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-start;"><button style="height:40px; padding:0 18px; border-radius:999px; border:none; background:var(--ink,#111); color:var(--on-ink,#fff); font:600 13px Manrope, sans-serif; cursor:pointer;">Liberar</button><span style="font:500 11px Manrope, sans-serif; color:var(--ink-3,#86867F);">padrão</span></div>
+              <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-start;"><button style="height:40px; padding:0 18px; border-radius:999px; border:none; background:var(--ink-2,#55554F); color:var(--on-ink,#fff); font:600 13px Manrope, sans-serif;">Liberar</button><span style="font:500 11px Manrope, sans-serif; color:var(--ink-3,#86867F);">hover</span></div>
+              <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-start;"><button style="height:40px; padding:0 18px; border-radius:999px; border:none; background:var(--ink,#111); color:var(--on-ink,#fff); font:600 13px Manrope, sans-serif; transform:scale(.96);">Liberar</button><span style="font:500 11px Manrope, sans-serif; color:var(--ink-3,#86867F);">ativo</span></div>
+              <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-start;"><button style="height:40px; padding:0 18px; border-radius:999px; border:none; background:var(--ink,#111); color:var(--on-ink,#fff); font:600 13px Manrope, sans-serif; box-shadow:0 0 0 2px var(--surface,#fff), 0 0 0 4px var(--focus,#111);">Liberar</button><span style="font:500 11px Manrope, sans-serif; color:var(--ink-3,#86867F);">foco</span></div>
+              <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-start;"><button disabled style="height:40px; padding:0 18px; border-radius:999px; border:none; background:var(--ink,#111); color:var(--on-ink,#fff); font:600 13px Manrope, sans-serif; opacity:.35; cursor:not-allowed;">Liberar</button><span style="font:500 11px Manrope, sans-serif; color:var(--ink-3,#86867F);">desabilitado</span></div>
+              <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-start;"><button style="height:40px; padding:0 18px; border-radius:999px; border:none; background:var(--ink,#111); color:var(--on-ink,#fff); font:600 13px Manrope, sans-serif; display:inline-flex; align-items:center; gap:8px;"><span style="width:14px; height:14px; border-radius:50%; border:2px solid var(--on-ink,#fff); border-right-color:transparent; animation:go-spin .8s linear infinite;"></span>Salvando…</button><span style="font:500 11px Manrope, sans-serif; color:var(--ink-3,#86867F);">carregando</span></div>
+            </div>
+            <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; padding-top:12px; border-top:1px solid var(--line,#E3E3DF);">
+              <button style="height:40px; padding:0 18px; border-radius:999px; border:none; background:var(--ink,#111); color:var(--on-ink,#fff); font:600 13px Manrope, sans-serif;">Primário</button>
+              <button style="height:40px; padding:0 18px; border-radius:999px; border:none; background:var(--accent,#C6DF5F); color:#111; font:700 13px Manrope, sans-serif;">Aprovar compra</button>
+              <button style="height:40px; padding:0 18px; border-radius:999px; border:1px solid var(--line,#E3E3DF); background:var(--surface,#fff); color:var(--ink,#111); font:600 13px Manrope, sans-serif;" style-hover="background:var(--surface-2,#F5F5F3);">Secundário</button>
+              <button style="height:40px; padding:0 14px; border-radius:999px; border:none; background:transparent; color:var(--ink,#111); font:600 13px Manrope, sans-serif; text-decoration:underline; text-underline-offset:3px;">Fantasma</button>
+              <button style="height:40px; padding:0 18px; border-radius:999px; border:1px solid var(--neg,#C3352D); background:transparent; color:var(--neg,#C3352D); font:600 13px Manrope, sans-serif;">Recusar</button>
+              <button style="width:40px; height:40px; border-radius:999px; border:1px solid var(--line,#E3E3DF); background:var(--surface,#fff); color:var(--ink,#111); font:500 18px Manrope, sans-serif;">›</button>
+              <button style="height:32px; padding:0 14px; border-radius:999px; border:none; background:var(--surface-2,#F5F5F3); color:var(--ink,#111); font:600 12px Manrope, sans-serif;">Pequeno</button>
+            </div>
+          </div>
+
+          <div style="padding:20px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:14px;">
+            <span style="font:600 15px Manrope, sans-serif;">Campos de formulário</span>
+            <div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:14px;">
+              <label style="display:flex; flex-direction:column; gap:6px;"><span style="font:600 12px Manrope, sans-serif; color:var(--ink-2,#55554F);">Fornecedor · padrão</span><span style="height:44px; border-radius:14px; background:var(--surface-2,#F5F5F3); border:1px solid transparent; display:flex; align-items:center; padding:0 14px; font:500 14px Manrope, sans-serif; color:var(--ink-3,#86867F);">Buscar fornecedor</span></label>
+              <label style="display:flex; flex-direction:column; gap:6px;"><span style="font:600 12px Manrope, sans-serif; color:var(--ink-2,#55554F);">Fornecedor · foco</span><span style="height:44px; border-radius:14px; background:var(--surface,#fff); border:1px solid var(--ink,#111); box-shadow:0 0 0 3px var(--surface-3,#EBEBE7); display:flex; align-items:center; padding:0 14px; font:500 14px Manrope, sans-serif;">Gerd<span style="width:1px; height:18px; background:var(--ink,#111); margin-left:1px;"></span></span></label>
+              <label style="display:flex; flex-direction:column; gap:6px;"><span style="font:600 12px Manrope, sans-serif; color:var(--ink-2,#55554F);">Valor total</span><span style="height:44px; border-radius:14px; background:var(--surface-2,#F5F5F3); display:flex; align-items:center; gap:8px; padding:0 14px; font:600 14px Manrope, sans-serif; font-variant-numeric:tabular-nums;"><span style="color:var(--ink-3,#86867F);">R$</span><span style="flex:1; text-align:right;">186.200,00</span></span></label>
+              <label style="display:flex; flex-direction:column; gap:6px;"><span style="font:600 12px Manrope, sans-serif; color:var(--neg,#C3352D);">Vencimento · erro</span><span style="height:44px; border-radius:14px; background:var(--neg-bg,#FBEAE8); border:1px solid var(--neg,#C3352D); display:flex; align-items:center; padding:0 14px; font:500 14px Manrope, sans-serif; font-variant-numeric:tabular-nums;">31/09/2026</span><span style="font:600 11.5px Manrope, sans-serif; color:var(--neg,#C3352D);">Setembro tem 30 dias. Use dd/mm/aaaa.</span></label>
+              <label style="display:flex; flex-direction:column; gap:6px;"><span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Obra · desabilitado</span><span style="height:44px; border-radius:14px; background:var(--surface-2,#F5F5F3); display:flex; align-items:center; padding:0 14px; font:500 14px Manrope, sans-serif; color:var(--ink-3,#86867F); opacity:.6;">Residencial Vila Aurora</span></label>
+              <label style="display:flex; flex-direction:column; gap:6px;"><span style="font:600 12px Manrope, sans-serif; color:var(--ink-2,#55554F);">Etapa · seleção</span><span style="height:44px; border-radius:14px; background:var(--surface-2,#F5F5F3); display:flex; align-items:center; justify-content:space-between; padding:0 14px; font:500 14px Manrope, sans-serif;">Estrutura<span style="color:var(--ink-3,#86867F);">▾</span></span></label>
+            </div>
+            <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:center; padding-top:12px; border-top:1px solid var(--line,#E3E3DF); font:500 13px Manrope, sans-serif;">
+              <span style="display:inline-flex; gap:8px; align-items:center;"><span style="width:18px; height:18px; border-radius:6px; border:1.5px solid var(--ink-3,#86867F);"></span>Não marcado</span>
+              <span style="display:inline-flex; gap:8px; align-items:center;"><span style="width:18px; height:18px; border-radius:6px; background:var(--ink,#111); color:var(--on-ink,#fff); display:flex; align-items:center; justify-content:center; font:700 11px Manrope, sans-serif;">✓</span>Selecionado</span>
+              <span style="display:inline-flex; gap:8px; align-items:center;"><span style="width:18px; height:18px; border-radius:6px; background:var(--ink,#111); display:flex; align-items:center; justify-content:center;"><span style="width:8px; height:2px; background:var(--on-ink,#fff);"></span></span>Parcial</span>
+              <span style="display:inline-flex; gap:8px; align-items:center; opacity:.4;"><span style="width:18px; height:18px; border-radius:6px; border:1.5px solid var(--ink-3,#86867F);"></span>Desabilitado</span>
+              <span style="display:inline-flex; gap:8px; align-items:center;"><span style="width:36px; height:22px; border-radius:999px; background:var(--accent,#C6DF5F); position:relative;"><span style="position:absolute; right:3px; top:3px; width:16px; height:16px; border-radius:50%; background:#111;"></span></span>Ligado</span>
+              <span style="display:inline-flex; gap:8px; align-items:center;"><span style="width:36px; height:22px; border-radius:999px; background:var(--surface-3,#EBEBE7); position:relative;"><span style="position:absolute; left:3px; top:3px; width:16px; height:16px; border-radius:50%; background:var(--ink-3,#86867F);"></span></span>Desligado</span>
+            </div>
+          </div>
+
+          <div style="padding:20px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:12px;">
+            <span style="font:600 15px Manrope, sans-serif;">Etiquetas de situação</span>
+            <sc-for list="{{ grupos }}" as="g" hint-placeholder-count="3">
+              <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+                <span style="width:84px; font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">{{ g.nome }}</span>
+                <sc-for list="{{ g.itens }}" as="s">
+                  <span style="display:inline-flex; align-items:center; gap:6px; height:24px; padding:0 10px; border-radius:999px; background:{{ s.bg }}; color:{{ s.fg }}; font:700 11.5px Manrope, sans-serif; white-space:nowrap;"><span style="width:6px; height:6px; border-radius:50%; background:currentColor;"></span>{{ s.t }}</span>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="padding:20px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:14px;">
+            <span style="font:600 15px Manrope, sans-serif;">Barra de progresso de etapa</span>
+            <div style="display:grid; grid-template-columns:110px 1fr; gap:12px 16px; align-items:center;">
+              <span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">normal</span>
+              <div style="position:relative; height:28px; border-radius:999px; background:var(--surface-3,#EBEBE7); overflow:hidden;"><div style="position:absolute; inset:0 auto 0 0; width:58%; background:var(--accent,#C6DF5F); border-radius:999px; display:flex; align-items:center; justify-content:flex-end; padding-right:10px; font:700 12px Manrope, sans-serif; color:#111;">58%</div></div>
+              <span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">início (&lt;14%)</span>
+              <div style="position:relative; height:28px; border-radius:999px; background:var(--surface-3,#EBEBE7); overflow:hidden;"><div style="position:absolute; inset:0 auto 0 0; width:8%; background:var(--accent,#C6DF5F); border-radius:999px;"></div><span style="position:absolute; left:8%; top:0; bottom:0; padding-left:8px; display:flex; align-items:center; font:700 12px Manrope, sans-serif;">8%</span></div>
+              <span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">concluída</span>
+              <div style="position:relative; height:28px; border-radius:999px; background:var(--surface-3,#EBEBE7); overflow:hidden;"><div style="position:absolute; inset:0; background:var(--ok,#3C7421); border-radius:999px; display:flex; align-items:center; justify-content:flex-end; padding-right:10px; font:700 12px Manrope, sans-serif; color:var(--surface,#fff);">100% ✓</div></div>
+              <span style="font:600 12px Manrope, sans-serif; color:var(--neg,#C3352D);">alerta</span>
+              <div style="display:flex; flex-direction:column; gap:4px;">
+                <div style="position:relative; height:28px; border-radius:999px; background:var(--surface-3,#EBEBE7); overflow:hidden;"><div style="position:absolute; inset:0 auto 0 0; width:58%; background:var(--accent,#C6DF5F); border-radius:999px; display:flex; align-items:center; justify-content:flex-end; padding-right:10px; font:700 12px Manrope, sans-serif; color:#111;">58%</div><div style="position:absolute; top:0; bottom:0; left:58%; width:14%; background:repeating-linear-gradient(135deg, var(--neg,#C3352D) 0 4px, transparent 4px 8px);"></div><div style="position:absolute; top:0; bottom:0; left:72%; width:2px; background:var(--neg,#C3352D);"></div></div>
+                <span style="font:700 11.5px Manrope, sans-serif; color:var(--neg,#C3352D);">Gasto 72% · feito 58% — R$ 85.400,00 acima do executado</span>
+              </div>
+              <span style="font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">carregando</span>
+              <div style="height:28px; border-radius:999px; background:var(--surface-3,#EBEBE7); animation:go-pulse 1.4s ease-in-out infinite;"></div>
+            </div>
+          </div>
+
+          <div style="padding:20px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:10px;">
+            <span style="font:600 15px Manrope, sans-serif;">Tabela financeira</span>
+            <div style="display:grid; grid-template-columns:28px minmax(0,1.6fr) 1fr 1fr 1fr; font:500 13.5px Manrope, sans-serif; font-variant-numeric:tabular-nums;">
+              <span style="padding:10px 0; border-bottom:1px solid var(--line,#E3E3DF);"></span>
+              <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Item</span>
+              <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F); text-align:right;">Previsto</span>
+              <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F); text-align:right;">Realizado</span>
+              <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F); text-align:right;">Saldo</span>
+              <sc-for list="{{ linhas }}" as="l" hint-placeholder-count="4">
+                <span style="padding:11px 0 11px 6px; border-bottom:1px solid var(--line,#E3E3DF); background:{{ l.bg }}; border-radius:10px 0 0 10px; display:flex; align-items:center;"><span style="width:16px; height:16px; border-radius:5px; border:1.5px solid {{ l.chk }}; background:{{ l.chkBg }}; color:var(--on-ink,#fff); font:700 10px Manrope, sans-serif; display:flex; align-items:center; justify-content:center;">{{ l.tick }}</span></span>
+                <span style="padding:11px 8px; border-bottom:1px solid var(--line,#E3E3DF); background:{{ l.bg }};">{{ l.item }} <span style="font:500 11px Manrope, sans-serif; color:var(--ink-3,#86867F);">{{ l.tag }}</span></span>
+                <span style="padding:11px 8px; border-bottom:1px solid var(--line,#E3E3DF); background:{{ l.bg }}; text-align:right; color:var(--ink-2,#55554F);">{{ l.p }}</span>
+                <span style="padding:11px 8px; border-bottom:1px solid var(--line,#E3E3DF); background:{{ l.bg }}; text-align:right; font-weight:600;">{{ l.r }}</span>
+                <span style="padding:11px 8px; border-bottom:1px solid var(--line,#E3E3DF); background:{{ l.bg }}; border-radius:0 10px 10px 0; text-align:right; font-weight:700; color:{{ l.sc }};">{{ l.s }}</span>
+              </sc-for>
+              <span style="padding:12px 0; background:var(--surface-2,#F5F5F3); border-radius:10px 0 0 10px;"></span>
+              <span style="padding:12px 8px; background:var(--surface-2,#F5F5F3); font-weight:700;">Total</span>
+              <span style="padding:12px 8px; background:var(--surface-2,#F5F5F3); text-align:right; font-weight:700;">R$ 1.110.000,00</span>
+              <span style="padding:12px 8px; background:var(--surface-2,#F5F5F3); text-align:right; font-weight:700;">R$ 1.118.240,00</span>
+              <span style="padding:12px 8px; background:var(--surface-2,#F5F5F3); border-radius:0 10px 10px 0; text-align:right; font-weight:700; color:var(--neg,#C3352D);">−R$ 8.240,00</span>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; padding-top:6px;">
+              <div style="padding:20px; border-radius:14px; border:1.5px dashed var(--line,#E3E3DF); display:flex; flex-direction:column; gap:6px; align-items:flex-start;">
+                <span style="font:600 14px Manrope, sans-serif;">Nenhuma compra neste período</span>
+                <span style="font:500 12.5px Manrope, sans-serif; color:var(--ink-3,#86867F);">Ajuste os filtros ou registre a primeira compra da obra.</span>
+                <button style="margin-top:6px; height:32px; padding:0 14px; border-radius:999px; border:none; background:var(--ink,#111); color:var(--on-ink,#fff); font:600 12px Manrope, sans-serif;">Nova compra</button>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:10px; padding:14px 4px; animation:go-pulse 1.4s ease-in-out infinite;">
+                <div style="height:14px; width:60%; border-radius:6px; background:var(--surface-3,#EBEBE7);"></div>
+                <div style="height:14px; width:90%; border-radius:6px; background:var(--surface-3,#EBEBE7);"></div>
+                <div style="height:14px; width:75%; border-radius:6px; background:var(--surface-3,#EBEBE7);"></div>
+                <div style="height:14px; width:85%; border-radius:6px; background:var(--surface-3,#EBEBE7);"></div>
+                <span style="font:500 11px Manrope, sans-serif; color:var(--ink-3,#86867F);">carregando</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div style="padding:20px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:12px;">
+              <span style="font:600 15px Manrope, sans-serif;">Linha do tempo</span>
+              <div style="display:flex; flex-direction:column;">
+                <sc-for list="{{ eventos }}" as="ev" hint-placeholder-count="4">
+                  <div style="display:grid; grid-template-columns:18px 1fr; gap:10px;">
+                    <div style="display:flex; flex-direction:column; align-items:center;"><span style="width:10px; height:10px; border-radius:50%; background:{{ ev.c }}; margin-top:4px; flex:none;"></span><span style="flex:1; width:1px; background:var(--line,#E3E3DF);"></span></div>
+                    <div style="display:flex; flex-direction:column; gap:2px; padding-bottom:14px;">
+                      <span style="font:600 13px Manrope, sans-serif;">{{ ev.t }}</span>
+                      <span style="font:500 11.5px Manrope, sans-serif; color:var(--ink-3,#86867F); font-variant-numeric:tabular-nums;">{{ ev.d }}</span>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="padding:20px; border-radius:22px; background:var(--surface-2,#F5F5F3); display:flex; flex-direction:column; gap:10px;">
+              <span style="font:600 15px Manrope, sans-serif;">Conversa</span>
+              <span style="align-self:center; padding:4px 12px; border-radius:999px; background:var(--surface-3,#EBEBE7); font:600 11px Manrope, sans-serif; color:var(--ink-2,#55554F);">Sistema · cotação enviada a 3 fornecedores</span>
+              <div style="align-self:flex-start; max-width:82%; padding:10px 12px 6px; border-radius:16px 16px 16px 4px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:2px;">
+                <span style="font:700 11.5px Manrope, sans-serif; color:var(--info,#2D5DB0);">Gerdau · Fornecedor</span>
+                <span style="font:500 13px/1.45 Manrope, sans-serif;">Bom dia! Aço CA-50 10 mm a R$ 6,48/kg, entrega em 5 dias úteis.</span>
+                <span style="align-self:flex-end; font:500 10.5px Manrope, sans-serif; color:var(--ink-3,#86867F);">09:14</span>
+              </div>
+              <div style="align-self:flex-start; max-width:82%; padding:10px 12px 6px; border-radius:16px 16px 16px 4px; background:var(--night,#101010); color:#fff; display:flex; flex-direction:column; gap:2px;">
+                <span style="display:inline-flex; gap:6px; align-items:center; font:700 11.5px Manrope, sans-serif; color:#C6DF5F;"><span style="padding:1px 6px; border-radius:5px; background:#C6DF5F; color:#111; font:800 10px Manrope, sans-serif;">IA</span>Assistente</span>
+                <span style="font:500 13px/1.45 Manrope, sans-serif;">Preço 3,1% abaixo da média das últimas 5 compras.</span>
+                <span style="align-self:flex-end; font:500 10.5px Manrope, sans-serif; color:#9a9a94;">09:15</span>
+              </div>
+              <div style="align-self:flex-end; max-width:82%; padding:10px 12px 6px; border-radius:16px 16px 4px 16px; background:var(--ink,#111); color:var(--on-ink,#fff); display:flex; flex-direction:column; gap:2px;">
+                <span style="font:500 13px/1.45 Manrope, sans-serif;">Fecha 12 t. Consegue entregar dia 28?</span>
+                <span style="align-self:flex-end; font:500 10.5px Manrope, sans-serif; opacity:.6;">09:20 ✓✓</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="padding:20px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:12px;">
+            <span style="font:600 15px Manrope, sans-serif;">Upload de anexos</span>
+            <div style="display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:10px;">
+              <div style="padding:14px; min-height:112px; border-radius:14px; border:1.5px dashed var(--ink-3,#86867F); display:flex; flex-direction:column; gap:4px; justify-content:center; align-items:center; text-align:center;"><span style="font:500 20px Manrope, sans-serif;">+</span><span style="font:700 12px Manrope, sans-serif;">Nota fiscal</span><span style="font:500 10.5px Manrope, sans-serif; color:var(--ink-3,#86867F);">PDF ou XML · 10 MB</span></div>
+              <div style="padding:14px; min-height:112px; border-radius:14px; border:1.5px dashed var(--ink,#111); background:var(--accent-bg,#EEF5D2); display:flex; flex-direction:column; gap:4px; justify-content:center; align-items:center; text-align:center;"><span style="font:700 12px Manrope, sans-serif;">Solte para anexar</span><span style="font:500 10.5px Manrope, sans-serif; color:var(--ink-2,#55554F);">arrastando</span></div>
+              <div style="padding:14px; min-height:112px; border-radius:14px; background:var(--surface-2,#F5F5F3); display:flex; flex-direction:column; gap:8px; justify-content:center;"><span style="font:700 12px Manrope, sans-serif;">boleto-gerdau.pdf</span><div style="height:6px; border-radius:999px; background:var(--surface-3,#EBEBE7);"><div style="height:100%; width:64%; border-radius:999px; background:var(--ink,#111);"></div></div><span style="font:500 10.5px Manrope, sans-serif; color:var(--ink-3,#86867F);">enviando · 64%</span></div>
+              <div style="padding:14px; min-height:112px; border-radius:14px; background:var(--ok-bg,#E8F2DC); display:flex; flex-direction:column; gap:4px; justify-content:center;"><span style="font:700 10.5px Manrope, sans-serif; color:var(--ok,#3C7421);">✓ Comprovante</span><span style="font:700 12px Manrope, sans-serif;">pix-24-10.pdf</span><span style="font:500 10.5px Manrope, sans-serif; color:var(--ink-2,#55554F);">212 KB · enviado</span></div>
+              <div style="padding:14px; min-height:112px; border-radius:14px; background:var(--neg-bg,#FBEAE8); border:1px solid var(--neg,#C3352D); display:flex; flex-direction:column; gap:4px; justify-content:center;"><span style="font:700 10.5px Manrope, sans-serif; color:var(--neg,#C3352D);">Não enviado</span><span style="font:700 12px Manrope, sans-serif;">foto-nota.heic</span><span style="font:500 10.5px Manrope, sans-serif; color:var(--neg,#C3352D);">Formato não aceito. Envie PDF, JPG ou PNG.</span></div>
+            </div>
+          </div>
+
+          <div style="padding:20px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:12px;">
+            <span style="font:600 15px Manrope, sans-serif;">Filtros por obra e período</span>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-start;">
+              <div style="position:relative; display:flex; flex-direction:column; gap:6px;">
+                <span style="height:40px; padding:0 14px; border-radius:999px; background:var(--ink,#111); color:var(--on-ink,#fff); display:inline-flex; align-items:center; gap:10px; font:600 13px Manrope, sans-serif;">Obra: Vila Aurora <span style="opacity:.6;">▴</span></span>
+                <div style="width:240px; padding:6px; border-radius:14px; background:var(--surface,#fff); box-shadow:0 12px 32px rgba(17,17,17,.14); border:1px solid var(--line,#E3E3DF); display:flex; flex-direction:column; font:500 13px Manrope, sans-serif;">
+                  <span style="padding:9px 10px; border-radius:10px;">Todas as obras</span>
+                  <span style="padding:9px 10px; border-radius:10px; background:var(--accent-bg,#EEF5D2); font-weight:700; display:flex; justify-content:space-between;">Residencial Vila Aurora <span>✓</span></span>
+                  <span style="padding:9px 10px; border-radius:10px; background:var(--surface-2,#F5F5F3);">Edifício Jardim Botânico</span>
+                  <span style="padding:9px 10px; border-radius:10px;">Galpão Logístico Cajamar</span>
+                </div>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:10px;">
+                <div style="display:flex; padding:4px; gap:2px; border-radius:999px; background:var(--surface-2,#F5F5F3); font:600 12.5px Manrope, sans-serif;">
+                  <span style="padding:8px 12px; border-radius:999px; color:var(--ink-2,#55554F);">Este mês</span>
+                  <span style="padding:8px 12px; border-radius:999px; background:var(--surface,#fff); box-shadow:0 1px 2px rgba(0,0,0,.08);">30 dias</span>
+                  <span style="padding:8px 12px; border-radius:999px; color:var(--ink-2,#55554F);">60 dias</span>
+                  <span style="padding:8px 12px; border-radius:999px; color:var(--ink-2,#55554F);">90 dias</span>
+                  <span style="padding:8px 12px; border-radius:999px; color:var(--ink-2,#55554F);">01/10 – 31/10</span>
+                </div>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                  <span style="height:30px; padding:0 6px 0 12px; border-radius:999px; background:var(--surface-3,#EBEBE7); display:inline-flex; align-items:center; gap:6px; font:600 12px Manrope, sans-serif;">Aguardando financeiro <span style="width:20px; height:20px; border-radius:50%; background:var(--surface,#fff); display:flex; align-items:center; justify-content:center;">×</span></span>
+                  <span style="height:30px; padding:0 6px 0 12px; border-radius:999px; background:var(--surface-3,#EBEBE7); display:inline-flex; align-items:center; gap:6px; font:600 12px Manrope, sans-serif;">Acima de R$ 50.000 <span style="width:20px; height:20px; border-radius:50%; background:var(--surface,#fff); display:flex; align-items:center; justify-content:center;">×</span></span>
+                  <span style="height:30px; padding:0 12px; display:inline-flex; align-items:center; font:600 12px Manrope, sans-serif; text-decoration:underline;">Limpar</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="padding:20px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:10px;">
+            <span style="font:600 15px Manrope, sans-serif;">Mensagens de formulário</span>
+            <div style="padding:14px 16px; border-radius:14px; background:var(--ok-bg,#E8F2DC); display:flex; gap:12px; align-items:flex-start;">
+              <span style="width:22px; height:22px; border-radius:50%; background:var(--ok,#3C7421); color:var(--surface,#fff); display:flex; align-items:center; justify-content:center; font:700 12px Manrope, sans-serif; flex:none;">✓</span>
+              <div style="display:flex; flex-direction:column; gap:2px;"><span style="font:700 13.5px Manrope, sans-serif; color:var(--ok,#3C7421);">Compra enviada ao financeiro</span><span style="font:500 12.5px Manrope, sans-serif; color:var(--ink-2,#55554F);">CP-2026-0418 · R$ 48.920,00. Você será avisado quando for liberada.</span></div>
+            </div>
+            <div style="padding:14px 16px; border-radius:14px; background:var(--neg-bg,#FBEAE8); display:flex; gap:12px; align-items:flex-start;">
+              <span style="width:22px; height:22px; border-radius:50%; background:var(--neg,#C3352D); color:var(--surface,#fff); display:flex; align-items:center; justify-content:center; font:700 12px Manrope, sans-serif; flex:none;">!</span>
+              <div style="display:flex; flex-direction:column; gap:2px;"><span style="font:700 13.5px Manrope, sans-serif; color:var(--neg,#C3352D);">Corrija 2 campos para enviar</span><span style="font:500 12.5px/1.6 Manrope, sans-serif; color:var(--ink-2,#55554F);">· Vencimento da parcela 2 é anterior à parcela 1<br>· Anexe a nota fiscal (obrigatória acima de R$ 5.000,00)</span></div>
+            </div>
+            <div style="align-self:flex-end; padding:12px 14px 12px 16px; border-radius:14px; background:var(--ink,#111); color:var(--on-ink,#fff); display:flex; gap:14px; align-items:center; box-shadow:0 12px 32px rgba(17,17,17,.18);">
+              <span style="font:600 13px Manrope, sans-serif;">Percentual da subetapa salvo</span>
+              <span style="font:700 12.5px Manrope, sans-serif; color:var(--accent,#C6DF5F);">Desfazer</span>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  T = {
+    claro: { bg:'#ECECEA', surface:'#FFFFFF', 'surface-2':'#F5F5F3', 'surface-3':'#EBEBE7', line:'#E3E3DF', ink:'#111111', 'ink-2':'#55554F', 'ink-3':'#86867F', 'on-ink':'#FFFFFF', night:'#101010', 'night-2':'#1C1C1C', accent:'#C6DF5F', 'accent-ink':'#4C6110', 'accent-bg':'#EEF5D2', neg:'#C3352D', 'neg-bg':'#FBEAE8', warn:'#A8650A', 'warn-bg':'#FBF0DB', ok:'#3C7421', 'ok-bg':'#E8F2DC', info:'#2D5DB0', 'info-bg':'#E5ECF8', pink:'#F4A6C6', 'pink-ink':'#9C2F5C', 'pink-bg':'#FBE6EF', focus:'#111111' },
+    escuro: { bg:'#0B0B0B', surface:'#161616', 'surface-2':'#1F1F1F', 'surface-3':'#2A2A2A', line:'#2B2B2B', ink:'#F2F2EE', 'ink-2':'#B3B3AC', 'ink-3':'#85857E', 'on-ink':'#111111', night:'#000000', 'night-2':'#141414', accent:'#C6DF5F', 'accent-ink':'#C6DF5F', 'accent-bg':'#232B10', neg:'#FF7A70', 'neg-bg':'#3A1714', warn:'#F1B24E', 'warn-bg':'#33260E', ok:'#9FD36E', 'ok-bg':'#1C2A13', info:'#93B5F5', 'info-bg':'#16223A', pink:'#F4A6C6', 'pink-ink':'#F4A6C6', 'pink-bg':'#3A1826', focus:'#C6DF5F' }
+  };
+  aplicar(el, nome) { if (!el) return; const t = this.T[nome]; for (const k in t) el.style.setProperty('--' + k, t[k]); }
+  renderVals() {
+    const v = k => `var(--${k})`;
+    const st = (t, f) => ({ t, bg: v(f + '-bg'), fg: v(f) });
+    const neutro = t => ({ t, bg: v('surface-3'), fg: v('ink-2') });
+    if (!this._refs) this._refs = { claro: el => this.aplicar(el, 'claro'), escuro: el => this.aplicar(el, 'escuro') };
+    return {
+      paletas: ['claro', 'escuro'].map(n => ({ nome: n, bg: n === 'claro' ? '#FFFFFF' : '#161616', ink: n === 'claro' ? '#111' : '#F2F2EE', cores: Object.entries(this.T[n]).map(([k, val]) => ({ k, v: val })) })),
+      temas: [{ nome: 'claro', ref: this._refs.claro }, { nome: 'escuro', ref: this._refs.escuro }],
+      espacos: [[1,4],[2,8],[3,12],[4,16],[5,20],[6,24],[8,32],[10,40],[14,56]].map(([k, val]) => ({ k, v: val, w: val * 3 + 'px' })),
+      raios: [['r-xs','6px','etiqueta'],['r-sm','10px','célula'],['r-md','14px','campo'],['r-lg','22px','cartão'],['r-xl','30px','painel'],['r-pill','999px','botão']].map(([k, val, d]) => ({ k, v: val, d })),
+      grupos: [
+        { nome: 'Compra', itens: [neutro('Rascunho'), st('Aguardando financeiro', 'warn'), { t: 'Aguardando chefe', bg: v('pink-bg'), fg: v('pink-ink') }, st('Aprovada', 'ok'), { t: 'Paga', bg: v('accent'), fg: '#111' }, st('Recusada', 'neg')] },
+        { nome: 'Orçamento', itens: [neutro('Rascunho'), st('Enviado ao investidor', 'info'), st('Aprovado', 'ok')] },
+        { nome: 'Cotação', itens: [st('Aberta', 'info'), st('Respondida', 'warn'), st('Fechada', 'ok'), neutro('Sem resposta')] }
+      ],
+      linhas: [
+        { item: 'Concreto usinado fck 30', tag: '', p: 'R$ 320.000,00', r: 'R$ 298.400,00', s: 'R$ 21.600,00', sc: v('ink'), bg: 'transparent', chk: v('ink-3'), chkBg: 'transparent', tick: '' },
+        { item: 'Aço CA-50 10 mm', tag: 'hover', p: 'R$ 480.000,00', r: 'R$ 512.900,00', s: '−R$ 32.900,00', sc: v('neg'), bg: v('surface-2'), chk: v('ink-3'), chkBg: 'transparent', tick: '' },
+        { item: 'Formas de madeirite', tag: 'selecionada', p: 'R$ 310.000,00', r: 'R$ 306.940,00', s: 'R$ 3.060,00', sc: v('ink'), bg: v('accent-bg'), chk: v('ink'), chkBg: v('ink'), tick: '✓' }
+      ],
+      eventos: [
+        { t: 'Paga — comprovante anexado por Marina Costa', d: '24/10/2026 10:12', c: v('accent') },
+        { t: 'Aprovada pelo chefe · Carlos Alencar', d: '22/10/2026 16:40', c: v('ok') },
+        { t: 'Liberada pelo financeiro', d: '22/10/2026 11:05', c: v('warn') },
+        { t: 'Criada pelo Eng. Rafael Lima', d: '21/10/2026 08:31', c: v('ink-3') }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

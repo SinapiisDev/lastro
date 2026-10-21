@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="tema.js"></script>
+  <style>body{margin:0;background:var(--bg,#ECECEA);color:var(--ink,#111);font-family:Manrope,sans-serif;-webkit-font-smoothing:antialiased}a{color:var(--ink,#111)}a:hover{color:var(--accent-ink,#4C6110)}*{box-sizing:border-box}</style>
+</helmet>
+<div style="min-height:100vh; background:var(--bg,#ECECEA); display:flex; flex-direction:column;">
+  <dc-import name="Topbar" active="Configurações" perfil="Chefe" hint-size="100%,68px"></dc-import>
+  <main style="padding:8px 24px 40px; display:grid; grid-template-columns:minmax(180px,220px) minmax(0,1fr); gap:16px; align-items:start;">
+    <nav style="display:flex; flex-direction:column; gap:4px; padding:8px; border-radius:22px; background:var(--surface,#fff); position:sticky; top:16px;">
+      <h1 style="margin:8px 10px 10px; font:300 28px Outfit, sans-serif;">Configurações</h1>
+      <sc-for list="{{ abas }}" as="a" hint-placeholder-count="4">
+        <button onClick="{{ a.pick }}" style="height:44px; padding:0 14px; border-radius:14px; border:none; background:{{ a.bg }}; color:{{ a.fg }}; text-align:left; font:600 14px Manrope, sans-serif; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">{{ a.t }}<span style="font:600 12px Manrope, sans-serif; opacity:.6;">{{ a.n }}</span></button>
+      </sc-for>
+    </nav>
+
+    <div style="display:flex; flex-direction:column; gap:16px; min-width:0; overflow:hidden;">
+      <sc-if value="{{ salvo }}"><div style="padding:12px 16px; border-radius:16px; background:var(--ok-bg,#E8F2DC); color:var(--ok,#3C7421); font:600 13px Manrope, sans-serif;">{{ salvoTxt }}</div></sc-if>
+
+      <sc-if value="{{ tTetos }}" hint-placeholder-val="{{ true }}">
+        <section style="padding:24px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:18px;">
+          <div style="display:flex; flex-direction:column; gap:4px;"><h2 style="margin:0; font:400 24px Outfit, sans-serif;">Tetos de aprovação</h2><span style="font:500 13px Manrope, sans-serif; color:var(--ink-3,#86867F);">Quem libera cada compra, pelo valor total. Vale para todas as obras.</span></div>
+          <div style="display:flex; height:48px; border-radius:14px; overflow:hidden; font:700 12px Manrope, sans-serif;">
+            <div style="flex:2; background:var(--ok-bg,#E8F2DC); color:var(--ok,#3C7421); display:flex; align-items:center; padding:0 14px;">Financeiro direto</div>
+            <div style="flex:3; background:var(--warn-bg,#FBF0DB); color:var(--warn,#A8650A); display:flex; align-items:center; padding:0 14px; border-left:2px solid var(--surface,#fff);">Financeiro com conferência</div>
+            <div style="flex:3; background:var(--pink-bg,#FBE6EF); color:var(--pink-ink,#9C2F5C); display:flex; align-items:center; padding:0 14px; border-left:2px solid var(--surface,#fff);">Chefe aprova</div>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:14px;">
+            <label style="display:flex; flex-direction:column; gap:6px;"><span style="font:600 12px Manrope, sans-serif; color:var(--ink-2,#55554F);">Financeiro libera direto até</span>
+              <span style="height:48px; border-radius:14px; background:var(--surface-2,#F5F5F3); border:1.5px solid transparent; display:flex; align-items:center; gap:8px; padding:0 14px;"><span style="font:600 14px Manrope, sans-serif; color:var(--ink-3,#86867F);">R$</span><input value="{{ t1 }}" onChange="{{ onT1 }}" style="flex:1; border:none; background:transparent; text-align:right; font:700 15px Manrope, sans-serif; font-variant-numeric:tabular-nums; color:var(--ink,#111); outline:none;"></span></label>
+            <label style="display:flex; flex-direction:column; gap:6px;"><span style="font:600 12px Manrope, sans-serif; color:{{ t2Lbl }};">Acima deste valor, o chefe aprova</span>
+              <span style="height:48px; border-radius:14px; background:{{ t2Bg }}; border:1.5px solid {{ t2Bd }}; display:flex; align-items:center; gap:8px; padding:0 14px;"><span style="font:600 14px Manrope, sans-serif; color:var(--ink-3,#86867F);">R$</span><input value="{{ t2 }}" onChange="{{ onT2 }}" style="flex:1; border:none; background:transparent; text-align:right; font:700 15px Manrope, sans-serif; font-variant-numeric:tabular-nums; color:var(--ink,#111); outline:none;"></span>
+              <sc-if value="{{ t2Erro }}"><span style="font:600 12px Manrope, sans-serif; color:var(--neg,#C3352D);">Precisa ser maior que o teto do financeiro.</span></sc-if></label>
+          </div>
+          <div style="display:flex; flex-direction:column;">
+            <sc-for list="{{ regras }}" as="r" hint-placeholder-count="3">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; padding:14px 0; border-top:1px solid var(--line,#E3E3DF);">
+                <span style="display:flex; flex-direction:column; gap:2px;"><span style="font:600 14px Manrope, sans-serif;">{{ r.t }}</span><span style="font:500 12.5px Manrope, sans-serif; color:var(--ink-3,#86867F);">{{ r.d }}</span></span>
+                <button onClick="{{ r.tg }}" style="width:44px; height:26px; border-radius:999px; border:none; background:{{ r.tr }}; position:relative; cursor:pointer; flex:none;"><span style="position:absolute; top:3px; left:{{ r.l }}; width:20px; height:20px; border-radius:50%; background:{{ r.kn }}; transition:left .15s;"></span></button>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex; justify-content:flex-end; gap:8px;"><button onClick="{{ salvarTetos }}" style="height:44px; padding:0 20px; border-radius:999px; border:none; background:var(--ink,#111); color:var(--on-ink,#fff); font:700 13.5px Manrope, sans-serif; cursor:pointer;">Salvar tetos</button></div>
+        </section>
+      </sc-if>
+
+      <sc-if value="{{ tSenhas }}">
+        <section style="padding:24px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:16px;">
+          <div style="display:flex; flex-direction:column; gap:4px;"><h2 style="margin:0; font:400 24px Outfit, sans-serif;">Senhas de acesso</h2><span style="font:500 13px Manrope, sans-serif; color:var(--ink-3,#86867F);">Uma senha por perfil e obra. Não há cadastro aberto — só o chefe cria e redefine.</span></div>
+          <div style="overflow-x:auto;"><div style="display:grid; grid-template-columns:minmax(160px,1fr) minmax(180px,1.2fr) 150px 160px 120px; min-width:780px; font:500 13.5px Manrope, sans-serif; font-variant-numeric:tabular-nums;">
+            <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Perfil</span>
+            <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Obra</span>
+            <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Último acesso</span>
+            <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Situação</span>
+            <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF);"></span>
+            <sc-for list="{{ acessos }}" as="a" hint-placeholder-count="6">
+              <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); font-weight:600; display:flex; align-items:center;">{{ a.p }}</span>
+              <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); color:var(--ink-2,#55554F); display:flex; align-items:center;">{{ a.o }}</span>
+              <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); color:var(--ink-2,#55554F); display:flex; align-items:center;">{{ a.u }}</span>
+              <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); display:flex; align-items:center;"><span style="display:inline-flex; align-items:center; gap:6px; height:24px; padding:0 10px; border-radius:999px; background:{{ a.sbg }}; color:{{ a.sfg }}; font:700 11.5px Manrope, sans-serif;"><span style="width:6px; height:6px; border-radius:50%; background:currentColor;"></span>{{ a.s }}</span></span>
+              <span style="padding:8px; border-bottom:1px solid var(--line,#E3E3DF); display:flex; justify-content:flex-end; align-items:center;"><button onClick="{{ a.abrir }}" style="height:32px; padding:0 14px; border-radius:999px; border:1px solid var(--line,#E3E3DF); background:var(--surface,#fff); color:var(--ink,#111); font:600 12px Manrope, sans-serif; cursor:pointer;">Redefinir</button></span>
+            </sc-for>
+          </div></div>
+          <sc-if value="{{ editando }}">
+            <div style="padding:18px; border-radius:18px; background:var(--surface-2,#F5F5F3); display:flex; flex-direction:column; gap:12px;">
+              <span style="font:600 14px Manrope, sans-serif;">Nova senha · {{ editNome }}</span>
+              <div style="display:grid; grid-template-columns:1fr 1fr auto; gap:10px; align-items:start;">
+                <label style="display:flex; flex-direction:column; gap:6px;"><span style="font:600 12px Manrope, sans-serif; color:{{ s1Lbl }};">Senha (mín. 6 dígitos)</span><input type="password" value="{{ s1 }}" onChange="{{ onS1 }}" style="height:44px; border-radius:14px; border:1.5px solid {{ s1Bd }}; background:var(--surface,#fff); padding:0 14px; font:600 15px Manrope, sans-serif; letter-spacing:.2em; color:var(--ink,#111); outline:none;"><sc-if value="{{ s1Erro }}"><span style="font:600 12px Manrope, sans-serif; color:var(--neg,#C3352D);">Use pelo menos 6 dígitos.</span></sc-if></label>
+                <label style="display:flex; flex-direction:column; gap:6px;"><span style="font:600 12px Manrope, sans-serif; color:{{ s2Lbl }};">Repita a senha</span><input type="password" value="{{ s2 }}" onChange="{{ onS2 }}" style="height:44px; border-radius:14px; border:1.5px solid {{ s2Bd }}; background:var(--surface,#fff); padding:0 14px; font:600 15px Manrope, sans-serif; letter-spacing:.2em; color:var(--ink,#111); outline:none;"><sc-if value="{{ s2Erro }}"><span style="font:600 12px Manrope, sans-serif; color:var(--neg,#C3352D);">As senhas não conferem.</span></sc-if></label>
+                <div style="display:flex; gap:8px; padding-top:22px;"><button onClick="{{ cancelar }}" style="height:44px; padding:0 16px; border-radius:999px; border:1px solid var(--line,#E3E3DF); background:var(--surface,#fff); color:var(--ink,#111); font:600 13px Manrope, sans-serif; cursor:pointer;">Cancelar</button><button onClick="{{ salvarSenha }}" style="height:44px; padding:0 18px; border-radius:999px; border:none; background:var(--ink,#111); color:var(--on-ink,#fff); font:700 13px Manrope, sans-serif; cursor:pointer;">Salvar senha</button></div>
+              </div>
+            </div>
+          </sc-if>
+        </section>
+      </sc-if>
+
+      <sc-if value="{{ tObras }}">
+        <section style="padding:24px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px;"><div style="display:flex; flex-direction:column; gap:4px;"><h2 style="margin:0; font:400 24px Outfit, sans-serif;">Obras</h2><span style="font:500 13px Manrope, sans-serif; color:var(--ink-3,#86867F);">Obras encerradas saem do seletor, mas os dados ficam nos relatórios.</span></div><button style="height:40px; padding:0 18px; border-radius:999px; border:none; background:var(--ink,#111); color:var(--on-ink,#fff); font:600 13px Manrope, sans-serif; cursor:pointer;">+ Nova obra</button></div>
+          <div style="overflow-x:auto;"><div style="display:grid; grid-template-columns:80px minmax(200px,1.4fr) minmax(140px,1fr) 150px 120px 130px; min-width:840px; font:500 13.5px Manrope, sans-serif; font-variant-numeric:tabular-nums;">
+            <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Código</span>
+            <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Obra</span>
+            <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Engenheiro</span>
+            <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F); text-align:right;">Orçamento</span>
+            <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Entrega</span>
+            <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Situação</span>
+            <sc-for list="{{ obras }}" as="o" hint-placeholder-count="5">
+              <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); font-weight:700;">{{ o.c }}</span>
+              <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); display:flex; flex-direction:column; gap:1px;"><span style="font-weight:600;">{{ o.n }}</span><span style="font:500 11.5px Manrope, sans-serif; color:var(--ink-3,#86867F);">{{ o.l }}</span></span>
+              <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); color:var(--ink-2,#55554F);">{{ o.e }}</span>
+              <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); text-align:right; font-weight:600;">{{ o.v }}</span>
+              <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); color:var(--ink-2,#55554F);">{{ o.d }}</span>
+              <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF);"><span style="display:inline-flex; align-items:center; gap:6px; height:24px; padding:0 10px; border-radius:999px; background:{{ o.sbg }}; color:{{ o.sfg }}; font:700 11.5px Manrope, sans-serif;"><span style="width:6px; height:6px; border-radius:50%; background:currentColor;"></span>{{ o.s }}</span></span>
+            </sc-for>
+          </div></div>
+        </section>
+      </sc-if>
+
+      <sc-if value="{{ tForn }}">
+        <section style="padding:24px; border-radius:22px; background:var(--surface,#fff); display:flex; flex-direction:column; gap:16px; overflow-x:auto;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;"><div style="display:flex; flex-direction:column; gap:4px;"><h2 style="margin:0; font:400 24px Outfit, sans-serif;">Fornecedores</h2><span style="font:500 13px Manrope, sans-serif; color:var(--ink-3,#86867F);">Fornecedor com certidão vencida fica bloqueado para novas compras.</span></div><button style="height:40px; padding:0 18px; border-radius:999px; border:none; background:var(--ink,#111); color:var(--on-ink,#fff); font:600 13px Manrope, sans-serif; cursor:pointer;">+ Novo fornecedor</button></div>
+          <div style="display:grid; grid-template-columns:minmax(180px,1.3fr) 170px minmax(120px,1fr) minmax(150px,1fr) 120px 150px; min-width:900px; font:500 13.5px Manrope, sans-serif; font-variant-numeric:tabular-nums;">
+            <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Fornecedor</span>
+            <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">CNPJ</span>
+            <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Categoria</span>
+            <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Contato (WhatsApp)</span>
+            <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Certidões até</span>
+            <span style="padding:10px 8px; border-bottom:1px solid var(--line,#E3E3DF); font:600 12px Manrope, sans-serif; color:var(--ink-3,#86867F);">Situação</span>
+            <sc-for list="{{ forns }}" as="f" hint-placeholder-count="7">
+              <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); font-weight:600;">{{ f.n }}</span>
+              <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); color:var(--ink-2,#55554F);">{{ f.c }}</span>
+              <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); color:var(--ink-2,#55554F);">{{ f.cat }}</span>
+              <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); color:var(--ink-2,#55554F);">{{ f.w }}</span>
+              <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF); font-weight:600; color:{{ f.dc }};">{{ f.d }}</span>
+              <span style="padding:12px 8px; border-bottom:1px solid var(--line,#E3E3DF);"><span style="display:inline-flex; align-items:center; gap:6px; height:24px; padding:0 10px; border-radius:999px; background:{{ f.sbg }}; color:{{ f.sfg }}; font:700 11.5px Manrope, sans-serif;"><span style="width:6px; height:6px; border-radius:50%; background:currentColor;"></span>{{ f.s }}</span></span>
+            </sc-for>
+          </div>
+        </section>
+      </sc-if>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { aba: 0, t1: '20.000,00', t2: '100.000,00', regras: [true, true, false], salvo: '', edit: -1, s1: '', s2: '', tent: false };
+  num(x) { const v = parseFloat(String(x).replace(/\./g, '').replace(',', '.')); return isNaN(v) ? 0 : v; }
+  renderVals() {
+    const v = c => `var(--${c})`, s = this.state;
+    const ACESSOS = [['Obra', 'Residencial Vila Aurora', '21/10/2026 07:12', 'a'], ['Obra', 'Edifício Jardim Botânico', '20/10/2026 18:40', 'a'], ['Obra', 'Galpão Logístico Cajamar', '14/10/2026 09:05', 'b'], ['Obra', 'Casa Alphaville Lote 12', '19/10/2026 16:22', 'a'], ['Financeiro', 'Todas as obras', '21/10/2026 08:30', 'a'], ['Chefe', 'Todas as obras', '21/10/2026 09:58', 'a']];
+    const t2Erro = this.num(s.t2) <= this.num(s.t1);
+    const s1Erro = s.tent && s.s1.length < 6, s2Erro = s.tent && !s1Erro && s.s1 !== s.s2;
+    const st = { a: ['Ativa', v('ok-bg'), v('ok')], b: ['Bloqueada · 3 tentativas', v('neg-bg'), v('neg')] };
+    return {
+      abas: [['Tetos de aprovação', ''], ['Senhas', '6'], ['Obras', '5'], ['Fornecedores', '7']].map(([t, n], i) => ({ t, n, bg: i === s.aba ? v('ink') : 'transparent', fg: i === s.aba ? v('on-ink') : v('ink-2'), pick: () => this.setState({ aba: i, salvo: '', edit: -1 }) })),
+      tTetos: s.aba === 0, tSenhas: s.aba === 1, tObras: s.aba === 2, tForn: s.aba === 3,
+      salvo: !!s.salvo, salvoTxt: s.salvo,
+      t1: s.t1, onT1: e => this.setState({ t1: e.target.value, salvo: '' }), t2: s.t2, onT2: e => this.setState({ t2: e.target.value, salvo: '' }),
+      t2Erro, t2Lbl: t2Erro ? v('neg') : v('ink-2'), t2Bd: t2Erro ? v('neg') : 'transparent', t2Bg: t2Erro ? v('neg-bg') : v('surface-2'),
+      regras: [['Exigir nota fiscal acima de R$ 5.000,00', 'A compra não é enviada sem o anexo.'], ['Avisar o chefe quando a etapa passar do previsto', 'Mensagem no WhatsApp quando o gasto superar o executado.'], ['Dupla aprovação acima de R$ 500.000,00', 'Chefe e mais um diretor precisam aprovar.']].map(([t, d], i) => { const on = s.regras[i]; return { t, d, tr: on ? v('accent') : v('surface-3'), kn: on ? '#111' : v('ink-3'), l: on ? '21px' : '3px', tg: () => this.setState(x => ({ regras: x.regras.map((r, j) => j === i ? !r : r), salvo: '' })) }; }),
+      salvarTetos: () => { if (t2Erro) return; this.setState({ salvo: 'Tetos salvos. Valem para compras criadas a partir de agora.' }); },
+      acessos: ACESSOS.map(([p, o, u, k], i) => ({ p, o, u, s: st[k][0], sbg: st[k][1], sfg: st[k][2], abrir: () => this.setState({ edit: i, s1: '', s2: '', tent: false, salvo: '' }) })),
+      editando: s.edit >= 0, editNome: s.edit >= 0 ? ACESSOS[s.edit][0] + ' · ' + ACESSOS[s.edit][1] : '',
+      s1: s.s1, s2: s.s2, onS1: e => this.setState({ s1: e.target.value }), onS2: e => this.setState({ s2: e.target.value }),
+      s1Erro, s2Erro, s1Lbl: s1Erro ? v('neg') : v('ink-2'), s2Lbl: s2Erro ? v('neg') : v('ink-2'), s1Bd: s1Erro ? v('neg') : 'transparent', s2Bd: s2Erro ? v('neg') : 'transparent',
+      cancelar: () => this.setState({ edit: -1 }),
+      salvarSenha: () => { if (s.s1.length < 6 || s.s1 !== s.s2) return this.setState({ tent: true }); this.setState({ edit: -1, salvo: 'Senha redefinida para ' + ACESSOS[s.edit][0] + ' · ' + ACESSOS[s.edit][1] + '. Envie ao responsável por um canal seguro.' }); },
+      obras: [['OB-014', 'Residencial Vila Aurora', 'Paraíso · São Paulo/SP', 'Eng. Rafael Lima', 'R$ 4.820.000,00', '15/12/2027', 'o'], ['OB-011', 'Edifício Jardim Botânico', 'Curitiba/PR', 'Eng. Luana Becker', 'R$ 8.940.000,00', '30/06/2027', 'o'], ['OB-016', 'Galpão Logístico Cajamar', 'Cajamar/SP', 'Eng. Diego Matos', 'R$ 5.100.000,00', '20/08/2027', 'o'], ['OB-017', 'Casa Alphaville Lote 12', 'Barueri/SP', 'Eng. Rafael Lima', 'R$ 2.700.000,00', '10/03/2027', 'o'], ['OB-009', 'Clínica Vila Mariana', 'São Paulo/SP', 'Eng. Luana Becker', 'R$ 3.380.000,00', '22/04/2026', 'e']].map(([c, n, l, e, val, d, k]) => ({ c, n, l, e, v: val, d, s: k === 'o' ? 'Em andamento' : 'Encerrada', sbg: k === 'o' ? v('info-bg') : v('surface-3'), sfg: k === 'o' ? v('info') : v('ink-2') })),
+      forns: [['Gerdau Aços Longos', '33.611.500/0001-19', 'Aço', '(11) 98412-3301', '12/12/2026', 'a'], ['ArcelorMittal Distribuição', '17.469.701/0001-77', 'Aço', '(11) 99730-1188', '05/02/2027', 'a'], ['Concreteira Supermix', '04.892.310/0001-40', 'Concreto', '(11) 97120-4410', '30/11/2026', 'a'], ['Cerâmica Pauluzzi', '89.637.490/0001-45', 'Bloco cerâmico', '(51) 98230-1177', '18/01/2027', 'a'], ['Comercial Ferro Forte', '21.334.908/0001-02', 'Aço', '(11) 97655-0412', '28/10/2026', 'w'], ['Eletro Forte Materiais', '11.204.556/0001-83', 'Elétrica', '(11) 96610-2290', '02/10/2026', 'x'], ['Tigre Distribuição', '84.684.455/0001-63', 'Hidráulica', '(47) 99102-3345', '14/03/2027', 'a']].map(([n, c, cat, w, d, k]) => ({ n, c, cat, w, d, dc: k === 'x' ? v('neg') : k === 'w' ? v('warn') : v('ink'), s: { a: 'Regular', w: 'Vence em 7 dias', x: 'Bloqueado' }[k], sbg: { a: v('ok-bg'), w: v('warn-bg'), x: v('neg-bg') }[k], sfg: { a: v('ok'), w: v('warn'), x: v('neg') }[k] }))
+    };
+  }
+}
+</script>
+</body>
+</html>

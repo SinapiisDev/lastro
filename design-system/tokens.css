@@ -1,0 +1,99 @@
+/*
+ * Tokens do design system Gestão de Obras. Fonte da verdade: DESIGN.md (raiz do projeto).
+ * Os valores vêm de design-system/referencias/tema.js; mude os dois juntos.
+ * Tema escuro: <html data-tema="escuro">.
+ */
+
+:root,
+[data-tema='claro'] {
+  color-scheme: light;
+  --bg: #ececea;
+  --surface: #ffffff;
+  --surface-2: #f5f5f3;
+  --surface-3: #ebebe7;
+  --line: #e3e3df;
+  --ink: #111111;
+  --ink-2: #55554f;
+  --ink-3: #86867f;
+  --on-ink: #ffffff;
+  --night: #101010;
+  --night-2: #1c1c1c;
+  --night-3: #2b2b2b; /* divisórias e trilhos na faixa escura */
+  --night-ink: #ffffff; /* texto na faixa escura (nos dois temas) */
+  --night-ink-2: #cfcfca; /* texto secundário na faixa escura */
+  --night-ink-3: #9a9a94; /* rótulos na faixa escura */
+  --accent: #c6df5f;
+  --accent-ink: #4c6110;
+  --accent-bg: #eef5d2;
+  --neg: #c3352d;
+  --neg-bg: #fbeae8;
+  --neg-night: #ff7a70; /* negativo legível na faixa escura */
+  --warn: #a8650a;
+  --warn-bg: #fbf0db;
+  --warn-night: #f1b24e;
+  --ok: #3c7421;
+  --ok-bg: #e8f2dc;
+  --info: #2d5db0;
+  --info-bg: #e5ecf8;
+  --pink: #f4a6c6;
+  --pink-ink: #9c2f5c;
+  --pink-bg: #fbe6ef;
+  --focus: #111111;
+  --fixed-ink: #111111; /* texto sobre lima: sempre escuro, nos dois temas */
+  --fixed-paper: #ffffff; /* papel da impressão: sempre branco */
+
+  /* Espaçamento (base 4) */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-14: 56px;
+
+  /* Raio */
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --r-xl: 30px;
+  --r-pill: 999px;
+
+  /* Elevação: quase plana */
+  --shadow-1: 0 1px 2px rgb(17 17 17 / 0.04);
+  --shadow-2: 0 12px 32px rgb(17 17 17 / 0.1);
+}
+
+[data-tema='escuro'] {
+  color-scheme: dark;
+  --bg: #0b0b0b;
+  --surface: #161616;
+  --surface-2: #1f1f1f;
+  --surface-3: #2a2a2a;
+  --line: #2b2b2b;
+  --ink: #f2f2ee;
+  --ink-2: #b3b3ac;
+  --ink-3: #85857e;
+  --on-ink: #111111;
+  --night: #000000;
+  --night-2: #141414;
+  --night-3: #262626;
+  --accent: #c6df5f;
+  --accent-ink: #c6df5f;
+  --accent-bg: #232b10;
+  --neg: #ff7a70;
+  --neg-bg: #3a1714;
+  --warn: #f1b24e;
+  --warn-bg: #33260e;
+  --ok: #9fd36e;
+  --ok-bg: #1c2a13;
+  --info: #93b5f5;
+  --info-bg: #16223a;
+  --pink: #f4a6c6;
+  --pink-ink: #f4a6c6;
+  --pink-bg: #3a1826;
+  --focus: #c6df5f;
+  --shadow-2: 0 12px 32px rgb(0 0 0 / 0.5);
+}

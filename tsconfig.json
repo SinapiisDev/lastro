@@ -25,6 +25,12 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@ds/*": [
+        "./design-system/*"
+      ],
+      "@ds": [
+        "./design-system/index.ts"
       ]
     },
     "allowImportingTsExtensions": true

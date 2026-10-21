@@ -1,8 +1,8 @@
 import Link from 'next/link'
+import { BotaoLink, CabecalhoTela, EstadoVazio, Secao, Situacao, Tabela, Td, Th, Tr } from '@ds'
 import { sql } from '@/lib/db'
 import { exigirSessao } from '@/lib/sessao'
 import { dataBR } from '@/lib/regras'
-import { Situacao, Vazio, Rolagem } from '@/components/ui'
 
 export default async function Cotacoes({ searchParams }: PageProps<'/cotacoes'>) {
   const s = await exigirSessao()
@@ -15,61 +15,75 @@ export default async function Cotacoes({ searchParams }: PageProps<'/cotacoes'>)
     from cotacoes c join obras o on o.id = c.obra_id
     ${obraId ? sql`where c.obra_id = ${obraId}` : sql``}
     order by c.id desc limit 200`
+  const abertas = cotacoes.filter((c) => c.situacao === 'aguardando').length
 
   return (
-    <div className="grid gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1>Cotações</h1>
-        {s.perfil === 'obra' && (
-          <Link href="/cotacoes/nova" className="btn btn-principal">
-            Nova cotação
-          </Link>
-        )}
-      </div>
-      <p className="text-cinza">
-        A IA pede os preços aos fornecedores pelo WhatsApp, preenche a tabela e indica a opção mais viável. Quem decide é o
-        engenheiro, e a escolha vira compra no fluxo de aprovação.
-      </p>
-      <section className="cartao">
+    <>
+      <CabecalhoTela
+        contexto={abertas ? `${abertas} ${abertas === 1 ? 'cotação aberta' : 'cotações abertas'}` : 'Preços pedidos pela IA aos fornecedores'}
+        titulo="Cotações"
+        acoes={
+          s.perfil === 'obra' && (
+            <BotaoLink href="/cotacoes/nova" variante="primario">
+              Nova cotação
+            </BotaoLink>
+          )
+        }
+      >
+        <p className="max-w-3xl text-table text-ink-2">
+          A IA pede os preços aos fornecedores pelo WhatsApp, preenche a tabela e indica a opção mais viável. Quem decide é o engenheiro, e a
+          escolha vira compra no fluxo de aprovação.
+        </p>
+      </CabecalhoTela>
+      <Secao titulo="Todas as cotações">
         {cotacoes.length === 0 ? (
-          <Vazio>Nenhuma cotação ainda.{s.perfil === 'obra' && ' Use Nova cotação para pedir preços.'}</Vazio>
+          <EstadoVazio
+            titulo="Nenhuma cotação ainda"
+            acao={
+              s.perfil === 'obra' && (
+                <BotaoLink href="/cotacoes/nova" variante="primario">
+                  Nova cotação
+                </BotaoLink>
+              )
+            }
+          >
+            {s.perfil === 'obra' ? 'Peça preços de vários fornecedores de uma vez.' : 'Os engenheiros abrem as cotações a partir da obra.'}
+          </EstadoVazio>
         ) : (
-          <Rolagem>
-            <table className="tabela">
-              <thead>
-                <tr>
-                  <th>Nº</th>
-                  {s.perfil !== 'obra' && <th>Obra</th>}
-                  <th>Cotação</th>
-                  <th>Responder até</th>
-                  <th>Respostas</th>
-                  <th>Situação</th>
-                </tr>
-              </thead>
-              <tbody>
-                {cotacoes.map((c) => (
-                  <tr key={c.id}>
-                    <td>
-                      <Link href={`/cotacoes/${c.id}`} className="font-medium underline">
-                        {c.id}
-                      </Link>
-                    </td>
-                    {s.perfil !== 'obra' && <td>{c.obra}</td>}
-                    <td>{c.titulo}</td>
-                    <td>{dataBR(c.prazo)}</td>
-                    <td>
-                      {c.respostas} de {c.fornecedores}
-                    </td>
-                    <td>
-                      <Situacao status={`cot_${c.situacao}`} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </Rolagem>
+          <Tabela minimo={720}>
+            <thead>
+              <tr>
+                <Th>Nº</Th>
+                {s.perfil !== 'obra' && <Th>Obra</Th>}
+                <Th>Cotação</Th>
+                <Th>Responder até</Th>
+                <Th num>Respostas</Th>
+                <Th>Situação</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {cotacoes.map((c) => (
+                <Tr key={c.id}>
+                  <Td>
+                    <Link href={`/cotacoes/${c.id}`} className="font-bold">
+                      CT-{String(c.id).padStart(4, '0')}
+                    </Link>
+                  </Td>
+                  {s.perfil !== 'obra' && <Td className="text-ink-2">{c.obra}</Td>}
+                  <Td className="font-semibold">{c.titulo}</Td>
+                  <Td className="text-ink-2">{dataBR(c.prazo)}</Td>
+                  <Td num>
+                    {c.respostas} de {c.fornecedores}
+                  </Td>
+                  <Td>
+                    <Situacao status={`cot_${c.situacao}`} />
+                  </Td>
+                </Tr>
+              ))}
+            </tbody>
+          </Tabela>
         )}
-      </section>
-    </div>
+      </Secao>
+    </>
   )
 }

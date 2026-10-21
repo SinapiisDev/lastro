@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation'
 import { sql, escrever } from '@/lib/db'
 import { criarSessao, encerrarSessao } from '@/lib/sessao'
-import type { Estado } from '@/components/form-acao'
+import type { Estado } from '@ds'
 
 export async function entrar(_: Estado, dados: FormData): Promise<Estado> {
   const tipo = String(dados.get('tipo'))

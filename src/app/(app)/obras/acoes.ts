@@ -5,7 +5,7 @@ import { refresh } from 'next/cache'
 import { sql, escrever } from '@/lib/db'
 import { exigirSessao, podeVerObra, nomePerfil, type Sessao } from '@/lib/sessao'
 import { ETAPAS_PADRAO } from '@/lib/etapas-padrao'
-import type { Estado } from '@/components/form-acao'
+import type { Estado } from '@ds'
 
 const texto = (d: FormData, campo: string) => String(d.get(campo) ?? '').trim()
 
