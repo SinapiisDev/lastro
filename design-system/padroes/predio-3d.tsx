@@ -110,6 +110,9 @@ function montar(
   let anims: { m: THREE.Mesh; t: number }[] = []
   let anteriores = new Set<string>()
   let chaves = new Set<string>()
+  // Quando cada peça começou a crescer: refazer a cena no meio do crescimento não corta a animação.
+  let nascidas = new Map<string, number>()
+  let nascendo = new Map<string, number>()
   let materiais: ReturnType<typeof criarMateriais> | null = null
 
   function criarMateriais(dk: boolean) {
@@ -145,9 +148,11 @@ function montar(
     m.receiveShadow = true
     pai.add(m)
     chaves.add(chave)
-    if (!semAnim && !anteriores.has(chave)) {
+    const t0 = semAnim ? undefined : anteriores.has(chave) ? nascidas.get(chave) : performance.now() + Math.random() * 180
+    if (t0 !== undefined && performance.now() - t0 < 700) {
       m.scale.y = 0.001
-      anims.push({ m, t: performance.now() + Math.random() * 180 })
+      anims.push({ m, t: t0 })
+      nascendo.set(chave, t0)
     }
     return m
   }
@@ -166,6 +171,7 @@ function montar(
     for (const c of [...grua.children]) grua.remove(c)
     anims = []
     chaves = new Set()
+    nascendo = new Map()
     if (semAnim) anteriores = new Set(['*'])
     const tudo = anteriores.has('*')
     if (tudo) anteriores = { has: () => true } as unknown as Set<string>
@@ -257,6 +263,7 @@ function montar(
       lanca.add(braco, contrapeso, cabine, cabo)
     }
     anteriores = chaves
+    nascidas = nascendo
   }
 
   function enquadrar() {
