@@ -60,7 +60,7 @@ export async function criarCompra(_: Estado, d: FormData): Promise<Estado> {
   const faixa = faixaDaCompra(valor, config.tetoBaixo, config.tetoMedio)
   const justificativa = texto(d, 'justificativa')
   if (faixa === 'alta' && !justificativa)
-    return { erro: 'Acima do teto médio a compra vai para o chefe: escreva o motivo da compra.' }
+    return { erro: 'Acima do teto médio a compra vai para o dono: escreva o motivo da compra.' }
 
   const fornecedorId = Number(d.get('fornecedor')) || 0
   const novoFornecedor = texto(d, 'fornecedor_nome')

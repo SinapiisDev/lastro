@@ -23,15 +23,13 @@ async function obraDaSubetapa(s: Sessao, subetapaId: number) {
 export async function criarObra(_: Estado, d: FormData): Promise<Estado> {
   const s = await exigirSessao('chefe', 'financeiro')
   const nome = texto(d, 'nome')
-  const senha = String(d.get('senha') ?? '')
   if (!nome) return { erro: 'Informe o nome da obra.' }
-  if (senha.length < 8) return { erro: 'A senha da obra precisa ter pelo menos 8 caracteres.' }
   let id: number
   try {
     id = await escrever(nomePerfil(s), async (tx) => {
       const [o] = await tx<{ id: number }[]>`
-        insert into obras (nome, endereco, senha)
-        values (${nome}, ${texto(d, 'endereco') || null}, extensions.crypt(${senha}, extensions.gen_salt('bf')))
+        insert into obras (nome, endereco)
+        values (${nome}, ${texto(d, 'endereco') || null})
         returning id`
       for (const [i, [etapa, subetapas]] of ETAPAS_PADRAO.entries()) {
         const [e] = await tx<{ id: number }[]>`

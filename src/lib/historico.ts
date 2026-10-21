@@ -12,12 +12,13 @@ export type Evento = {
 
 export const NOME_SITUACAO: Record<string, string> = {
   aguardando_financeiro: 'aguardando financeiro',
-  aguardando_chefe: 'aguardando chefe',
+  aguardando_chefe: 'aguardando dono',
   aprovada: 'aprovada',
   recusada: 'recusada',
   cancelada: 'cancelada',
 }
 
+const PERFIL: Record<string, string> = { chefe: 'dono', financeiro: 'financeiro', obra: 'engenheiro' }
 const NOME_COTACAO: Record<string, string> = { rascunho: 'montando', aguardando: 'recebendo preços', concluida: 'concluída', cancelada: 'cancelada' }
 const NOME_PROPOSTA: Record<string, string> = {
   pendente: 'ainda não recebeu o pedido',
@@ -48,7 +49,7 @@ export function descreverEvento(e: Evento): string {
   const a: any = e.antes ?? {}
   const d: any = e.depois ?? {}
   const mudou = (campo: string) => e.acao === 'update' && a[campo] !== d[campo]
-  if (d.senha === 'alterada') return e.tabela === 'obras' ? 'Senha de uma obra alterada' : 'Senha de acesso alterada'
+  if (d.senha === 'alterada') return e.tabela === 'usuarios' ? `Senha ou código do celular de ${a.nome} alterado` : 'Senha de acesso alterada'
 
   switch (e.tabela) {
     case 'compras':
@@ -116,6 +117,16 @@ export function descreverEvento(e: Evento): string {
       if (mudou('ia_pausada')) return `Conversa com ${d.nome}: ${d.ia_pausada ? 'IA pausada, uma pessoa assumiu' : 'IA voltou a responder'}`
       if (mudou('whatsapp')) return `WhatsApp de ${d.nome}: ${d.whatsapp ? `+${d.whatsapp}` : 'removido'}`
       return `Fornecedor alterado: ${d.nome}`
+    case 'usuarios':
+      if (e.acao === 'insert') return `Conta criada: ${d.nome} (${d.email}), acesso ${PERFIL[d.perfil]}`
+      if (mudou('ativo')) return `Conta de ${d.nome} ${d.ativo ? 'reativada' : 'desativada'}`
+      if (mudou('totp_ativo')) return `Código do celular de ${d.nome} ${d.totp_ativo ? 'ligado' : 'desligado para cadastrar outro celular'}`
+      if (mudou('trocar_senha') && d.trocar_senha) return `Senha provisória definida para ${d.nome}`
+      return `Conta de ${d.nome} alterada`
+    case 'usuario_obras': {
+      const i = e.acao === 'delete' ? a : d
+      return `${e.acao === 'delete' ? 'Acesso removido' : 'Acesso liberado'}: pessoa nº ${i.usuario_id} na obra nº ${i.obra_id}`
+    }
     case 'config':
       if (mudou('teto_baixo') || mudou('teto_medio')) return `Tetos: baixo ${brl(d.teto_baixo)}, médio ${brl(d.teto_medio)}`
       if (mudou('saldo_caixa') || mudou('saldo_caixa_em'))

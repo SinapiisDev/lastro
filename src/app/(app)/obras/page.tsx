@@ -65,16 +65,13 @@ export default async function Obras() {
       </Secao>
 
       <Secao titulo="Cadastrar obra">
-        <p className="text-table text-ink-3">A obra começa com a lista padrão de etapas, que pode ser ajustada depois. A senha é a que o engenheiro usa para entrar.</p>
+        <p className="text-table text-ink-3">A obra começa com a lista padrão de etapas, que pode ser ajustada depois. Para o engenheiro enxergar a obra, ligue a conta dele em Configurações › Pessoas.</p>
         <FormAcao action={criarObra} botao="Cadastrar obra" variante="primario" className="grid gap-3.5 sm:max-w-xl">
           <Campo rotulo="Nome da obra">
             <Entrada name="nome" required />
           </Campo>
           <Campo rotulo="Endereço">
             <Entrada name="endereco" />
-          </Campo>
-          <Campo rotulo="Senha de acesso da obra" ajuda="Mínimo de 8 caracteres.">
-            <Entrada name="senha" type="password" minLength={8} required autoComplete="new-password" />
           </Campo>
         </FormAcao>
       </Secao>

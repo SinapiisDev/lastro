@@ -6,13 +6,18 @@ import { connection } from 'next/server'
 import { createHash, createHmac, timingSafeEqual } from 'node:crypto'
 import { sql } from './db'
 
-// shortcut: acesso compartilhado por obra (pedido do usuário); trocar por login individual depois.
-
+// 'chefe' é o dono da empresa (o nome interno ficou do começo do sistema).
 export type Perfil = 'chefe' | 'financeiro' | 'obra'
-export type Sessao = { perfil: Perfil; obraId?: number; nome: string; v: string; exp: number }
+export const ROTULO_PERFIL: Record<Perfil, string> = { chefe: 'Dono', financeiro: 'Financeiro', obra: 'Engenheiro' }
+
+export type Sessao = { usuarioId: number; perfil: Perfil; obraId?: number; nome: string; v: string; exp: number }
+// Depois da senha e antes de entrar: código do celular, troca da senha provisória, escolha da obra.
+export type PreSessao = { usuarioId: number; totpOk: boolean; exp: number }
 
 const COOKIE = 'sessao'
+const COOKIE_PRE = 'pre_sessao'
 const DURACAO = 12 * 3600
+const DURACAO_PRE = 10 * 60
 
 function segredo() {
   const s = process.env.SESSION_SECRET
@@ -25,44 +30,58 @@ const assinar = (dados: string) => createHmac('sha256', segredo()).update(dados)
 // Muda quando a senha muda: trocar a senha derruba quem estava logado com a antiga.
 export const versaoSenha = (hash: string) => createHash('sha256').update(hash).digest('base64url').slice(0, 16)
 
-async function hashAtual(perfil: Perfil, obraId?: number) {
-  const [r] =
-    perfil === 'obra'
-      ? await sql<{ h: string }[]>`select senha as h from obras where id = ${obraId!} and ativa`
-      : perfil === 'chefe'
-        ? await sql<{ h: string }[]>`select senha_chefe as h from config`
-        : await sql<{ h: string }[]>`select senha_financeiro as h from config`
-  return r?.h ?? null
-}
-
-export async function criarSessao(perfil: Perfil, nome: string, hash: string, obraId?: number) {
-  const s: Sessao = { perfil, obraId, nome, v: versaoSenha(hash), exp: Math.floor(Date.now() / 1000) + DURACAO }
-  const dados = Buffer.from(JSON.stringify(s)).toString('base64url')
-  ;(await cookies()).set(COOKIE, `${dados}.${assinar(dados)}`, {
+async function gravar(nome: string, valor: object, duracao: number) {
+  const dados = Buffer.from(JSON.stringify(valor)).toString('base64url')
+  ;(await cookies()).set(nome, `${dados}.${assinar(dados)}`, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
-    maxAge: DURACAO,
+    maxAge: duracao,
     path: '/',
   })
 }
 
-export async function encerrarSessao() {
-  ;(await cookies()).delete(COOKIE)
-}
-
-export const lerSessao = cache(async (): Promise<Sessao | null> => {
-  const valor = (await cookies()).get(COOKIE)?.value
+async function ler<T extends { exp: number }>(nome: string): Promise<T | null> {
+  const valor = (await cookies()).get(nome)?.value
   const [dados, assinatura] = valor?.split('.') ?? []
   if (!dados || !assinatura) return null
   const esperado = Buffer.from(assinar(dados))
   const recebido = Buffer.from(assinatura)
   if (esperado.length !== recebido.length || !timingSafeEqual(esperado, recebido)) return null
-  const s = JSON.parse(Buffer.from(dados, 'base64url').toString()) as Sessao
+  const s = JSON.parse(Buffer.from(dados, 'base64url').toString()) as T
   await connection() // a validade depende da hora atual: só na requisição, nunca no pré-render
-  if (s.exp < Date.now() / 1000) return null
-  const hash = await hashAtual(s.perfil, s.obraId)
-  return hash && versaoSenha(hash) === s.v ? s : null
+  return s.exp < Date.now() / 1000 ? null : s
+}
+
+export async function criarSessao(u: { id: number; nome: string; perfil: Perfil; senha: string }, obraId?: number) {
+  const s: Sessao = { usuarioId: u.id, perfil: u.perfil, obraId, nome: u.nome, v: versaoSenha(u.senha), exp: Math.floor(Date.now() / 1000) + DURACAO }
+  ;(await cookies()).delete(COOKIE_PRE)
+  await gravar(COOKIE, s, DURACAO)
+}
+
+export async function encerrarSessao() {
+  const c = await cookies()
+  c.delete(COOKIE)
+  c.delete(COOKIE_PRE)
+}
+
+export const criarPreSessao = (usuarioId: number, totpOk: boolean) =>
+  gravar(COOKIE_PRE, { usuarioId, totpOk, exp: Math.floor(Date.now() / 1000) + DURACAO_PRE } satisfies PreSessao, DURACAO_PRE)
+
+export const lerPreSessao = () => ler<PreSessao>(COOKIE_PRE)
+
+// A sessão só vale enquanto a pessoa está ativa, com a mesma senha e (engenheiro) ligada à obra ativa.
+export const lerSessao = cache(async (): Promise<Sessao | null> => {
+  const s = await ler<Sessao>(COOKIE)
+  if (!s?.usuarioId) return null
+  const [u] = await sql<{ senha: string; perfil: Perfil; obraOk: boolean }[]>`
+    select u.senha, u.perfil,
+      exists (select 1 from usuario_obras uo join obras o on o.id = uo.obra_id
+              where uo.usuario_id = u.id and uo.obra_id = ${s.obraId ?? 0} and o.ativa) as "obraOk"
+    from usuarios u where u.id = ${s.usuarioId} and u.ativo`
+  if (!u || u.perfil !== s.perfil || versaoSenha(u.senha) !== s.v) return null
+  if (s.perfil === 'obra' && !u.obraOk) return null
+  return s
 })
 
 export async function exigirSessao(...perfis: Perfil[]) {
@@ -72,9 +91,10 @@ export async function exigirSessao(...perfis: Perfil[]) {
   return s
 }
 
-// Engenheiro só enxerga a própria obra; financeiro e chefe enxergam todas.
+// Engenheiro só enxerga a obra em que entrou; financeiro e dono enxergam todas.
 export function podeVerObra(s: Sessao, obraId: number) {
   return s.perfil !== 'obra' || s.obraId === obraId
 }
 
-export const nomePerfil = (s: Sessao) => (s.perfil === 'obra' ? `Obra ${s.nome}` : s.nome)
+// Como a pessoa aparece no histórico.
+export const nomePerfil = (s: Sessao) => `${s.nome} (${ROTULO_PERFIL[s.perfil]})`

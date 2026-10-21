@@ -6,7 +6,7 @@ import { exigirSessao } from '@/lib/sessao'
 const STATUS = [
   ['', 'Todas'],
   ['aguardando_financeiro', 'Aguardando financeiro'],
-  ['aguardando_chefe', 'Aguardando chefe'],
+  ['aguardando_chefe', 'Aguardando dono'],
   ['aprovada', 'Aprovadas (a pagar)'],
   ['paga', 'Pagas'],
   ['recusada', 'Recusadas'],

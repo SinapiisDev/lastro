@@ -4,9 +4,15 @@ Obras com etapas e subetapas, orçamento da obra (itens, margem/BDI, envio ao in
 
 ## Acessos
 
-- **Obra**: escolhe a obra e digita a senha dela (é o acesso do engenheiro). Vê só a própria obra.
-- **Financeiro** e **Chefe**: uma senha cada, veem todas as obras. Só o chefe vê Configurações.
-- No primeiro acesso, o sistema pede as senhas do chefe e do financeiro.
+Cada pessoa tem a própria conta (e-mail e senha). Não existe cadastro aberto.
+
+- **Dono**: vê tudo, aprova as compras acima do teto médio e é o único que mexe em Configurações (empresa, tetos, obras, fornecedores e **Pessoas**). Toda entrada pede o código de 6 números do aplicativo autenticador do celular.
+- **Financeiro**: vê todas as obras, libera as compras da faixa média e registra pagamentos.
+- **Engenheiro**: vê só as obras ligadas à conta dele; se tiver mais de uma, escolhe ao entrar.
+- **Primeiro acesso**: a tela pede o código de instalação (`CODIGO_INSTALACAO`, no servidor) para criar a conta do dono. Depois o dono cria as outras contas em Configurações › Pessoas, com senha provisória que a pessoa troca na primeira entrada.
+- **Proteções**: 5 erros seguidos (senha ou código) bloqueiam a conta por 15 minutos; desativar uma conta ou trocar a senha derruba as sessões abertas; o histórico grava o nome de quem fez cada coisa.
+- **Celular perdido**: na tela do código, "Perdi o celular" com o código de instalação, ou outro dono em Configurações › Pessoas.
+- Na primeira entrada cada pessoa vê um passo a passo do próprio perfil; dá para rever em Minha conta.
 
 ## Cotação e conversa com fornecedores
 
@@ -24,11 +30,11 @@ Precisa de Node 20+ e do **Docker Desktop aberto** (o banco local roda dentro de
 
 ```bash
 npm install
-cp .env.example .env.local # preencha SUPABASE_SERVICE_ROLE_KEY (Secret key do `npx supabase status`) e SESSION_SECRET
+cp .env.example .env.local # preencha SUPABASE_SERVICE_ROLE_KEY (Secret key do `npx supabase status`), SESSION_SECRET e CODIGO_INSTALACAO
 npm run dev                # liga o Supabase local (aplica supabase/migrations) e depois o site
 ```
 
-Testes das regras (faixas, parcelas, fluxo de caixa, fracionamento, frete, propostas, checagem do que a IA devolve): `npm test`.
+Testes das regras (faixas, parcelas, fluxo de caixa, fracionamento, frete, propostas, checagem do que a IA devolve, código do celular): `npm test`.
 
 ## Colocar no ar
 
@@ -38,8 +44,9 @@ Testes das regras (faixas, parcelas, fluxo de caixa, fracionamento, frete, propo
    - `DATABASE_URL`: string de conexão do pooler em modo **Transaction** (porta 6543).
    - `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` (Project Settings → API Keys).
    - `SESSION_SECRET` e `CRON_SECRET`: textos aleatórios de 32+ caracteres.
+   - `CODIGO_INSTALACAO`: texto aleatório de 12+ caracteres; guarde num lugar seguro fora do sistema.
    - `ANTHROPIC_API_KEY`: chave criada em console.anthropic.com → API Keys (cobra por uso; centavos por mensagem lida).
-4. Abra o site e defina as senhas do chefe e do financeiro na hora. Até isso ser feito, qualquer um que abrir o endereço consegue definir essas senhas.
+4. Abra o site, digite o código de instalação e crie a conta do dono; em seguida cadastre o celular (QR Code) e crie as contas da equipe.
 
 ### WhatsApp oficial (Meta)
 

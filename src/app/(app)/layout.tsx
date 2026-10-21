@@ -1,7 +1,9 @@
+import Link from 'next/link'
 import { Suspense } from 'react'
 import { BarraSuperior } from '@ds'
-import { lerConfig } from '@/lib/db'
-import { exigirSessao } from '@/lib/sessao'
+import { sql, lerConfig } from '@/lib/db'
+import { exigirSessao, ROTULO_PERFIL } from '@/lib/sessao'
+import { PassoAPasso } from '@/components/passo-a-passo'
 import { sair } from '../entrar/acoes'
 
 // Cada página confere o acesso por conta própria; aqui o login só monta o menu.
@@ -17,7 +19,11 @@ export default function AppLayout({ children }: LayoutProps<'/'>) {
 }
 
 async function Cabecalho() {
-  const [s, config] = await Promise.all([exigirSessao(), lerConfig()])
+  const s = await exigirSessao()
+  const [config, [u]] = await Promise.all([
+    lerConfig(),
+    sql<{ visto: boolean }[]>`select tutorial_visto_em is not null as visto from usuarios where id = ${s.usuarioId}`,
+  ])
   const links: [string, string][] =
     s.perfil === 'obra'
       ? [
@@ -37,19 +43,25 @@ async function Cabecalho() {
           ['/historico', 'Histórico'],
           ...(s.perfil === 'chefe' ? ([['/configuracoes', 'Configurações']] as [string, string][]) : []),
         ]
-  const perfil = { obra: 'Obra', financeiro: 'Financeiro', chefe: 'Chefe' }[s.perfil]
-
   return (
+    <>
     <BarraSuperior
       links={links}
-      perfil={perfil}
-      nome={s.perfil === 'obra' ? s.nome : perfil}
+      perfil={ROTULO_PERFIL[s.perfil]}
+      nome={s.nome}
       empresa={config.nomeEmpresa}
       sair={
-        <form action={sair}>
-          <button className="w-full cursor-pointer rounded-sm px-2.5 py-2 text-left text-[13px] font-semibold hover:bg-surface-2">Sair</button>
-        </form>
+        <>
+          <Link href="/conta" className="rounded-sm px-2.5 py-2 text-[13px] font-semibold no-underline hover:bg-surface-2">
+            Minha conta
+          </Link>
+          <form action={sair}>
+            <button className="w-full cursor-pointer rounded-sm px-2.5 py-2 text-left text-[13px] font-semibold hover:bg-surface-2">Sair</button>
+          </form>
+        </>
       }
     />
+    {!u?.visto && <PassoAPasso perfil={s.perfil} nome={s.nome} />}
+    </>
   )
 }

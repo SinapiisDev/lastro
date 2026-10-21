@@ -31,7 +31,7 @@ export function BarraSuperior({
   sair: ReactNode
 }) {
   return (
-    <header className="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-3 px-4 py-3.5 sm:px-6 lg:grid-cols-[auto_1fr_auto] print:hidden">
+    <header className="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-3 px-4 py-3.5 sm:px-6 lg:grid-cols-[auto_minmax(0,1fr)_auto] print:hidden">
       <Link href="/" className="no-underline">
         <Marca subtitulo={empresa} />
       </Link>
@@ -39,7 +39,7 @@ export function BarraSuperior({
         <Navegacao links={links} />
       </div>
       <div className="flex items-center justify-end gap-2">
-        <span className="hidden h-10 items-center gap-2 rounded-full bg-surface pr-3.5 pl-1.5 text-[13px] font-semibold md:flex">
+        <span className="hidden h-10 items-center gap-2 rounded-full bg-surface pr-3.5 pl-1.5 text-[13px] font-semibold 2xl:flex">
           <span className="rounded-full bg-surface-2 px-2.5 py-1 text-[11px] font-bold text-ink-2">{perfil}</span>
           <span className="max-w-48 truncate">{nome}</span>
         </span>

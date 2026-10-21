@@ -1,7 +1,7 @@
 # Gestão de Obras — Design System
 
 Sistema interno da construtora para financeiro, orçamento e compras de cada obra.
-Perfis: **Obra** (engenheiro, celular no canteiro), **Financeiro** (desktop, tabelas), **Chefe** (aprova compras grandes).
+Perfis: **Obra** (engenheiro, celular no canteiro), **Financeiro** (desktop, tabelas), **Dono** (aprova compras grandes).
 
 Referência visual: cinza claro + cartões brancos de raio grande, faixa preta profunda, acento lima, tipografia geométrica leve. Aplicada a um produto denso em números — **legibilidade de R$ vem antes de enfeite**.
 
@@ -47,8 +47,8 @@ Este arquivo é a fonte da verdade dos tokens. No código eles vivem em `design-
 | `--ok-bg` | `#E8F2DC` | `#1C2A13` | |
 | `--info` | `#2D5DB0` | `#93B5F5` | enviado, informação |
 | `--info-bg` | `#E5ECF8` | `#16223A` | |
-| `--pink` | `#F4A6C6` | `#F4A6C6` | Chefe / investidor (uso pontual) |
-| `--pink-ink` | `#9C2F5C` | `#F4A6C6` | texto rosa legível (Aguardando chefe) |
+| `--pink` | `#F4A6C6` | `#F4A6C6` | Dono / investidor (uso pontual) |
+| `--pink-ink` | `#9C2F5C` | `#F4A6C6` | texto rosa legível (Aguardando dono) |
 | `--pink-bg` | `#FBE6EF` | `#3A1826` | fundo rosa suave |
 | `--night-3` | `#2B2B2B` | `#262626` | divisórias e trilhos na faixa escura |
 | `--night-ink` | `#FFFFFF` | `#FFFFFF` | texto na faixa escura |
@@ -106,7 +106,7 @@ Estados: hover (escurece/`--surface-2`), ativo (escala 0.98), foco (anel `--focu
 
 ### Etiqueta de situação
 Pílula 24 px, ponto + texto, fundo suave da família semântica.
-- Compra: Rascunho (neutro) · Aguardando financeiro (âmbar) · Aguardando chefe (rosa) · Aprovada (verde) · Paga (lima escuro) · Recusada (vermelho)
+- Compra: Rascunho (neutro) · Aguardando financeiro (âmbar) · Aguardando dono (rosa) · Aprovada (verde) · Paga (lima escuro) · Recusada (vermelho)
 - Orçamento: Rascunho · Enviado ao investidor (azul) · Aprovado (verde)
 - Cotação: Aberta (azul) · Respondida (âmbar) · Fechada (verde) · Sem resposta (neutro)
 

@@ -157,7 +157,7 @@ export default async function DetalheCompra({ params }: PageProps<'/compras/[id]
         itens={[
           { titulo: 'Registrada', detalhe: quando(c.criadaEm), estado: 'feito' },
           {
-            titulo: c.situacao === 'aguardando_chefe' || c.faixa === 'alta' ? 'Aprovação do chefe' : c.faixa === 'baixa' ? 'Aprovação automática' : 'Liberação do financeiro',
+            titulo: c.situacao === 'aguardando_chefe' || c.faixa === 'alta' ? 'Aprovação do dono' : c.faixa === 'baixa' ? 'Aprovação automática' : 'Liberação do financeiro',
             detalhe: c.situacao === 'recusada' ? 'Recusada' : c.situacao === 'cancelada' ? 'Cancelada' : aprovada ? 'Aprovada' : FAIXAS[c.faixa],
             estado: passoAprovacao,
           },

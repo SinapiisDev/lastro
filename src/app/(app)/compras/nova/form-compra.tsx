@@ -28,9 +28,9 @@ export type Inicial = {
 const AVISO_FAIXA = {
   baixa: 'Dentro do teto baixo: a compra fica aprovada na hora.',
   media: 'Acima do teto baixo: vai para o financeiro liberar.',
-  alta: 'Acima do teto médio: vai direto para o chefe aprovar. Escreva o motivo da compra.',
+  alta: 'Acima do teto médio: vai direto para o dono aprovar. Escreva o motivo da compra.',
 }
-const QUEM_APROVA = { baixa: 'Aprovação automática', media: 'Financeiro libera', alta: 'Chefe aprova' }
+const QUEM_APROVA = { baixa: 'Aprovação automática', media: 'Financeiro libera', alta: 'Dono aprova' }
 
 export function FormCompra({
   etapas,

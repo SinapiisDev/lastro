@@ -224,7 +224,7 @@ export async function gerarCompras(cotacaoId: number, _: Estado, d: FormData): P
   })
   const justificativa = motivo || c.recomendacao?.explicacao || null
   if (!justificativa && pedidos.some((p) => p.total > config.tetoMedio))
-    return { erro: `Uma das compras passa ${brl(config.tetoMedio)} e vai para o chefe: escreva o motivo da compra.` }
+    return { erro: `Uma das compras passa ${brl(config.tetoMedio)} e vai para o dono: escreva o motivo da compra.` }
 
   const criadas = await escrever(nomePerfil(s), async (tx) => {
     const feitas = []

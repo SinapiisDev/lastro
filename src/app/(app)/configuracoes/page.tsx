@@ -1,30 +1,37 @@
 import Link from 'next/link'
-import { Campo, Cartao, Entrada, EntradaDinheiro, EstadoVazio, FormAcao, Marcacao } from '@ds'
+import { Campo, Cartao, Entrada, EntradaDinheiro, EstadoVazio, Etiqueta, FormAcao, Marcacao, Selecao } from '@ds'
 import { sql, lerConfig } from '@/lib/db'
-import { exigirSessao } from '@/lib/sessao'
+import { exigirSessao, ROTULO_PERFIL, type Perfil } from '@/lib/sessao'
 import { brl } from '@/lib/regras'
-import { salvarTetos, salvarEmpresa, trocarSenha, salvarObra, salvarFornecedor } from './acoes'
+import { quando } from '@/lib/historico'
+import { salvarTetos, salvarEmpresa, salvarObra, salvarFornecedor, criarPessoa, salvarObrasPessoa, alternarAtivo, redefinirSenha, redefinirCelular } from './acoes'
 
 const ABAS = [
+  ['pessoas', 'Pessoas'],
   ['tetos', 'Tetos de aprovação'],
-  ['senhas', 'Senhas'],
   ['obras', 'Obras'],
   ['fornecedores', 'Fornecedores'],
   ['empresa', 'Empresa'],
 ] as const
 
 export default async function Configuracoes({ searchParams }: PageProps<'/configuracoes'>) {
-  await exigirSessao('chefe')
+  const s = await exigirSessao('chefe')
   const pedida = (await searchParams).aba
-  const aba = ABAS.find(([k]) => k === pedida)?.[0] ?? 'tetos'
-  const [config, obras, fornecedores] = await Promise.all([
+  const aba = ABAS.find(([k]) => k === pedida)?.[0] ?? 'pessoas'
+  const [config, obras, fornecedores, pessoas] = await Promise.all([
     lerConfig(),
     sql<{ id: number; nome: string; endereco: string | null; ativa: boolean }[]>`
       select id, nome, endereco, ativa from obras order by ativa desc, nome`,
     sql<{ id: number; nome: string; cnpj: string | null; telefone: string | null; whatsapp: string | null }[]>`
       select id, nome, cnpj, telefone, whatsapp from fornecedores order by nome`,
+    sql<{ id: number; nome: string; email: string; perfil: Perfil; ativo: boolean; trocarSenha: boolean; totpAtivo: boolean; bloqueado: boolean; ultimoAcesso: Date | null; obras: number[] }[]>`
+      select u.id, u.nome, u.email, u.perfil, u.ativo, u.trocar_senha as "trocarSenha", u.totp_ativo as "totpAtivo",
+        coalesce(u.bloqueado_ate > now(), false) as bloqueado, u.ultimo_acesso_em as "ultimoAcesso",
+        coalesce((select array_agg(obra_id order by obra_id) from usuario_obras where usuario_id = u.id), '{}') as obras
+      from usuarios u order by u.ativo desc, u.perfil, u.nome`,
   ])
-  const contagem: Partial<Record<string, number>> = { obras: obras.length, fornecedores: fornecedores.length }
+  const contagem: Partial<Record<string, number>> = { pessoas: pessoas.filter((p) => p.ativo).length, obras: obras.length, fornecedores: fornecedores.length }
+  const obrasAtivas = obras.filter((o) => o.ativa)
 
   return (
     <section className="grid items-start gap-4 pt-2 lg:grid-cols-[240px_minmax(0,1fr)]">
@@ -54,14 +61,14 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
             <div className="flex h-12 overflow-hidden rounded-md text-label font-bold" aria-hidden>
               <div className="flex flex-[2] items-center justify-center bg-ok-bg px-2 text-center text-ok">Sem aprovação</div>
               <div className="flex flex-[3] items-center justify-center bg-warn-bg px-2 text-center text-warn">Financeiro libera</div>
-              <div className="flex flex-[3] items-center justify-center bg-pink-bg px-2 text-center text-pink-ink">Chefe aprova</div>
+              <div className="flex flex-[3] items-center justify-center bg-pink-bg px-2 text-center text-pink-ink">Dono aprova</div>
             </div>
             <FormAcao action={salvarTetos} botao="Salvar tetos" variante="primario" className="flex flex-col gap-4">
               <div className="grid gap-3.5 sm:grid-cols-2">
                 <Campo rotulo="Teto baixo (R$)" ajuda={`Até ${brl(config.tetoBaixo)} o engenheiro compra sem aprovação.`}>
                   <EntradaDinheiro name="teto_baixo" min={0} step="0.01" required defaultValue={config.tetoBaixo} />
                 </Campo>
-                <Campo rotulo="Teto médio (R$)" ajuda={`Até ${brl(config.tetoMedio)} o financeiro libera; acima, vai para o chefe.`}>
+                <Campo rotulo="Teto médio (R$)" ajuda={`Até ${brl(config.tetoMedio)} o financeiro libera; acima, vai para o dono.`}>
                   <EntradaDinheiro name="teto_medio" min={0} step="0.01" required defaultValue={config.tetoMedio} />
                 </Campo>
               </div>
@@ -69,27 +76,107 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
           </Cartao>
         )}
 
-        {aba === 'senhas' && (
-          <Cartao className="flex flex-col gap-5 p-6!">
-            <Titulo
-              titulo="Senhas de acesso"
-              texto="Uma senha por perfil. Não há cadastro aberto: só o chefe redefine. A senha de cada obra fica na aba Obras."
-            />
-            <div className="grid gap-4 sm:grid-cols-2">
-              {(['chefe', 'financeiro'] as const).map((perfil) => (
-                <FormAcao key={perfil} action={trocarSenha.bind(null, perfil)} botao="Trocar senha" className="flex flex-col gap-3 rounded-lg bg-surface-2 p-4">
-                  <Campo rotulo={`Nova senha do ${perfil}`} ajuda="Mínimo de 8 caracteres.">
-                    <Entrada name="senha" type="password" minLength={8} required autoComplete="new-password" className="bg-surface" />
+        {aba === 'pessoas' && (
+          <>
+            <Cartao className="flex flex-col gap-5 p-6!">
+              <Titulo
+                titulo="Pessoas"
+                texto="Cada pessoa entra com o próprio e-mail e senha. O dono confirma a entrada com o código do celular. Ninguém se cadastra sozinho."
+              />
+              <ul className="flex flex-col">
+                {pessoas.map((p) => (
+                  <li key={p.id} className="flex flex-col gap-3 border-b border-line py-4 first:pt-0 last:border-0 last:pb-0">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex min-w-0 flex-col gap-0.5">
+                        <span className="flex flex-wrap items-center gap-2">
+                          <span className={`text-body font-semibold ${p.ativo ? '' : 'text-ink-3 line-through'}`}>{p.nome}</span>
+                          <Etiqueta tom={p.perfil === 'chefe' ? 'rosa' : p.perfil === 'financeiro' ? 'info' : 'neutro'}>{ROTULO_PERFIL[p.perfil]}</Etiqueta>
+                          {!p.ativo && <Etiqueta tom="neg">Desativada</Etiqueta>}
+                          {p.bloqueado && <Etiqueta tom="aviso">Bloqueada por tentativas</Etiqueta>}
+                          {p.ativo && p.trocarSenha && <Etiqueta>Ainda com senha provisória</Etiqueta>}
+                          {p.perfil === 'chefe' && p.ativo && !p.totpAtivo && <Etiqueta tom="aviso">Celular não cadastrado</Etiqueta>}
+                          {p.id === s.usuarioId && <Etiqueta tom="ok">Você</Etiqueta>}
+                        </span>
+                        <span className="text-caption text-ink-3">
+                          {p.email} · {p.ultimoAcesso ? `último acesso ${quando(p.ultimoAcesso)}` : 'nunca entrou'}
+                          {p.perfil === 'obra' && ` · ${p.obras.map((id) => obras.find((o) => o.id === id)?.nome).filter(Boolean).join(', ') || 'sem obra'}`}
+                        </span>
+                      </div>
+                      {p.id !== s.usuarioId && (
+                        <FormAcao action={alternarAtivo.bind(null, p.id)} botao={p.ativo ? 'Desativar' : 'Reativar'} variante={p.ativo ? 'perigo' : 'secundario'} tamanho="sm" className="flex items-center gap-2" />
+                      )}
+                    </div>
+                    {p.ativo && p.id !== s.usuarioId && (
+                      <details className="rounded-md bg-surface-2 px-4 py-3">
+                        <summary className="cursor-pointer text-table font-semibold">Gerenciar acesso de {p.nome}</summary>
+                        <div className="mt-3 grid gap-4 lg:grid-cols-2">
+                          <FormAcao action={redefinirSenha.bind(null, p.id)} botao="Definir senha provisória" tamanho="sm" className="flex flex-col gap-2.5">
+                            <Campo rotulo="Nova senha provisória" ajuda="Também desbloqueia a conta. A pessoa troca no próximo acesso.">
+                              <Entrada name="senha" type="password" minLength={10} required autoComplete="new-password" className="bg-surface" />
+                            </Campo>
+                          </FormAcao>
+                          {p.perfil === 'obra' && (
+                            <FormAcao action={salvarObrasPessoa.bind(null, p.id)} botao="Salvar obras" tamanho="sm" className="flex flex-col gap-2.5">
+                              <span className="text-label font-semibold text-ink-2">Obras que {p.nome} enxerga</span>
+                              {obrasAtivas.map((o) => (
+                                <Marcacao key={o.id} name="obras" value={o.id} defaultChecked={p.obras.includes(o.id)} rotulo={o.nome} />
+                              ))}
+                            </FormAcao>
+                          )}
+                          {p.perfil === 'chefe' && p.totpAtivo && (
+                            <FormAcao action={redefinirCelular.bind(null, p.id)} botao="Cadastrar outro celular" tamanho="sm" className="flex flex-col gap-2.5">
+                              <span className="text-label text-ink-2">Use se a pessoa trocou ou perdeu o celular. Na próxima entrada ela lê um QR Code novo.</span>
+                            </FormAcao>
+                          )}
+                        </div>
+                      </details>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </Cartao>
+
+            <Cartao className="flex flex-col gap-5 p-6!">
+              <Titulo titulo="Nova pessoa" texto="Crie a conta com uma senha provisória e passe para a pessoa. Ela troca a senha no primeiro acesso." />
+              <FormAcao action={criarPessoa} botao="Criar conta" variante="primario" className="flex flex-col gap-4">
+                <div className="grid gap-3.5 sm:grid-cols-2">
+                  <Campo rotulo="Nome">
+                    <Entrada name="nome" required />
                   </Campo>
-                </FormAcao>
-              ))}
-            </div>
-          </Cartao>
+                  <Campo rotulo="E-mail">
+                    <Entrada name="email" type="email" required autoComplete="off" />
+                  </Campo>
+                  <Campo rotulo="Tipo de acesso">
+                    <Selecao name="perfil" defaultValue="obra">
+                      <option value="obra">Engenheiro (vê só as obras marcadas)</option>
+                      <option value="financeiro">Financeiro</option>
+                      <option value="chefe">Dono (com código do celular)</option>
+                    </Selecao>
+                  </Campo>
+                  <Campo rotulo="Senha provisória" ajuda="Mínimo de 10 caracteres.">
+                    <Entrada name="senha" type="password" minLength={10} required autoComplete="new-password" />
+                  </Campo>
+                </div>
+                <fieldset className="flex flex-col gap-2">
+                  <legend className="mb-1.5 text-label font-semibold text-ink-2">Obras do engenheiro</legend>
+                  {obrasAtivas.length === 0 ? (
+                    <span className="text-label text-ink-3">Cadastre uma obra antes de criar a conta do engenheiro.</span>
+                  ) : (
+                    <div className="flex flex-wrap gap-x-5 gap-y-2">
+                      {obrasAtivas.map((o) => (
+                        <Marcacao key={o.id} name="obras" value={o.id} rotulo={o.nome} />
+                      ))}
+                    </div>
+                  )}
+                </fieldset>
+              </FormAcao>
+            </Cartao>
+          </>
         )}
 
         {aba === 'obras' && (
           <Cartao className="flex flex-col gap-5 p-6!">
-            <Titulo titulo="Obras" texto="Nome, endereço, senha do engenheiro e se a obra segue ativa." />
+            <Titulo titulo="Obras" texto="Nome, endereço e se a obra segue ativa. Quem enxerga cada obra se define em Pessoas." />
             {obras.length === 0 ? (
               <EstadoVazio titulo="Nenhuma obra cadastrada">Cadastre pela tela Obras.</EstadoVazio>
             ) : (
@@ -106,10 +193,7 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
                   <Campo rotulo="Endereço">
                     <Entrada name="endereco" defaultValue={o.endereco ?? ''} />
                   </Campo>
-                  <Campo rotulo="Nova senha da obra (deixe vazio para manter)">
-                    <Entrada name="senha" type="password" minLength={8} autoComplete="new-password" />
-                  </Campo>
-                  <Marcacao name="ativa" defaultChecked={o.ativa} rotulo="Obra ativa (desmarque para encerrar; o acesso dela para de funcionar)" className="self-center" />
+                  <Marcacao name="ativa" defaultChecked={o.ativa} rotulo="Obra ativa (desmarque para encerrar; os engenheiros dela deixam de ver)" className="self-center" />
                 </FormAcao>
               ))
             )}

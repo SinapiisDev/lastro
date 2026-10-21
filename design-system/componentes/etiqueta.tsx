@@ -28,7 +28,7 @@ export function Etiqueta({ tom = 'neutro', children, grande = false }: { tom?: T
 const SITUACOES: Record<string, [string, TomEtiqueta]> = {
   // compra
   aguardando_financeiro: ['Aguardando financeiro', 'aviso'],
-  aguardando_chefe: ['Aguardando chefe', 'rosa'],
+  aguardando_chefe: ['Aguardando dono', 'rosa'],
   aprovada: ['Aprovada', 'ok'],
   paga: ['Paga', 'paga'],
   recusada: ['Recusada', 'neg'],

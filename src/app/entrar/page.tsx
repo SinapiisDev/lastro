@@ -1,65 +1,64 @@
 import { connection } from 'next/server'
 import { redirect } from 'next/navigation'
-import { Campo, Entrada, FormAcao, Marca, BotaoTema } from '@ds'
+import { Campo, Entrada, FormAcao } from '@ds'
 import { sql, lerConfig } from '@/lib/db'
 import { lerSessao } from '@/lib/sessao'
-import { FormLogin } from './form-login'
-import { HeroiPredio } from './heroi-predio'
-import { primeiroAcesso } from './acoes'
+import { Moldura } from './moldura'
+import { entrar, primeiroAcesso } from './acoes'
 
 export const instant = false
 
 export default async function Entrar() {
   await connection()
   if (await lerSessao()) redirect('/')
-  const config = await lerConfig()
-  const obras = await sql<{ id: number; nome: string; endereco: string | null }[]>`
-    select id, nome, endereco from obras where ativa order by nome`
+  const [config, [{ instalado }]] = await Promise.all([lerConfig(), sql<{ instalado: boolean }[]>`select exists (select 1 from usuarios) as instalado`])
 
   return (
-    <main className="grid min-h-screen gap-4 bg-bg p-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(360px,520px)]">
-      <section className="relative hidden min-h-[600px] overflow-hidden rounded-xl bg-surface lg:block">
-        <HeroiPredio />
-        <div className="pointer-events-none absolute top-8 left-8">
-          <Marca tamanho={44} subtitulo={`${config.nomeEmpresa} · uso interno`} />
-        </div>
-        <div className="pointer-events-none absolute bottom-8 left-8 flex max-w-[380px] flex-col gap-2.5">
-          <h1 className="font-display text-display font-light tracking-[-0.02em]">Cada real da obra, no lugar certo.</h1>
-          <p className="text-body text-ink-2">
-            Orçamento, compras e pagamentos {obras.length === 1 ? 'da obra' : `das ${obras.length} obras`} em andamento.
-          </p>
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-7 rounded-xl bg-surface px-6 py-8 sm:px-9 sm:py-10">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex flex-col gap-1.5">
-            <span className="mb-4 lg:hidden">
-              <Marca subtitulo={config.nomeEmpresa} />
-            </span>
-            <h2 className="font-display text-h1 font-light">{config.temSenhas ? 'Entrar' : 'Primeiro acesso'}</h2>
-            <span className="text-table text-ink-3">
-              {config.temSenhas
-                ? 'Acesso liberado pelo administrador. Não há cadastro aberto.'
-                : 'Defina a senha do chefe e a do financeiro. Depois o chefe cria as obras, cada uma com a sua senha.'}
-            </span>
+    <Moldura
+      empresa={config.nomeEmpresa}
+      titulo={instalado ? 'Entrar' : 'Instalar o sistema'}
+      subtitulo={
+        instalado
+          ? 'Cada pessoa entra com o próprio e-mail. Contas novas são criadas pelo dono.'
+          : 'Crie a conta do dono. Depois, em Configurações › Pessoas, você cria as contas do financeiro e dos engenheiros.'
+      }
+    >
+      {instalado ? (
+        <FormAcao action={entrar} botao="Entrar" variante="primario" tamanho="lg" largura className="flex flex-1 flex-col gap-4">
+          <Campo rotulo="E-mail">
+            <Entrada name="email" type="email" required autoComplete="username" className="min-h-12" />
+          </Campo>
+          <Campo rotulo="Senha">
+            <Entrada name="senha" type="password" required autoComplete="current-password" className="min-h-12" />
+          </Campo>
+          <span className="flex-1" />
+          <span className="order-last -mt-1 text-center text-label text-ink-3">Esqueceu a senha? O dono redefine em Configurações › Pessoas.</span>
+        </FormAcao>
+      ) : (
+        <FormAcao action={primeiroAcesso} botao="Criar conta do dono" variante="primario" tamanho="lg" largura className="flex flex-1 flex-col gap-4">
+          <Campo rotulo="Código de instalação" ajuda="Está na configuração do servidor (CODIGO_INSTALACAO). Sem ele, ninguém consegue instalar o sistema no seu lugar.">
+            <Entrada name="codigo" type="password" required autoComplete="off" className="min-h-12" />
+          </Campo>
+          <Campo rotulo="Seu nome">
+            <Entrada name="nome" required autoComplete="name" className="min-h-12" />
+          </Campo>
+          <Campo rotulo="Seu e-mail">
+            <Entrada name="email" type="email" required autoComplete="username" className="min-h-12" />
+          </Campo>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Campo rotulo="Senha" ajuda="Mínimo de 10 caracteres.">
+              <Entrada name="senha" type="password" minLength={10} required autoComplete="new-password" className="min-h-12" />
+            </Campo>
+            <Campo rotulo="Repita a senha">
+              <Entrada name="confirmar" type="password" minLength={10} required autoComplete="new-password" className="min-h-12" />
+            </Campo>
           </div>
-          <BotaoTema className="bg-surface-2" />
-        </div>
-        {config.temSenhas ? (
-          <FormLogin obras={obras} />
-        ) : (
-          <FormAcao action={primeiroAcesso} botao="Salvar senhas e entrar" variante="primario" tamanho="lg" largura className="flex flex-1 flex-col gap-4">
-            <Campo rotulo="Senha do chefe" ajuda="Mínimo de 8 caracteres.">
-              <Entrada name="chefe" type="password" minLength={8} required autoComplete="new-password" className="min-h-12" />
-            </Campo>
-            <Campo rotulo="Senha do financeiro">
-              <Entrada name="financeiro" type="password" minLength={8} required autoComplete="new-password" className="min-h-12" />
-            </Campo>
-            <span className="flex-1" />
-          </FormAcao>
-        )}
-      </section>
-    </main>
+          <p className="rounded-md bg-surface-2 px-3.5 py-3 text-label leading-normal text-ink-2">
+            No próximo passo você liga a verificação pelo celular: instale um aplicativo autenticador (Google Authenticator ou Microsoft
+            Authenticator) para ler o QR Code.
+          </p>
+        </FormAcao>
+      )}
+    </Moldura>
   )
 }
