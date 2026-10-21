@@ -8,7 +8,7 @@ const VITRINE = { fundacao: 100, estrutura: 100, alvenaria: 86, instalacoes: 70,
 export function HeroiPredio() {
   return (
     <div className="absolute inset-0">
-      <Predio3D progresso={VITRINE} enquadreX={0.17} enquadreY={-0.07} zoom={0.8} rotulo="Prédio em 3D ilustrando uma obra em andamento" />
+      <Predio3D progresso={VITRINE} zoom={1} rotulo="Prédio em 3D ilustrando uma obra em andamento" />
     </div>
   )
 }
