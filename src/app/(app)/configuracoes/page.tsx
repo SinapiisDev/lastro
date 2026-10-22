@@ -4,7 +4,8 @@ import { sql, lerConfig } from '@/lib/db'
 import { exigirSessao, ROTULO_PERFIL, type Perfil } from '@/lib/sessao'
 import { brl } from '@/lib/regras'
 import { quando } from '@/lib/historico'
-import { salvarTetos, salvarEmpresa, salvarObra, salvarFornecedor, criarPessoa, salvarObrasPessoa, alternarAtivo, trocarCelular } from './acoes'
+import { LinkDeAcesso } from '@/components/link-de-acesso'
+import { salvarTetos, salvarEmpresa, salvarObra, salvarFornecedor, criarPessoa, salvarObrasPessoa, alternarAtivo, gerarConvite } from './acoes'
 
 const ABAS = [
   ['pessoas', 'Pessoas'],
@@ -24,9 +25,10 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
       select id, nome, endereco, ativa from obras order by ativa desc, nome`,
     sql<{ id: number; nome: string; cnpj: string | null; telefone: string | null; whatsapp: string | null }[]>`
       select id, nome, cnpj, telefone, whatsapp from fornecedores order by nome`,
-    sql<{ id: number; nome: string; celular: string | null; perfil: Perfil; ativo: boolean; ultimoAcesso: Date | null; obras: number[] }[]>`
-      select u.id, u.nome, u.celular, u.perfil, u.ativo,
+    sql<{ id: number; nome: string; email: string; perfil: Perfil; ativo: boolean; ultimoAcesso: Date | null; linkAte: Date | null; obras: number[] }[]>`
+      select u.id, u.nome, u.email, u.perfil, u.ativo,
         u.ultimo_acesso_em as "ultimoAcesso",
+        case when u.convite is not null and u.convite_expira_em > now() then u.convite_expira_em end as "linkAte",
         coalesce((select array_agg(obra_id order by obra_id) from usuario_obras where usuario_id = u.id), '{}') as obras
       from usuarios u order by u.ativo desc, u.perfil, u.nome`,
   ])
@@ -81,7 +83,7 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
             <Cartao className="flex flex-col gap-5 p-6!">
               <Titulo
                 titulo="Pessoas"
-                texto="Cada pessoa entra pelo próprio celular: digita o número e recebe um código no WhatsApp. Ninguém se cadastra sozinho."
+                texto="Cada pessoa entra com o próprio e-mail e senha. Você cadastra e manda o link de acesso; no link ela cria a senha."
               />
               <ul className="flex flex-col">
                 {pessoas.map((p) => (
@@ -92,10 +94,11 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
                           <span className={`text-body font-semibold ${p.ativo ? '' : 'text-ink-3 line-through'}`}>{p.nome}</span>
                           <Etiqueta tom={p.perfil === 'chefe' ? 'rosa' : p.perfil === 'financeiro' ? 'info' : 'neutro'}>{ROTULO_PERFIL[p.perfil]}</Etiqueta>
                           {!p.ativo && <Etiqueta tom="neg">Desativada</Etiqueta>}
+                          {p.ativo && p.linkAte && <Etiqueta tom="aviso">Link enviado, vale até {quando(p.linkAte)}</Etiqueta>}
                           {p.id === s.usuarioId && <Etiqueta tom="ok">Você</Etiqueta>}
                         </span>
                         <span className="text-caption text-ink-3">
-                          {p.celular ? `+${p.celular}` : 'sem celular'} · {p.ultimoAcesso ? `último acesso ${quando(p.ultimoAcesso)}` : 'nunca entrou'}
+                          {p.email} · {p.ultimoAcesso ? `último acesso ${quando(p.ultimoAcesso)}` : 'aguardando o primeiro acesso'}
                           {p.perfil === 'obra' && ` · ${p.obras.map((id) => obras.find((o) => o.id === id)?.nome).filter(Boolean).join(', ') || 'sem obra'}`}
                         </span>
                       </div>
@@ -107,11 +110,11 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
                       <details className="rounded-md bg-surface-2 px-4 py-3">
                         <summary className="cursor-pointer text-table font-semibold">Gerenciar acesso de {p.nome}</summary>
                         <div className="mt-3 grid gap-4 lg:grid-cols-2">
-                          <FormAcao action={trocarCelular.bind(null, p.id)} botao="Trocar número" tamanho="sm" className="flex flex-col gap-2.5">
-                            <Campo rotulo="Celular novo (WhatsApp)" ajuda="A pessoa sai dos aparelhos onde estava conectada e passa a entrar pelo número novo.">
-                              <Entrada name="celular" type="tel" required placeholder="(11) 98888-7777" className="bg-surface" />
-                            </Campo>
-                          </FormAcao>
+                          <LinkDeAcesso action={gerarConvite.bind(null, p.id)} botao="Gerar link de acesso" tamanho="sm" className="flex flex-col gap-2.5">
+                            <span className="text-table text-ink-2">
+                              Para quando o link venceu ou {p.nome} esqueceu a senha. No link, a pessoa cria uma senha nova; o link anterior deixa de valer.
+                            </span>
+                          </LinkDeAcesso>
                           {p.perfil === 'obra' && (
                             <FormAcao action={salvarObrasPessoa.bind(null, p.id)} botao="Salvar obras" tamanho="sm" className="flex flex-col gap-2.5">
                               <span className="text-label font-semibold text-ink-2">Obras que {p.nome} enxerga</span>
@@ -129,19 +132,19 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
             </Cartao>
 
             <Cartao className="flex flex-col gap-5 p-6!">
-              <Titulo titulo="Nova pessoa" texto="Cadastre o nome e o celular (WhatsApp). A pessoa já pode entrar: digita o número e recebe o código." />
-              <FormAcao action={criarPessoa} botao="Cadastrar pessoa" variante="primario" className="flex flex-col gap-4">
+              <Titulo titulo="Nova pessoa" texto="Cadastre o nome, o e-mail e a área. Sai um link de acesso para você copiar ou mandar pelo WhatsApp." />
+              <LinkDeAcesso action={criarPessoa} botao="Cadastrar e gerar link" variante="primario" className="flex flex-col gap-4">
                 <div className="grid gap-3.5 sm:grid-cols-2">
                   <Campo rotulo="Nome">
                     <Entrada name="nome" required />
                   </Campo>
-                  <Campo rotulo="Celular (WhatsApp)">
-                    <Entrada name="celular" type="tel" required placeholder="(11) 98888-7777" />
+                  <Campo rotulo="E-mail">
+                    <Entrada name="email" type="email" required autoComplete="off" />
                   </Campo>
-                  <Campo rotulo="Tipo de acesso">
+                  <Campo rotulo="Área">
                     <Selecao name="perfil" defaultValue="obra">
                       <option value="obra">Engenheiro (vê só as obras marcadas)</option>
-                      <option value="financeiro">Financeiro</option>
+                      <option value="financeiro">Financeiro (pagamentos, caixa e liberações)</option>
                       <option value="chefe">Dono (vê e aprova tudo)</option>
                     </Selecao>
                   </Campo>
@@ -158,7 +161,7 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
                     </div>
                   )}
                 </fieldset>
-              </FormAcao>
+              </LinkDeAcesso>
             </Cartao>
           </>
         )}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, type ReactNode } from 'react'
+import { startTransition, useActionState, useRef, type FormEvent, type ReactNode } from 'react'
 import { Botao, type VarianteBotao, type TamanhoBotao } from './botao'
 import { Toast } from './mensagem'
 
@@ -9,7 +9,7 @@ export type Acao = (estado: Estado, dados: FormData) => Promise<Estado>
 
 /**
  * Formulário ligado a uma server action. Botão com estado "Salvando…" e, embaixo,
- * a confirmação (verde) ou o erro (vermelho) que a action devolveu.
+ * a confirmação (verde) ou o erro (vermelho) que a action devolveu. Com erro, o que foi digitado fica.
  */
 export function FormAcao({
   action,
@@ -36,13 +36,13 @@ export function FormAcao({
   noturno?: boolean
 }) {
   // Cada envio ganha um número: o aviso flutuante reaparece mesmo com a mesma mensagem.
-  const [estado, enviar, enviando] = useActionState(async (anterior: (Estado & { n?: number }) | null, dados: FormData) => {
+  const { estado, enviando, ref, aoEnviar } = useEnvioSemApagar(async (anterior: (NonNullable<Estado> & { n?: number }) | null, dados: FormData) => {
     const r = await action(anterior, dados)
     return r && { ...r, n: (anterior?.n ?? 0) + 1 }
-  }, null)
+  })
 
   return (
-    <form action={enviar} className={className}>
+    <form ref={ref} onSubmit={aoEnviar} className={className}>
       {children}
       <div className={`flex flex-wrap items-center gap-3 ${largura ? 'w-full' : ''}`}>
         <Botao variante={variante} tamanho={tamanho} carregando={enviando} className={largura ? 'w-full' : ''}>
@@ -58,4 +58,23 @@ export function FormAcao({
       {toast && estado?.ok && <Toast key={estado.n} texto={estado.ok} />}
     </form>
   )
+}
+
+/**
+ * `<form action>` do React apaga o formulário depois de toda resposta, inclusive de erro (senha errada apagava o
+ * e-mail). Com este envio ele não apaga; quem chama limpa com `form.reset()` só quando deu certo.
+ */
+export function useEnvioSemApagar<S extends { erro?: string }>(action: (estado: S | null, dados: FormData) => Promise<S | null>) {
+  const ref = useRef<HTMLFormElement>(null)
+  const [estado, enviar, enviando] = useActionState<S | null, FormData>(async (anterior, dados) => {
+    const r = await action(anterior, dados)
+    if (!r?.erro) ref.current?.reset()
+    return r
+  }, null)
+  const aoEnviar = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const dados = new FormData(e.currentTarget, (e.nativeEvent as SubmitEvent).submitter)
+    startTransition(() => enviar(dados))
+  }
+  return { estado, enviando, ref, aoEnviar }
 }

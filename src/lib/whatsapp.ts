@@ -47,21 +47,6 @@ export const enviarModelo = (para: string, modelo: Modelo, parametros: string[])
     },
   })
 
-// Código de entrada no sistema: modelo da categoria Autenticação, com o botão "Copiar código".
-export const enviarCodigo = (para: string, codigo: string) =>
-  enviar({
-    to: para,
-    type: 'template',
-    template: {
-      name: 'codigo_acesso',
-      language: { code: 'pt_BR' },
-      components: [
-        { type: 'body', parameters: [{ type: 'text', text: codigo }] },
-        { type: 'button', sub_type: 'url', index: '0', parameters: [{ type: 'text', text: codigo }] },
-      ],
-    },
-  })
-
 // A Meta assina cada chamada do webhook com o segredo do app: sem assinatura válida, nada entra.
 export function assinaturaValida(corpo: string, assinatura: string | null) {
   const segredo = process.env.WHATSAPP_APP_SECRET

@@ -120,7 +120,7 @@ export function descreverEvento(e: Evento): string {
     case 'usuarios':
       if (e.acao === 'insert') return `Pessoa cadastrada: ${d.nome}, acesso ${PERFIL[d.perfil]}`
       if (mudou('ativo')) return `Conta de ${d.nome} ${d.ativo ? 'reativada' : 'desativada'}`
-      if (mudou('celular')) return `Celular de ${d.nome} ${a.celular ? 'trocado' : 'cadastrado'}`
+      if (mudou('convite_expira_em')) return d.convite_expira_em ? `Link de acesso gerado para ${d.nome}` : `${d.nome} usou o link de acesso e definiu a senha`
       return `Conta de ${d.nome} alterada`
     case 'usuario_obras': {
       const i = e.acao === 'delete' ? a : d

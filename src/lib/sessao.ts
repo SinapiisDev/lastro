@@ -5,24 +5,16 @@ import { redirect } from 'next/navigation'
 import { connection } from 'next/server'
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { sqlSistema } from './db'
-import { normalizarWhatsapp } from './cotacao'
 
 // 'chefe' é o dono da empresa (o nome interno ficou do começo do sistema).
 export type Perfil = 'chefe' | 'financeiro' | 'obra'
 export const ROTULO_PERFIL: Record<Perfil, string> = { chefe: 'Dono', financeiro: 'Financeiro', obra: 'Engenheiro' }
 
-// `usuarioId` é a pessoa dentro de uma construtora; o mesmo celular pode estar em várias.
-export type Sessao = { usuarioId: number; empresaId: number; perfil: Perfil; obraId?: number; nome: string; celular: string; v: number; exp: number }
-// Entre digitar o celular e entrar: código do WhatsApp, escolha da construtora e, para engenheiro, da obra.
-// `cadastro` existe quando é uma construtora nova; `codigoTela` só com o WhatsApp simulado (desenvolvimento).
-export type PreSessao = {
-  celular: string
-  codigoOk: boolean
-  usuarioId?: number
-  cadastro?: { empresa: string; nome: string }
-  codigoTela?: string
-  exp: number
-}
+// `usuarioId` é a pessoa dentro de uma construtora; o mesmo e-mail pode estar em várias.
+export type Sessao = { usuarioId: number; empresaId: number; perfil: Perfil; obraId?: number; nome: string; email: string; v: number; exp: number }
+// Passos entre o e-mail e o sistema: senha conferida, escolha da construtora e da obra; ou, no link de
+// primeiro acesso, o e-mail já confirmado para aquele convite (`convite` = a pessoa convidada).
+export type PreSessao = { email: string; senhaOk: boolean; usuarioId?: number; convite?: number; exp: number }
 
 const COOKIE = 'sessao'
 const COOKIE_PRE = 'pre_sessao'
@@ -62,7 +54,7 @@ async function ler<T extends { exp: number }>(nome: string): Promise<T | null> {
 }
 
 export async function criarSessao(
-  u: { id: number; empresaId: number; nome: string; perfil: Perfil; celular: string; sessaoVersao: number },
+  u: { id: number; empresaId: number; nome: string; perfil: Perfil; email: string; sessaoVersao: number },
   obraId?: number,
 ) {
   const s: Sessao = {
@@ -71,7 +63,7 @@ export async function criarSessao(
     perfil: u.perfil,
     obraId,
     nome: u.nome,
-    celular: u.celular,
+    email: u.email,
     v: u.sessaoVersao,
     exp: Math.floor(Date.now() / 1000) + DURACAO,
   }
@@ -90,18 +82,18 @@ export const criarPreSessao = (p: Omit<PreSessao, 'exp'>) =>
 
 export const lerPreSessao = () => ler<PreSessao>(COOKIE_PRE)
 
-// A sessão só vale com a pessoa ativa, a construtora liberada, o mesmo celular, sem "sair de todos os aparelhos"
-// desde então e (engenheiro) ligada à obra ativa.
+// A sessão só vale com a pessoa ativa, a construtora liberada, o mesmo e-mail, sem troca de senha nem
+// "sair de todos os aparelhos" desde então e (engenheiro) ligada à obra ativa.
 export const lerSessao = cache(async (): Promise<Sessao | null> => {
   const s = await ler<Sessao>(COOKIE)
   if (!s?.usuarioId || !s.empresaId) return null
-  const [u] = await sqlSistema<{ sessaoVersao: number; perfil: Perfil; celular: string; obraOk: boolean }[]>`
-    select a.sessao_versao as "sessaoVersao", u.perfil, u.celular,
+  const [u] = await sqlSistema<{ sessaoVersao: number; perfil: Perfil; email: string; obraOk: boolean }[]>`
+    select a.sessao_versao as "sessaoVersao", u.perfil, u.email,
       exists (select 1 from usuario_obras uo join obras o on o.id = uo.obra_id
               where uo.usuario_id = u.id and uo.obra_id = ${s.obraId ?? 0} and o.ativa) as "obraOk"
-    from usuarios u join empresas e on e.id = u.empresa_id join acessos a on a.celular = u.celular
+    from usuarios u join empresas e on e.id = u.empresa_id join contas a on a.email = u.email
     where u.id = ${s.usuarioId} and u.empresa_id = ${s.empresaId} and u.ativo and e.ativa`
-  if (!u || u.perfil !== s.perfil || u.celular !== s.celular || u.sessaoVersao !== s.v) return null
+  if (!u || u.perfil !== s.perfil || u.email !== s.email || u.sessaoVersao !== s.v) return null
   if (s.perfil === 'obra' && !u.obraOk) return null
   return s
 })
@@ -121,6 +113,6 @@ export function podeVerObra(s: Sessao, obraId: number) {
 // Como a pessoa aparece no histórico.
 export const nomePerfil = (s: Sessao) => `${s.nome} (${ROTULO_PERFIL[s.perfil]})`
 
-// Administradores do sistema (quem vende): celulares em PLATAFORMA_ADMINS, separados por vírgula.
+// Administradores do sistema (quem vende): e-mails em PLATAFORMA_ADMINS, separados por vírgula.
 export const ehAdministrador = (s: Sessao) =>
-  (process.env.PLATAFORMA_ADMINS ?? '').split(',').map(normalizarWhatsapp).includes(s.celular)
+  (process.env.PLATAFORMA_ADMINS ?? '').split(',').map((e) => e.trim().toLowerCase()).includes(s.email)

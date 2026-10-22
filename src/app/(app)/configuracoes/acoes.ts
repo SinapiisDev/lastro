@@ -1,9 +1,11 @@
 'use server'
 
 import { refresh } from 'next/cache'
-import { escrever } from '@/lib/db'
+import { escrever, lerConfig } from '@/lib/db'
 import { exigirSessao, nomePerfil, type Perfil } from '@/lib/sessao'
 import { normalizarWhatsapp } from '@/lib/cotacao'
+import { LINK_VALIDADE_DIAS, emailValido, normalizarEmail, novoConvite, respostaConvite } from '@/lib/contas'
+import type { EstadoLink } from '@/components/link-de-acesso'
 import type { Estado } from '@ds'
 
 const texto = (d: FormData, campo: string) => String(d.get(campo) ?? '').trim()
@@ -66,34 +68,48 @@ export async function salvarFornecedor(id: number, _: Estado, d: FormData): Prom
   return { ok: 'Salvo.' }
 }
 
-// Pessoas: só o dono cadastra, troca o número e desativa. Cada um entra pelo próprio WhatsApp.
+// Pessoas: só o dono cadastra e desativa. Cada pessoa recebe um link de acesso e cria a própria senha.
 
 const obrasDoForm = (d: FormData) => [...new Set(d.getAll('obras').map(Number).filter(Number.isInteger))]
-const MSG_CELULAR = 'Digite o celular com DDD, por exemplo (11) 98888-7777.'
 
-export async function criarPessoa(_: Estado, d: FormData): Promise<Estado> {
+export async function criarPessoa(_: EstadoLink, d: FormData): Promise<EstadoLink> {
   const s = await exigirSessao('chefe')
   const nome = texto(d, 'nome')
-  const celular = normalizarWhatsapp(texto(d, 'celular'))
+  const email = normalizarEmail(texto(d, 'email'))
   const perfil = texto(d, 'perfil') as Perfil
   const obras = obrasDoForm(d)
   if (!nome) return { erro: 'Informe o nome.' }
-  if (!celular) return { erro: MSG_CELULAR }
-  if (!PERFIS.includes(perfil)) return { erro: 'Escolha o tipo de acesso.' }
+  if (!emailValido(email)) return { erro: 'Informe um e-mail válido.' }
+  if (!PERFIS.includes(perfil)) return { erro: 'Escolha a área.' }
   if (perfil === 'obra' && obras.length === 0) return { erro: 'Marque pelo menos uma obra para o engenheiro.' }
+  const { token, hash } = novoConvite()
   try {
     await escrever(nomePerfil(s), async (tx) => {
       const [u] = await tx<{ id: number }[]>`
-        insert into usuarios (nome, perfil, celular) values (${nome}, ${perfil}, ${celular}) returning id`
+        insert into usuarios (nome, perfil, email, convite, convite_expira_em) values (${nome}, ${perfil}, ${email}, ${hash}, now() + make_interval(days => ${LINK_VALIDADE_DIAS}))
+        returning id`
       if (perfil === 'obra')
         await tx`insert into usuario_obras ${tx(obras.map((obra_id) => ({ usuario_id: u.id, obra_id })))}`
     })
   } catch (e) {
-    if (erroUnico(e)) return { erro: 'Já existe uma pessoa com esse celular.' }
+    if (erroUnico(e)) return { erro: 'Já existe uma pessoa com esse e-mail.' }
     throw e
   }
   refresh()
-  return { ok: `Pronto. ${nome} já pode entrar: é só digitar o celular na tela de entrada e usar o código que chega no WhatsApp.` }
+  const empresa = (await lerConfig()).nomeEmpresa
+  return respostaConvite({ nome, email, empresa }, token, `${nome} cadastrado. Mande o link abaixo para o primeiro acesso.`)
+}
+
+// Primeiro acesso que venceu ou senha esquecida: link novo (o anterior deixa de valer).
+export async function gerarConvite(id: number): Promise<EstadoLink> {
+  const s = await exigirSessao('chefe')
+  if (id === s.usuarioId) return { erro: 'Para trocar a sua senha, use Minha conta.' }
+  const { token, hash } = novoConvite()
+  const [u] = await escrever(nomePerfil(s), (tx) => tx<{ nome: string; email: string }[]>`
+    update usuarios set convite = ${hash}, convite_expira_em = now() + make_interval(days => ${LINK_VALIDADE_DIAS}) where id = ${id} and ativo returning nome, email`)
+  if (!u) return { erro: 'Pessoa não encontrada ou desativada.' }
+  const empresa = (await lerConfig()).nomeEmpresa
+  return respostaConvite({ ...u, empresa }, token, `Link novo gerado para ${u.nome}.`)
 }
 
 export async function salvarObrasPessoa(id: number, _: Estado, d: FormData): Promise<Estado> {
@@ -106,22 +122,6 @@ export async function salvarObrasPessoa(id: number, _: Estado, d: FormData): Pro
   })
   refresh()
   return { ok: 'Obras salvas.' }
-}
-
-// Número novo: as sessões abertas eram do número antigo e deixam de valer.
-export async function trocarCelular(id: number, _: Estado, d: FormData): Promise<Estado> {
-  const s = await exigirSessao('chefe')
-  const celular = normalizarWhatsapp(texto(d, 'celular'))
-  if (!celular) return { erro: MSG_CELULAR }
-  try {
-    await escrever(nomePerfil(s), (tx) => tx`
-      update usuarios set celular = ${celular} where id = ${id}`)
-  } catch (e) {
-    if (erroUnico(e)) return { erro: 'Já existe uma pessoa com esse celular.' }
-    throw e
-  }
-  refresh()
-  return { ok: 'Número trocado. A pessoa entra de novo pelo número novo.' }
 }
 
 export async function alternarAtivo(id: number): Promise<Estado> {
