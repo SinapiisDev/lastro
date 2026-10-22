@@ -53,7 +53,7 @@ export default async function Conversas() {
                   </span>
                   <span className="col-start-2 flex flex-wrap items-center gap-2 sm:col-start-auto sm:justify-end">
                     {f.pendentes > 0 && <Etiqueta tom="aviso">{f.pendentes} aguardando a IA</Etiqueta>}
-                    {f.iaPausada && <Etiqueta tom="rosa">IA pausada: precisa de uma pessoa</Etiqueta>}
+                    {f.iaPausada && <Etiqueta tom="vinho">IA pausada: precisa de uma pessoa</Etiqueta>}
                     {f.semResposta && !f.pendentes && <Etiqueta>última mensagem foi dele</Etiqueta>}
                     {f.ultima && <span className="text-[11px] font-semibold text-ink-3">{quando(f.ultima)}</span>}
                   </span>

@@ -23,7 +23,7 @@ export function Marcacao({
   )
 }
 
-// Interruptor ligado/desligado (lima quando ligado).
+// Interruptor ligado/desligado (azul quando ligado).
 export function Interruptor({ rotulo, descricao, className = '', ...resto }: ComponentProps<'input'> & { rotulo: ReactNode; descricao?: ReactNode }) {
   return (
     <label className={`flex cursor-pointer items-center justify-between gap-4 ${className}`}>

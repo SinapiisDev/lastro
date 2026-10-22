@@ -47,7 +47,7 @@ export function BarraSuperior({
         <details className="relative">
           <summary
             aria-label={`Menu de ${nome}`}
-            className="flex size-10 cursor-pointer items-center justify-center rounded-full bg-pink text-[13px] font-bold text-fixed-ink"
+            className="flex size-10 cursor-pointer items-center justify-center rounded-full bg-vinho-bg text-[13px] font-bold text-vinho-ink"
           >
             {iniciais(nome)}
           </summary>

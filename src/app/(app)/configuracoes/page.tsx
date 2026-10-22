@@ -63,7 +63,7 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
             <div className="flex h-12 overflow-hidden rounded-md text-label font-bold" aria-hidden>
               <div className="flex flex-[2] items-center justify-center bg-ok-bg px-2 text-center text-ok">Sem aprovação</div>
               <div className="flex flex-[3] items-center justify-center bg-warn-bg px-2 text-center text-warn">Financeiro libera</div>
-              <div className="flex flex-[3] items-center justify-center bg-pink-bg px-2 text-center text-pink-ink">Dono aprova</div>
+              <div className="flex flex-[3] items-center justify-center bg-vinho-bg px-2 text-center text-vinho-ink">Dono aprova</div>
             </div>
             <FormAcao action={salvarTetos} botao="Salvar tetos" variante="primario" className="flex flex-col gap-4">
               <div className="grid gap-3.5 sm:grid-cols-2">
@@ -92,7 +92,7 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
                       <div className="flex min-w-0 flex-col gap-0.5">
                         <span className="flex flex-wrap items-center gap-2">
                           <span className={`text-body font-semibold ${p.ativo ? '' : 'text-ink-3 line-through'}`}>{p.nome}</span>
-                          <Etiqueta tom={p.perfil === 'chefe' ? 'rosa' : p.perfil === 'financeiro' ? 'info' : 'neutro'}>{ROTULO_PERFIL[p.perfil]}</Etiqueta>
+                          <Etiqueta tom={p.perfil === 'chefe' ? 'vinho' : p.perfil === 'financeiro' ? 'info' : 'neutro'}>{ROTULO_PERFIL[p.perfil]}</Etiqueta>
                           {!p.ativo && <Etiqueta tom="neg">Desativada</Etiqueta>}
                           {p.ativo && p.linkAte && <Etiqueta tom="aviso">Link enviado, vale até {quando(p.linkAte)}</Etiqueta>}
                           {p.id === s.usuarioId && <Etiqueta tom="ok">Você</Etiqueta>}

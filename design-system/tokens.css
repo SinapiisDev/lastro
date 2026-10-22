@@ -2,44 +2,49 @@
  * Tokens do design system Lastro. Fonte da verdade: DESIGN.md (raiz do projeto).
  * Os valores vêm de design-system/referencias/tema.js; mude os dois juntos.
  * Tema escuro: <html data-tema="escuro">.
+ *
+ * Paleta A (efeito Helson-Judd): a "luz" é azul gelo, então os claros puxam para o azul (branco gelo)
+ * e os escuros puxam para o vinho, nunca preto puro. Azul conduz a ação; vinho é a marca e o dono.
  */
 
 :root,
 [data-tema='claro'] {
   color-scheme: light;
-  --bg: #ececea;
-  --surface: #ffffff;
-  --surface-2: #f5f5f3;
-  --surface-3: #ebebe7;
-  --line: #e3e3df;
-  --ink: #111111;
-  --ink-2: #55554f;
-  --ink-3: #86867f;
-  --on-ink: #ffffff;
-  --night: #101010;
-  --night-2: #1c1c1c;
-  --night-3: #2b2b2b; /* divisórias e trilhos na faixa escura */
-  --night-ink: #ffffff; /* texto na faixa escura (nos dois temas) */
-  --night-ink-2: #cfcfca; /* texto secundário na faixa escura */
-  --night-ink-3: #9a9a94; /* rótulos na faixa escura */
-  --accent: #c6df5f;
-  --accent-ink: #4c6110;
-  --accent-bg: #eef5d2;
-  --neg: #c3352d;
-  --neg-bg: #fbeae8;
-  --neg-night: #ff7a70; /* negativo legível na faixa escura */
-  --warn: #a8650a;
-  --warn-bg: #fbf0db;
-  --warn-night: #f1b24e;
-  --ok: #3c7421;
-  --ok-bg: #e8f2dc;
-  --info: #2d5db0;
-  --info-bg: #e5ecf8;
-  --pink: #f4a6c6;
-  --pink-ink: #9c2f5c;
-  --pink-bg: #fbe6ef;
-  --focus: #111111;
-  --fixed-ink: #111111; /* texto sobre lima: sempre escuro, nos dois temas */
+  --bg: #ecf0f4;
+  --surface: #fbfcfd;
+  --surface-2: #f3f6f9;
+  --surface-3: #e3e9ef;
+  --line: #d9e0e7;
+  --ink: #24161b;
+  --ink-2: #5b4c52;
+  --ink-3: #7a6f75;
+  --on-ink: #fbfcfd;
+  --night: #1f1217;
+  --night-2: #2c1c22;
+  --night-3: #3a2830; /* divisórias e trilhos na faixa escura */
+  --night-ink: #f3f6f9; /* texto na faixa escura (nos dois temas) */
+  --night-ink-2: #d2c8cc; /* texto secundário na faixa escura */
+  --night-ink-3: #a3969c; /* rótulos na faixa escura */
+  --accent: #2d62db;
+  --on-accent: #ffffff; /* texto sobre o azul */
+  --accent-ink: #2552c2;
+  --accent-bg: #e1eafb;
+  --accent-night: #7fa3f4; /* azul legível na faixa escura e sobre --ink */
+  --vinho: #7c1f3b;
+  --vinho-ink: #7c1f3b;
+  --vinho-bg: #f5e3e9;
+  --neg: #c9432a;
+  --neg-bg: #fbe7e2;
+  --neg-night: #ff8a6e; /* negativo legível na faixa escura */
+  --warn: #9a5b0b;
+  --warn-bg: #faefd9;
+  --warn-night: #f0b455;
+  --ok: #2f7a4d;
+  --ok-bg: #e2f0e7;
+  --info: #2552c2;
+  --info-bg: #e1eafb;
+  --focus: #2d62db;
+  --fixed-ink: #24161b; /* tinta da impressão: sempre escura */
   --fixed-paper: #ffffff; /* papel da impressão: sempre branco */
 
   /* Espaçamento (base 4) */
@@ -62,38 +67,40 @@
   --r-pill: 999px;
 
   /* Elevação: quase plana */
-  --shadow-1: 0 1px 2px rgb(17 17 17 / 0.04);
-  --shadow-2: 0 12px 32px rgb(17 17 17 / 0.1);
+  --shadow-1: 0 1px 2px rgb(36 22 27 / 0.04);
+  --shadow-2: 0 12px 32px rgb(36 22 27 / 0.1);
 }
 
 [data-tema='escuro'] {
   color-scheme: dark;
-  --bg: #0b0b0b;
-  --surface: #161616;
-  --surface-2: #1f1f1f;
-  --surface-3: #2a2a2a;
-  --line: #2b2b2b;
-  --ink: #f2f2ee;
-  --ink-2: #b3b3ac;
-  --ink-3: #85857e;
-  --on-ink: #111111;
-  --night: #000000;
-  --night-2: #141414;
-  --night-3: #262626;
-  --accent: #c6df5f;
-  --accent-ink: #c6df5f;
-  --accent-bg: #232b10;
-  --neg: #ff7a70;
-  --neg-bg: #3a1714;
-  --warn: #f1b24e;
-  --warn-bg: #33260e;
-  --ok: #9fd36e;
-  --ok-bg: #1c2a13;
-  --info: #93b5f5;
-  --info-bg: #16223a;
-  --pink: #f4a6c6;
-  --pink-ink: #f4a6c6;
-  --pink-bg: #3a1826;
-  --focus: #c6df5f;
+  --bg: #110a0d;
+  --surface: #1b1216;
+  --surface-2: #251a1f;
+  --surface-3: #2f2228;
+  --line: #3a2b32;
+  --ink: #eef2f6;
+  --ink-2: #b8c1cb;
+  --ink-3: #8b95a0;
+  --on-ink: #1b1216;
+  --night: #0b0608;
+  --night-2: #1a1014;
+  --night-3: #2a1c22;
+  --accent: #7fa3f4;
+  --on-accent: #0e1424;
+  --accent-ink: #9db9f7;
+  --accent-bg: #1b2744;
+  --accent-night: #7fa3f4;
+  --vinho: #e07c9b;
+  --vinho-ink: #e07c9b;
+  --vinho-bg: #3a1624;
+  --neg: #ff8a6e;
+  --neg-bg: #3b1710;
+  --warn: #f0b455;
+  --warn-bg: #33250e;
+  --ok: #8fd3a8;
+  --ok-bg: #15291d;
+  --info: #9db9f7;
+  --info-bg: #1b2744;
+  --focus: #7fa3f4;
   --shadow-2: 0 12px 32px rgb(0 0 0 / 0.5);
 }

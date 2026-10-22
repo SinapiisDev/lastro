@@ -23,7 +23,7 @@ export function TabelaFluxo({ linhas, comparar, noturno = false }: { linhas: Lin
             {linhas.map((l, i) => (
               <tr key={l.mes} className="[&>td]:border-b [&>td]:border-night-3 [&>td]:px-2 [&>td]:py-2.5">
                 <td className="text-night-ink-2">{mesBR(l.mes)}</td>
-                <td className="text-right text-accent">
+                <td className="text-right text-accent-night">
                   <Dinheiro valor={l.entradas} />
                 </td>
                 <td className="text-right">

@@ -206,7 +206,7 @@ export default async function Relatorios({ searchParams }: PageProps<'/relatorio
               </div>
               <div className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-1.5 text-table">
                 <span className="text-night-ink-2">Entra</span>
-                <span className="text-right font-bold text-accent">
+                <span className="text-right font-bold text-accent-night">
                   <Dinheiro valor={j.entradas} />
                 </span>
                 <span className="text-night-ink-2">Sai</span>

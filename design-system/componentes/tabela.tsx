@@ -31,7 +31,7 @@ export function Td({ num, forte, className = '', ...resto }: ComponentProps<'td'
   )
 }
 
-/** Linha com hover; `selecionada` pinta de lima suave. */
+/** Linha com hover; `selecionada` pinta de azul suave. */
 export function Tr({ selecionada, className = '', ...resto }: ComponentProps<'tr'> & { selecionada?: boolean }) {
   return <tr className={`transition-colors ${selecionada ? 'bg-accent-bg' : 'hover:bg-surface-2'} ${className}`} {...resto} />
 }

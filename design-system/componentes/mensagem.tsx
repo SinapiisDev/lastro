@@ -45,7 +45,7 @@ export function Toast({ texto, acao, aoFechar, duracao = 5000 }: { texto: ReactN
       className="fixed right-4 bottom-4 z-50 flex animate-[ds-entrar_.2s_ease-out] items-center gap-3.5 rounded-md bg-ink py-3 pr-3.5 pl-4 text-[13px] font-semibold text-on-ink shadow-2"
     >
       {texto}
-      {acao && <span className="font-bold text-accent">{acao}</span>}
+      {acao && <span className="font-bold text-accent-night">{acao}</span>}
     </div>
   )
 }

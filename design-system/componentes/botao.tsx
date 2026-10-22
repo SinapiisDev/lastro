@@ -7,7 +7,7 @@ export type TamanhoBotao = 'sm' | 'md' | 'lg'
 const VARIANTES: Record<VarianteBotao, string> = {
   primario: 'bg-ink text-on-ink hover:bg-ink-2',
   // Lima: só na faixa escura ou na ação final (Liberar, Aprovar).
-  acento: 'bg-accent text-fixed-ink font-bold hover:brightness-95',
+  acento: 'bg-accent text-on-accent font-bold hover:brightness-95',
   secundario: 'border border-line bg-surface text-ink hover:bg-surface-2',
   fantasma: 'bg-transparent text-ink underline underline-offset-3 hover:text-accent-ink',
   perigo: 'border border-neg bg-transparent text-neg hover:bg-neg-bg',

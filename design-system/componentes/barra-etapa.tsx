@@ -53,7 +53,7 @@ export function BarraEtapa({
         className={`relative block ${altura} overflow-hidden rounded-full bg-surface-3`}
       >
         <span
-          className={`absolute inset-y-0 left-0 flex items-center justify-end rounded-full text-label font-bold ${fora ? '' : 'pr-2.5'} ${concluida ? 'bg-ok text-surface' : 'bg-accent text-fixed-ink'}`}
+          className={`absolute inset-y-0 left-0 flex items-center justify-end rounded-full text-label font-bold ${fora ? '' : 'pr-2.5'} ${concluida ? 'bg-ok text-surface' : 'bg-accent text-on-accent'}`}
           style={{ width: `${f}%` }}
         >
           {!fora && (concluida ? '100% ✓' : `${f}%`)}

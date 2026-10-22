@@ -279,14 +279,14 @@ export function FormCompra({
         <Cartao as="div" className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-2">
             <span className="text-label font-semibold text-ink-3">Quem aprova</span>
-            <span className={`text-[13px] font-bold ${faixa === 'baixa' ? 'text-ok' : faixa === 'media' ? 'text-warn' : faixa === 'alta' ? 'text-pink-ink' : 'text-ink-3'}`}>
+            <span className={`text-[13px] font-bold ${faixa === 'baixa' ? 'text-ok' : faixa === 'media' ? 'text-warn' : faixa === 'alta' ? 'text-vinho-ink' : 'text-ink-3'}`}>
               {faixa ? QUEM_APROVA[faixa] : 'Informe o valor'}
             </span>
           </div>
           <div className="relative flex h-2.5 overflow-hidden rounded-full" aria-hidden>
             <span className="bg-ok/70" style={{ width: posicao(tetoBaixo) }} />
             <span className="bg-warn/70" style={{ width: `calc(${posicao(tetoMedio)} - ${posicao(tetoBaixo)})` }} />
-            <span className="flex-1 bg-pink" />
+            <span className="flex-1 bg-vinho" />
             {total > 0 && <span className="absolute inset-y-0 w-1 -translate-x-1/2 rounded-full bg-ink ring-2 ring-surface" style={{ left: posicao(total) }} />}
           </div>
           <div className="flex justify-between text-[11px] font-semibold text-ink-3">
@@ -295,7 +295,7 @@ export function FormCompra({
             <span>teto médio {brl(tetoMedio)}</span>
           </div>
           {faixa && (
-            <p className={`rounded-md px-3 py-2.5 text-[12.5px] font-semibold ${faixa === 'baixa' ? 'bg-ok-bg text-ok' : faixa === 'media' ? 'bg-warn-bg text-warn' : 'bg-pink-bg text-pink-ink'}`}>
+            <p className={`rounded-md px-3 py-2.5 text-[12.5px] font-semibold ${faixa === 'baixa' ? 'bg-ok-bg text-ok' : faixa === 'media' ? 'bg-warn-bg text-warn' : 'bg-vinho-bg text-vinho-ink'}`}>
               {AVISO_FAIXA[faixa]}
             </p>
           )}

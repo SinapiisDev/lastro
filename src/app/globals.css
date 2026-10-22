@@ -21,6 +21,8 @@
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
   --color-accent-bg: var(--accent-bg);
+  --color-on-accent: var(--on-accent);
+  --color-accent-night: var(--accent-night);
   --color-neg: var(--neg);
   --color-neg-bg: var(--neg-bg);
   --color-neg-night: var(--neg-night);
@@ -31,9 +33,9 @@
   --color-ok-bg: var(--ok-bg);
   --color-info: var(--info);
   --color-info-bg: var(--info-bg);
-  --color-pink: var(--pink);
-  --color-pink-ink: var(--pink-ink);
-  --color-pink-bg: var(--pink-bg);
+  --color-vinho: var(--vinho);
+  --color-vinho-ink: var(--vinho-ink);
+  --color-vinho-bg: var(--vinho-bg);
   --color-focus: var(--focus);
   --color-fixed-ink: var(--fixed-ink);
 
@@ -301,7 +303,7 @@ body {
   }
   .ds-interruptor:checked::before {
     left: 21px;
-    background: var(--fixed-ink);
+    background: var(--on-accent);
   }
   .ds-interruptor:disabled {
     opacity: 0.4;

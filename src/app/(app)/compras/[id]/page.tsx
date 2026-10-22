@@ -167,7 +167,7 @@ export default async function DetalheCompra({ params }: PageProps<'/compras/[id]
             estado: encerrada ? 'pendente' : passoPagamento,
           },
         ]}
-        tomAtual={c.situacao === 'aguardando_chefe' ? 'rosa' : 'escuro'}
+        tomAtual={c.situacao === 'aguardando_chefe' ? 'vinho' : 'escuro'}
       />
 
       {c.motivo && (
@@ -395,7 +395,7 @@ async function Analise({ parcelas, aviso }: { parcelas: { valor: number; vencime
     <Cartao tom="noite" className="flex flex-col gap-3.5">
       <div className="flex items-center gap-2">
         <SeloIA />
-        <h2 className="text-[13px] font-semibold text-accent">Análise antes de liberar</h2>
+        <h2 className="text-[13px] font-semibold text-accent-night">Análise antes de liberar</h2>
       </div>
       <span className="font-display text-[22px] leading-tight font-light">
         {falta ? `Com esta compra, o caixa fica negativo em ${mesBR(falta.mes)}.` : aviso ? 'O caixa comporta, mas confira o orçamento.' : 'O caixa comporta esta compra.'}

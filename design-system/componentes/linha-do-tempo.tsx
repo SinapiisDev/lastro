@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-export type TomEvento = 'neutro' | 'ok' | 'aviso' | 'neg' | 'info' | 'acento' | 'rosa'
+export type TomEvento = 'neutro' | 'ok' | 'aviso' | 'neg' | 'info' | 'acento' | 'vinho'
 const PONTO: Record<TomEvento, string> = {
   neutro: 'bg-ink-3',
   ok: 'bg-ok',
@@ -8,7 +8,7 @@ const PONTO: Record<TomEvento, string> = {
   neg: 'bg-neg',
   info: 'bg-info',
   acento: 'bg-accent',
-  rosa: 'bg-pink',
+  vinho: 'bg-vinho',
 }
 
 export type Evento = { chave: string | number; titulo: ReactNode; autor?: ReactNode; nota?: ReactNode; quando: string; tom?: TomEvento }

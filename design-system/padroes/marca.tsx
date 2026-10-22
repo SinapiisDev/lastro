@@ -1,4 +1,4 @@
-// Marca: três barras subindo (a primeira em lima), como um prédio em obra.
+// Marca: três barras subindo (a primeira em azul), como um prédio em obra.
 export function Marca({ tamanho = 34, comNome = true, subtitulo }: { tamanho?: number; comNome?: boolean; subtitulo?: string }) {
   const b = tamanho / 34
   return (

@@ -124,7 +124,7 @@ export default async function Obra({ params, searchParams }: PageProps<'/obras/[
             </Link>
             <Link
               href={editar ? `/obras/${id}` : `/obras/${id}?editar=1`}
-              className="inline-flex h-8 items-center rounded-full bg-accent px-3.5 text-label font-bold text-fixed-ink no-underline hover:brightness-95"
+              className="inline-flex h-8 items-center rounded-full bg-accent px-3.5 text-label font-bold text-on-accent no-underline hover:brightness-95"
             >
               {editar ? 'Fechar edição' : 'Editar etapas'}
             </Link>

@@ -4,7 +4,7 @@ export type AutorBalao = 'fornecedor' | 'pessoa' | 'ia' | 'sistema'
 
 /**
  * Balão de conversa estilo WhatsApp (DESIGN.md §3):
- * fornecedor à esquerda (surface); pessoa da equipe à direita (ink); IA à esquerda (night, selo lima); sistema centralizado.
+ * fornecedor à esquerda (surface); pessoa da equipe à direita (ink); IA à esquerda (night, selo azul); sistema centralizado.
  */
 export function Balao({
   autor,
@@ -37,7 +37,7 @@ export function Balao({
   return (
     <li className={`flex max-w-[82%] flex-col gap-0.5 px-3 pt-2.5 pb-1.5 ${estilos}`}>
       {autor === 'ia' ? (
-        <span className="inline-flex items-center gap-1.5 text-caption font-bold text-accent">
+        <span className="inline-flex items-center gap-1.5 text-caption font-bold text-accent-night">
           <SeloIA />
           {nome ?? 'Assistente'}
         </span>
@@ -57,7 +57,7 @@ export function Balao({
 }
 
 export function SeloIA() {
-  return <span className="rounded-[5px] bg-accent px-1.5 py-px text-[10px] font-extrabold text-fixed-ink">IA</span>
+  return <span className="rounded-[5px] bg-accent px-1.5 py-px text-[10px] font-extrabold text-on-accent">IA</span>
 }
 
 export function ListaConversa({ children, className = '' }: { children: ReactNode; className?: string }) {

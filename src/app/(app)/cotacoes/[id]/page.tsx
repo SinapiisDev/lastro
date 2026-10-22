@@ -87,7 +87,7 @@ export default async function DetalheCotacao({ params }: PageProps<'/cotacoes/[i
             <Cartao tom="noite" as="div" className="flex flex-col gap-3">
               <div className="flex items-center gap-2">
                 <SeloIA />
-                <span className="text-[13px] font-semibold text-accent">Indicação</span>
+                <span className="text-[13px] font-semibold text-accent-night">Indicação</span>
               </div>
               {c.recomendacao ? (
                 <p className="text-[13px] leading-[1.6] font-medium whitespace-pre-line text-night-ink-2">{c.recomendacao.explicacao}</p>
@@ -216,7 +216,7 @@ function Comparacao({
   if (!fornecedores.length) return <EstadoVazio titulo="Inclua fornecedores para comparar" compacto />
   const prop = (f: FornecedorCotacao) => propostas.find((p) => p.fornecedorId === f.fornecedorId)!
   const resumo = (f: FornecedorCotacao) => resumirProposta(itens, prop(f))
-  // A coluna de quem tem o menor total completo ganha o destaque (lima suave).
+  // A coluna de quem tem o menor total completo ganha o destaque (azul suave).
   const completos = fornecedores.filter((f) => resumo(f).cotados === itens.length && itens.length > 0)
   const melhor = completos.sort((a, b) => resumo(a).total - resumo(b).total)[0]?.id
   const col = (f: FornecedorCotacao) => (f.id === melhor ? 'bg-accent-bg' : '')
@@ -261,7 +261,7 @@ function Comparacao({
                         <span className="text-ink-3">não tem</span>
                       ) : (
                         <>
-                          <span className={`inline-flex items-center rounded-xs px-2 py-0.5 font-semibold ${destaque ? '-mr-2 bg-accent text-fixed-ink' : ''}`}>
+                          <span className={`inline-flex items-center rounded-xs px-2 py-0.5 font-semibold ${destaque ? '-mr-2 bg-accent text-on-accent' : ''}`}>
                             <Dinheiro valor={v * i.quantidade} />
                           </span>
                           <span className="block text-caption text-ink-3">{brl(v)}/{i.unidade}</span>

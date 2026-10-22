@@ -32,7 +32,7 @@ export function FormAcao({
   largura?: boolean
   /** confirmação vira aviso flutuante em vez de texto */
   toast?: boolean
-  /** dentro da faixa escura: mensagens em lima e vermelho claro */
+  /** dentro da faixa escura: mensagens em azul claro e vermelho claro */
   noturno?: boolean
 }) {
   // Cada envio ganha um número: o aviso flutuante reaparece mesmo com a mesma mensagem.
@@ -50,7 +50,7 @@ export function FormAcao({
         </Botao>
         <p
           aria-live="polite"
-          className={`text-[12.5px] font-semibold ${estado?.erro ? (noturno ? 'text-neg-night' : 'text-neg') : noturno ? 'text-accent' : 'text-ok'}`}
+          className={`text-[12.5px] font-semibold ${estado?.erro ? (noturno ? 'text-neg-night' : 'text-neg') : noturno ? 'text-accent-night' : 'text-ok'}`}
         >
           {estado?.erro ?? (!toast && estado?.ok)}
         </p>

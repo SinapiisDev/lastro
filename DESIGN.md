@@ -3,7 +3,7 @@
 Sistema interno da construtora para financeiro, orçamento e compras de cada obra.
 Perfis: **Obra** (engenheiro, celular no canteiro), **Financeiro** (desktop, tabelas), **Dono** (aprova compras grandes).
 
-Referência visual: cinza claro + cartões brancos de raio grande, faixa preta profunda, acento lima, tipografia geométrica leve. Aplicada a um produto denso em números — **legibilidade de R$ vem antes de enfeite**.
+Referência visual: branco gelo + cartões claros de raio grande, faixa escura em vinho profundo, acento azul, marca vinho, tipografia geométrica leve. Aplicada a um produto denso em números — **legibilidade de R$ vem antes de enfeite**.
 
 ---
 
@@ -11,8 +11,8 @@ Referência visual: cinza claro + cartões brancos de raio grande, faixa preta p
 
 1. **Número primeiro.** Valores em R$ sempre com algarismos tabulares, alinhados à direita, mesma casa decimal. Nunca centralizar coluna de valor.
 2. **Hierarquia em três níveis.** Valor principal (Outfit 300, grande) → rótulo (Manrope 12, cinza) → detalhe (Manrope 12, cinza claro). Um número por cartão em destaque.
-3. **Cor é significado.** Lima = progresso/positivo/ação principal na faixa escura. Vermelho = negativo, erro, gasto acima do feito. Âmbar = aguardando/atenção. Azul = informação/enviado. Nada de cor decorativa.
-4. **Calmo, não frio.** Superfícies brancas e raios generosos; texto quase-preto (#111) e não preto puro em blocos longos; o 3D da obra dá vida ao painel.
+3. **Cor é significado.** Azul = progresso, dado, ação final, enviado. Vinho = dono e marca. Vermelho-laranja = negativo, erro, gasto acima do feito. Âmbar = aguardando/atenção. Verde = aprovado/pago. Nada de cor decorativa.
+4. **Calmo, não frio.** Superfícies em branco gelo e raios generosos; texto em tinta vinho (#24161B), nunca preto puro; o 3D da obra dá vida ao painel.
 5. **Canteiro é celular.** Alvos ≥ 44 px, uma ação principal por tela, botões de passo (−/+) para percentual, contraste alto ao sol.
 
 ---
@@ -23,44 +23,48 @@ Este arquivo é a fonte da verdade dos tokens. No código eles vivem em `design-
 
 ### Cor
 
+**Paleta A, pelo efeito Helson-Judd**: a "luz" do sistema é azul gelo. Por isso os claros puxam para o azul (branco gelo) e os escuros puxam para o vinho, nunca para o preto puro. O **azul** conduz: progresso, dados e a ação final. O **vinho** é a marca e o que espera pelo dono. O erro é vermelho-laranja, bem separado do vinho.
+
 | Token | Claro | Escuro | Uso |
 |---|---|---|---|
-| `--bg` | `#ECECEA` | `#0B0B0B` | fundo da aplicação |
-| `--surface` | `#FFFFFF` | `#161616` | cartões, tabelas |
-| `--surface-2` | `#F5F5F3` | `#1F1F1F` | campos, linhas zebra, hover |
-| `--surface-3` | `#EBEBE7` | `#2A2A2A` | trilho de progresso, chips |
-| `--line` | `#E3E3DF` | `#2B2B2B` | divisórias, bordas |
-| `--ink` | `#111111` | `#F2F2EE` | texto principal, botão primário |
-| `--ink-2` | `#55554F` | `#B3B3AC` | texto secundário |
-| `--ink-3` | `#86867F` | `#85857E` | rótulos, placeholders |
-| `--on-ink` | `#FFFFFF` | `#111111` | texto sobre `--ink` |
-| `--night` | `#101010` | `#000000` | faixa escura (fluxo, IA) |
-| `--night-2` | `#1C1C1C` | `#141414` | cartões na faixa escura |
-| `--accent` | `#C6DF5F` | `#C6DF5F` | lima — progresso, destaque |
-| `--accent-ink` | `#4C6110` | `#C6DF5F` | texto lima legível |
-| `--accent-bg` | `#EEF5D2` | `#232B10` | fundo lima suave |
-| `--neg` | `#C3352D` | `#FF7A70` | valor negativo, erro |
-| `--neg-bg` | `#FBEAE8` | `#3A1714` | fundo de erro |
-| `--warn` | `#A8650A` | `#F1B24E` | aguardando, atenção |
-| `--warn-bg` | `#FBF0DB` | `#33260E` | |
-| `--ok` | `#3C7421` | `#9FD36E` | aprovada, paga |
-| `--ok-bg` | `#E8F2DC` | `#1C2A13` | |
-| `--info` | `#2D5DB0` | `#93B5F5` | enviado, informação |
-| `--info-bg` | `#E5ECF8` | `#16223A` | |
-| `--pink` | `#F4A6C6` | `#F4A6C6` | Dono / investidor (uso pontual) |
-| `--pink-ink` | `#9C2F5C` | `#F4A6C6` | texto rosa legível (Aguardando dono) |
-| `--pink-bg` | `#FBE6EF` | `#3A1826` | fundo rosa suave |
-| `--night-3` | `#2B2B2B` | `#262626` | divisórias e trilhos na faixa escura |
-| `--night-ink` | `#FFFFFF` | `#FFFFFF` | texto na faixa escura |
-| `--night-ink-2` | `#CFCFCA` | `#CFCFCA` | texto secundário na faixa escura |
-| `--night-ink-3` | `#9A9A94` | `#9A9A94` | rótulos na faixa escura |
-| `--neg-night` | `#FF7A70` | `#FF7A70` | negativo legível na faixa escura |
-| `--warn-night` | `#F1B24E` | `#F1B24E` | atenção legível na faixa escura |
-| `--fixed-ink` | `#111111` | `#111111` | texto sobre lima (sempre escuro) |
+| `--bg` | `#ECF0F4` | `#110A0D` | fundo da aplicação (branco gelo) |
+| `--surface` | `#FBFCFD` | `#1B1216` | cartões, tabelas |
+| `--surface-2` | `#F3F6F9` | `#251A1F` | campos, linhas zebra, hover |
+| `--surface-3` | `#E3E9EF` | `#2F2228` | trilho de progresso, chips |
+| `--line` | `#D9E0E7` | `#3A2B32` | divisórias, bordas |
+| `--ink` | `#24161B` | `#EEF2F6` | texto principal, botão primário (tinta vinho) |
+| `--ink-2` | `#5B4C52` | `#B8C1CB` | texto secundário |
+| `--ink-3` | `#7A6F75` | `#8B95A0` | rótulos, placeholders |
+| `--on-ink` | `#FBFCFD` | `#1B1216` | texto sobre `--ink` |
+| `--night` | `#1F1217` | `#0B0608` | faixa escura (fluxo, IA) |
+| `--night-2` | `#2C1C22` | `#1A1014` | cartões na faixa escura |
+| `--night-3` | `#3A2830` | `#2A1C22` | divisórias e trilhos na faixa escura |
+| `--night-ink` | `#F3F6F9` | `#F3F6F9` | texto na faixa escura |
+| `--night-ink-2` | `#D2C8CC` | `#D2C8CC` | texto secundário na faixa escura |
+| `--night-ink-3` | `#A3969C` | `#A3969C` | rótulos na faixa escura |
+| `--accent` | `#2D62DB` | `#7FA3F4` | azul — progresso, ação final, dado |
+| `--on-accent` | `#FFFFFF` | `#0E1424` | texto sobre o azul |
+| `--accent-ink` | `#2552C2` | `#9DB9F7` | texto azul legível sobre superfície |
+| `--accent-bg` | `#E1EAFB` | `#1B2744` | fundo azul suave (seleção, destaque) |
+| `--accent-night` | `#7FA3F4` | `#7FA3F4` | azul legível na faixa escura e sobre `--ink` |
+| `--vinho` | `#7C1F3B` | `#E07C9B` | marca, Dono (ponto, segmento) |
+| `--vinho-ink` | `#7C1F3B` | `#E07C9B` | texto vinho (Aguardando dono) |
+| `--vinho-bg` | `#F5E3E9` | `#3A1624` | fundo vinho suave, avatar |
+| `--neg` | `#C9432A` | `#FF8A6E` | valor negativo, erro |
+| `--neg-bg` | `#FBE7E2` | `#3B1710` | fundo de erro |
+| `--neg-night` | `#FF8A6E` | `#FF8A6E` | negativo legível na faixa escura |
+| `--warn` | `#9A5B0B` | `#F0B455` | aguardando, atenção |
+| `--warn-bg` | `#FAEFD9` | `#33250E` | |
+| `--warn-night` | `#F0B455` | `#F0B455` | atenção legível na faixa escura |
+| `--ok` | `#2F7A4D` | `#8FD3A8` | aprovada, paga |
+| `--ok-bg` | `#E2F0E7` | `#15291D` | |
+| `--info` | `#2552C2` | `#9DB9F7` | enviado, informação (mesma família do azul) |
+| `--info-bg` | `#E1EAFB` | `#1B2744` | |
+| `--fixed-ink` | `#24161B` | `#24161B` | tinta da impressão (sempre escura) |
 | `--fixed-paper` | `#FFFFFF` | `#FFFFFF` | papel da impressão (sempre branco) |
-| `--focus` | `#111111` | `#C6DF5F` | anel de foco (2 px + 2 px offset) |
+| `--focus` | `#2D62DB` | `#7FA3F4` | anel de foco (2 px + 2 px offset) |
 
-`--pink-ink` e `--pink-bg` já existiam no `tema.js` exportado; os tokens `--night-*`, `--neg-night`, `--warn-night` e `--fixed-*` registram cores que as telas de referência usavam escritas à mão (faixa escura, texto sobre lima, impressão).
+As telas de referência (`design-system/referencias/tema.js`) usam os mesmos valores, ainda com os nomes antigos `pink*` para o vinho.
 
 ### Tipografia
 
@@ -94,24 +98,24 @@ Padding de cartão: 20 (desktop) / 16 (celular). Gap entre cartões: 16. Linha d
 
 ### Elevação
 
-Quase plana. `--shadow-1: 0 1px 2px rgba(17,17,17,.04)` em cartões; `--shadow-2: 0 12px 32px rgba(17,17,17,.10)` em menus, modais e toasts.
+Quase plana. `--shadow-1: 0 1px 2px rgba(36,22,27,.04)` em cartões; `--shadow-2: 0 12px 32px rgba(36,22,27,.10)` em menus, modais e toasts.
 
 ---
 
 ## 3. Componentes
 
 ### Botões
-Pílula, altura 40 (sm 32, celular 48). **Primário** preto (`--ink`/`--on-ink`). **Acento** lima — só na faixa escura ou para a ação final (Liberar, Aprovar). **Secundário** contorno `--line`. **Fantasma** texto. **Perigo** contorno vermelho; vira sólido só na confirmação.
+Pílula, altura 40 (sm 32, celular 48). **Primário** tinta vinho (`--ink`/`--on-ink`). **Acento** azul (`--accent`/`--on-accent`) — só para a ação final (Liberar, Aprovar). **Secundário** contorno `--line`. **Fantasma** texto. **Perigo** contorno vermelho; vira sólido só na confirmação.
 Estados: hover (escurece/`--surface-2`), ativo (escala 0.98), foco (anel `--focus`), desabilitado (opacidade 0.4, sem cursor), carregando (rótulo trocado por "Salvando…" + spinner, largura preservada).
 
 ### Etiqueta de situação
 Pílula 24 px, ponto + texto, fundo suave da família semântica.
-- Compra: Rascunho (neutro) · Aguardando financeiro (âmbar) · Aguardando dono (rosa) · Aprovada (verde) · Paga (lima escuro) · Recusada (vermelho)
+- Compra: Rascunho (neutro) · Aguardando financeiro (âmbar) · Aguardando dono (vinho) · Aprovada (verde) · Paga (azul sólido) · Recusada (vermelho)
 - Orçamento: Rascunho · Enviado ao investidor (azul) · Aprovado (verde)
 - Cotação: Aberta (azul) · Respondida (âmbar) · Fechada (verde) · Sem resposta (neutro)
 
 ### Barra de progresso de etapa
-Altura 28, raio pílula, percentual escrito **dentro** (Manrope 12/700). Preenchimento lima com texto `--ink`; trilho `--surface-3`. Se o preenchimento < 14 %, o texto vai para fora, à direita do preenchimento.
+Altura 28, raio pílula, percentual escrito **dentro** (Manrope 12/700). Preenchimento azul com texto `--on-accent`; trilho `--surface-3`. Se o preenchimento < 14 %, o texto vai para fora, à direita do preenchimento.
 **Alerta**: quando `% gasto > % executado`, o trilho ganha marcador vertical do gasto e o trecho excedente fica vermelho hachurado; etiqueta "Gasto 72% · feito 58%".
 
 ### Tabela financeira
@@ -123,7 +127,7 @@ Ponto 10 px na cor do evento, linha 1 px `--line`, data `dd/mm/aaaa hh:mm` em ca
 ### Conversa (estilo WhatsApp)
 - **Fornecedor**: esquerda, `--surface`, nome em 600.
 - **Pessoa** (nossa equipe): direita, `--ink` com texto `--on-ink`.
-- **IA**: esquerda, `--night` com selo lima "IA".
+- **IA**: esquerda, `--night` com selo azul "IA".
 - **Sistema**: centralizado, pílula pequena `--surface-3`, caption.
 Hora e ✓✓ no canto inferior direito do balão.
 
@@ -144,8 +148,8 @@ Vazio: título curto + uma frase + uma ação. Carregando: esqueletos `--surface
 
 ## 4. Padrões de tela
 
-- **Barra superior**: marca à esquerda, navegação em pílulas no centro (ativo preto), seletor de obra + tema + avatar à direita.
-- **Faixa escura**: no rodapé do painel (fluxo de caixa, IA). Lima é a cor de dado ali.
+- **Barra superior**: marca à esquerda, navegação em pílulas no centro (ativo em tinta vinho), seletor de obra + tema + avatar à direita.
+- **Faixa escura**: no rodapé do painel (fluxo de caixa, IA). Azul (`--accent-night`) é a cor de dado ali.
 - **Obra 3D**: o prédio se constrói pelas etapas — fundação, estrutura, alvenaria, cobertura, acabamento. Partes não executadas aparecem só em contorno.
 - **Impressão/PDF**: fundo branco, sem cartões, tipografia preta, tabelas com régua fina, cabeçalho com logo e dados da obra, rodapé com página.
 

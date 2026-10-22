@@ -1,13 +1,13 @@
 import type { ReactNode } from 'react'
 
-export type TomEtiqueta = 'neutro' | 'aviso' | 'rosa' | 'ok' | 'paga' | 'neg' | 'info'
+export type TomEtiqueta = 'neutro' | 'aviso' | 'vinho' | 'ok' | 'paga' | 'neg' | 'info'
 
 const TONS: Record<TomEtiqueta, string> = {
   neutro: 'bg-surface-3 text-ink-2',
   aviso: 'bg-warn-bg text-warn',
-  rosa: 'bg-pink-bg text-pink-ink',
+  vinho: 'bg-vinho-bg text-vinho-ink',
   ok: 'bg-ok-bg text-ok',
-  paga: 'bg-accent text-fixed-ink',
+  paga: 'bg-accent text-on-accent',
   neg: 'bg-neg-bg text-neg',
   info: 'bg-info-bg text-info',
 }
@@ -28,7 +28,7 @@ export function Etiqueta({ tom = 'neutro', children, grande = false }: { tom?: T
 const SITUACOES: Record<string, [string, TomEtiqueta]> = {
   // compra
   aguardando_financeiro: ['Aguardando financeiro', 'aviso'],
-  aguardando_chefe: ['Aguardando dono', 'rosa'],
+  aguardando_chefe: ['Aguardando dono', 'vinho'],
   aprovada: ['Aprovada', 'ok'],
   paga: ['Paga', 'paga'],
   recusada: ['Recusada', 'neg'],

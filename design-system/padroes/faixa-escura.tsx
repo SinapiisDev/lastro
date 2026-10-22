@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 
 /**
  * Faixa escura no rodapé da tela (fluxo de caixa, IA). Encosta nas bordas e sobe com raio 30.
- * Lima é a cor de dado aqui.
+ * Azul é a cor de dado aqui.
  */
 export function FaixaEscura({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
@@ -16,7 +16,7 @@ export function FaixaEscura({ children, className = '' }: { children: ReactNode;
 
 /** Legenda de série (quadradinho + nome) para gráficos da faixa escura. */
 export function Legenda({ itens }: { itens: { cor: 'acento' | 'neutro' | 'neg'; texto: string }[] }) {
-  const cor = { acento: 'bg-accent', neutro: 'bg-night-ink-3/45', neg: 'bg-neg-night' }
+  const cor = { acento: 'bg-accent-night', neutro: 'bg-night-ink-3/45', neg: 'bg-neg-night' }
   return (
     <div className="flex flex-wrap gap-4 text-label font-semibold text-night-ink-2">
       {itens.map((i) => (
@@ -52,7 +52,7 @@ export function BarrasMensais({
           className={`flex min-w-0 flex-col gap-2.5 rounded-[18px] px-2.5 py-3 ${m.destaque ? 'bg-night-3' : m.previsao ? 'bg-transparent' : 'bg-night-2'}`}
         >
           <div className="flex items-end gap-1" style={{ height: altura }}>
-            <span className="flex-1 rounded-[8px_8px_3px_3px] bg-accent" style={{ height: `${(m.a / maximo) * 100}%` }} title={series[0]} />
+            <span className="flex-1 rounded-[8px_8px_3px_3px] bg-accent-night" style={{ height: `${(m.a / maximo) * 100}%` }} title={series[0]} />
             <span className="flex-1 rounded-[8px_8px_3px_3px] bg-night-ink-3/45" style={{ height: `${(m.b / maximo) * 100}%` }} title={series[1]} />
           </div>
           <span className="truncate text-label font-semibold text-night-ink-3">{m.rotulo}</span>

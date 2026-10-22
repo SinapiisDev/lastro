@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 import type * as THREE from 'three'
 
 /**
- * Letreiro 3D da entrada: cada letra é um prédio erguido andar por andar (fundação, blocos subindo em lima,
+ * Letreiro 3D da entrada: cada letra é um prédio erguido andar por andar (fundação, blocos subindo em azul,
  * cor final quando prontos), enquanto a câmera gira até ficar de frente e o nome aparece.
  * A three.js só é baixada nas telas que usam este componente (mesma regra do Predio3D).
  */
@@ -19,8 +19,8 @@ const FONTE: Record<string, string[]> = {
   O: ['01110', '10001', '10001', '10001', '10001', '10001', '01110'],
 }
 
-// Cores do modelo 3D (materiais, não interface): lima da obra; bloco pronto escuro no claro e claro no escuro.
-const COR = { obra: 0xc6df5f, prontoClaro: 0x1f1f1f, prontoEscuro: 0xe6e6e1, fundacao: 0x9d9d97 }
+// Cores do modelo 3D (materiais, não interface): azul da obra; bloco pronto na tinta vinho no claro e gelo no escuro.
+const COR = { obra: 0x2d62db, prontoClaro: 0x24161b, prontoEscuro: 0xeef2f6, fundacao: 0x9aa3ad }
 
 const ANDAR = 0.5 // s entre um andar e o próximo
 const LETRA = 0.16 // s de atraso de uma letra para a seguinte
@@ -60,7 +60,7 @@ function montar(T: typeof THREE, el: HTMLDivElement, texto: string) {
 
   const s = new T.Scene()
   const cam = new T.PerspectiveCamera(26, 1, 0.1, 400)
-  s.add(new T.HemisphereLight(0xffffff, 0xb8b8b2, 1.2))
+  s.add(new T.HemisphereLight(0xffffff, 0xb4bcc6, 1.2))
   const luz = new T.DirectionalLight(0xffffff, 1.6)
   luz.position.set(14, 26, 16)
   luz.castShadow = true

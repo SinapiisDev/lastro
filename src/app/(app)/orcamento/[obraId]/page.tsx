@@ -304,7 +304,7 @@ export default async function OrcamentoObra({ params, searchParams }: PageProps<
                 </div>
                 <div className="h-px bg-night-3" />
                 <span className="text-label font-semibold text-night-ink-3">Valor ao investidor</span>
-                <span className="font-display text-[36px] leading-tight font-light text-accent">
+                <span className="font-display text-[36px] leading-tight font-light text-accent-night">
                   <Dinheiro valor={valorInvestidor} />
                 </span>
               </Cartao>

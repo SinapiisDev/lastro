@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react'
 
-export type TomCartao = 'padrao' | 'escuro' | 'noite' | 'aviso' | 'rosa' | 'suave'
+export type TomCartao = 'padrao' | 'escuro' | 'noite' | 'aviso' | 'vinho' | 'suave'
 const TONS: Record<TomCartao, string> = {
   padrao: 'bg-surface text-ink',
   escuro: 'bg-ink text-on-ink',
   noite: 'bg-night text-night-ink',
   aviso: 'bg-warn-bg text-ink',
-  rosa: 'bg-pink-bg text-ink',
+  vinho: 'bg-vinho-bg text-ink',
   suave: 'bg-surface-2 text-ink',
 }
 
@@ -41,12 +41,12 @@ export function Kpi({
   valor: ReactNode
   detalhe?: ReactNode
   tom?: TomCartao
-  corDetalhe?: 'acento' | 'aviso' | 'rosa' | 'neg' | 'ok'
+  corDetalhe?: 'acento' | 'aviso' | 'vinho' | 'neg' | 'ok'
   pequeno?: boolean
 }) {
-  const rotuloCor = { padrao: 'text-ink-3', escuro: 'opacity-65', noite: 'text-night-ink-3', aviso: 'text-warn', rosa: 'text-pink-ink', suave: 'text-ink-3' }[tom]
+  const rotuloCor = { padrao: 'text-ink-3', escuro: 'opacity-65', noite: 'text-night-ink-3', aviso: 'text-warn', vinho: 'text-vinho-ink', suave: 'text-ink-3' }[tom]
   const detalheCor = corDetalhe
-    ? { acento: tom === 'escuro' || tom === 'noite' ? 'text-accent' : 'text-accent-ink', aviso: 'text-warn', rosa: 'text-pink-ink', neg: 'text-neg', ok: 'text-ok' }[corDetalhe]
+    ? { acento: tom === 'escuro' || tom === 'noite' ? 'text-accent-night' : 'text-accent-ink', aviso: 'text-warn', vinho: 'text-vinho-ink', neg: 'text-neg', ok: 'text-ok' }[corDetalhe]
     : rotuloCor
   return (
     <Cartao tom={tom} as="div" className="flex min-w-0 flex-col gap-2">

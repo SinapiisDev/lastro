@@ -17,7 +17,7 @@ const COLX = [-3, -1, 1, 3],
   COLZ = [-2, 0, 2]
 
 // Cores do modelo 3D (materiais de obra; não são cores de interface).
-const COR = { found: 0x9d9d97, conc: 0xc4c4bf, slab: 0xd9d9d4, block: 0xcfc8bd, fin: 0xf6f6f2, glass: 0x1f2428, acc: 0xc6df5f, pipe: 0x8a8a84 }
+const COR = { found: 0x9d9d97, conc: 0xc4c4bf, slab: 0xd9d9d4, block: 0xcfc8bd, fin: 0xf6f6f2, glass: 0x1f2428, acc: 0x2d62db, pipe: 0x8a8a84 }
 
 export function Predio3D({
   progresso,
@@ -87,7 +87,7 @@ function montar(
 
   const s = new T.Scene()
   const cam = new T.PerspectiveCamera(28, 1, 0.1, 300)
-  s.add(new T.HemisphereLight(0xffffff, 0xb8b8b2, 1.15))
+  s.add(new T.HemisphereLight(0xffffff, 0xb4bcc6, 1.15))
   const dl = new T.DirectionalLight(0xffffff, 1.7)
   dl.position.set(12, 22, 9)
   dl.castShadow = true
@@ -119,7 +119,7 @@ function montar(
     const M = (c: number, o: Partial<THREE.MeshStandardMaterialParameters> = {}) => new T.MeshStandardMaterial({ color: c, roughness: 0.85, metalness: 0, ...o })
     return {
       dk,
-      pad: M(dk ? 0x1d1d1d : 0xe2e2de),
+      pad: M(dk ? 0x2f2228 : 0xe3e9ef),
       found: M(COR.found),
       conc: M(COR.conc),
       slab: M(COR.slab),
@@ -127,10 +127,10 @@ function montar(
       fin: M(COR.fin),
       glass: M(COR.glass, { roughness: 0.25, metalness: 0.45 }),
       acc: M(COR.acc, { roughness: 0.6 }),
-      dark: M(dk ? 0x3a3a3a : 0x1a1a1a, { roughness: 0.6 }),
+      dark: M(dk ? 0x3a2b32 : 0x24161b, { roughness: 0.6 }),
       pipe: M(COR.pipe),
-      ghost: new T.LineBasicMaterial({ color: dk ? 0xffffff : 0x111111, transparent: true, opacity: dk ? 0.22 : 0.16 }),
-      ghost2: new T.LineBasicMaterial({ color: dk ? 0xffffff : 0x111111, transparent: true, opacity: dk ? 0.1 : 0.07 }),
+      ghost: new T.LineBasicMaterial({ color: dk ? 0xffffff : 0x24161b, transparent: true, opacity: dk ? 0.22 : 0.16 }),
+      ghost2: new T.LineBasicMaterial({ color: dk ? 0xffffff : 0x24161b, transparent: true, opacity: dk ? 0.1 : 0.07 }),
     }
   }
   const mats = () => {
