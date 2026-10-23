@@ -42,7 +42,7 @@ export function FormAcao({
   })
 
   return (
-    <form ref={ref} onSubmit={aoEnviar} className={className}>
+    <form ref={ref} method="post" onSubmit={aoEnviar} className={className}>
       {children}
       <div className={`flex flex-wrap items-center gap-3 ${largura ? 'w-full' : ''}`}>
         <Botao variante={variante} tamanho={tamanho} carregando={enviando} className={largura ? 'w-full' : ''}>
@@ -63,6 +63,7 @@ export function FormAcao({
 /**
  * `<form action>` do React apaga o formulário depois de toda resposta, inclusive de erro (senha errada apagava o
  * e-mail). Com este envio ele não apaga; quem chama limpa com `form.reset()` só quando deu certo.
+ * Use com `method="post"`: se tocarem em enviar antes do JavaScript carregar, a senha vai no corpo, não na URL.
  */
 export function useEnvioSemApagar<S extends { erro?: string }>(action: (estado: S | null, dados: FormData) => Promise<S | null>) {
   const ref = useRef<HTMLFormElement>(null)

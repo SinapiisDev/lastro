@@ -56,11 +56,13 @@ export async function cadastrarConstrutora(_: Estado, dados: FormData): Promise<
 
   const c = await conferirSenha(email, senha)
   if (c.bloqueada) return { erro: MSG_BLOQUEIO }
+  if (c.existe && !c.temSenha)
+    return { erro: 'Este e-mail tem um acesso pendente: abra o link que o dono da construtora mandou e crie a senha por lá.' }
   if (c.temSenha && !c.certa) {
     await errou(email)
     return { erro: 'Este e-mail já tem conta no Lastro: use a senha dela para criar a nova construtora.' }
   }
-  if (!c.temSenha) {
+  if (!c.existe) {
     const invalida = validarSenha(senha, String(dados.get('confirmar') ?? ''))
     if (invalida) return { erro: invalida }
   }

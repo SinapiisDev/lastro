@@ -64,10 +64,11 @@ export async function respostaConvite(p: { nome: string; email: string; empresa:
 export type Pessoa = { id: number; empresaId: number; nome: string; perfil: Perfil; email: string; empresa: string }
 
 // Construtoras liberadas em que este e-mail está ativo. A senha é da conta, não da construtora.
+// Convite nunca usado não dá acesso: quem tem a senha do e-mail não é, por isso, quem foi convidado.
 export const pessoasDoEmail = (email: string) => sql<Pessoa[]>`
   select u.id, u.empresa_id as "empresaId", u.nome, u.perfil, u.email, c.nome_empresa as empresa
   from usuarios u join empresas e on e.id = u.empresa_id join config c on c.empresa_id = u.empresa_id
-  where u.email = ${email} and u.ativo and e.ativa
+  where u.email = ${email} and u.ativo and e.ativa and (u.convite is null or u.ultimo_acesso_em is not null)
   order by c.nome_empresa`
 
 // O link de acesso em uso: da pessoa ativa, numa construtora liberada, dentro do prazo.

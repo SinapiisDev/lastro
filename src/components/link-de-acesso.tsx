@@ -32,7 +32,7 @@ export function LinkDeAcesso({
   }
 
   return (
-    <form ref={ref} onSubmit={aoEnviar} className={className}>
+    <form ref={ref} method="post" onSubmit={aoEnviar} className={className}>
       {children}
       <div className="flex flex-wrap items-center gap-3">
         <Botao variante={variante} tamanho={tamanho} carregando={enviando} textoCarregando="Gerando…" onClick={() => setCopiado(false)}>
