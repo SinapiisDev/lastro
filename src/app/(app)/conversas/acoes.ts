@@ -2,24 +2,18 @@
 
 import { notFound } from 'next/navigation'
 import { refresh } from 'next/cache'
-import { sql, escrever } from '@/lib/db'
+import { escrever } from '@/lib/db'
 import { exigirSessao, nomePerfil, type Sessao } from '@/lib/sessao'
 import { normalizarWhatsapp } from '@/lib/cotacao'
-import { carregarFornecedor, mandarTexto, registrarEntrada, processarFornecedor, responderAudio } from '@/lib/conversa'
+import { carregarFornecedor, fornecedorNaObra, mandarTexto, registrarEntrada, processarFornecedor, responderAudio } from '@/lib/conversa'
 import { whatsappReal } from '@/lib/whatsapp'
 import { validarArquivo, enviarArquivo } from '@/lib/storage'
+import { CASOS } from '@/lib/ia-ensaio'
 import type { Estado } from '@ds'
 
-// Engenheiro só conversa com fornecedor que está numa cotação da obra dele.
 async function fornecedorPermitido(s: Sessao, fornecedorId: number) {
   const f = await carregarFornecedor(fornecedorId)
-  if (!f) notFound()
-  if (s.perfil === 'obra') {
-    const [ok] = await sql`
-      select 1 from cotacao_fornecedores cf join cotacoes c on c.id = cf.cotacao_id
-      where cf.fornecedor_id = ${fornecedorId} and c.obra_id = ${s.obraId!}`
-    if (!ok) notFound()
-  }
+  if (!f || (s.perfil === 'obra' && !(await fornecedorNaObra(fornecedorId, s.obraId!)))) notFound()
   return f
 }
 
@@ -66,7 +60,7 @@ export async function salvarWhatsapp(fornecedorId: number, _: Estado, d: FormDat
 
 // Só existe enquanto o WhatsApp real não está ligado: faz de conta que o fornecedor escreveu.
 export async function simularMensagem(fornecedorId: number, _: Estado, d: FormData): Promise<Estado> {
-  const s = await exigirSessao('chefe', 'financeiro')
+  const s = await exigirSessao()
   if (whatsappReal()) return { erro: 'O WhatsApp real está ligado: o simulador fica desativado.' }
   const f = await fornecedorPermitido(s, fornecedorId)
   if (d.get('audio') === 'on') {
@@ -75,7 +69,8 @@ export async function simularMensagem(fornecedorId: number, _: Estado, d: FormDa
     refresh()
     return { ok: 'Áudio simulado: o sistema pediu a mensagem por escrito.' }
   }
-  const texto = String(d.get('texto') ?? '').trim()
+  const caso = d.get('caso') ? CASOS[Number(d.get('caso'))] : undefined
+  const texto = (String(d.get('texto') ?? '').trim() || caso?.texto) ?? ''
   const arquivo = validarArquivo(d.get('arquivo'))
   if (typeof arquivo === 'string') return { erro: arquivo }
   if (!texto && !arquivo) return { erro: 'Escreva a mensagem do fornecedor ou anexe um arquivo.' }

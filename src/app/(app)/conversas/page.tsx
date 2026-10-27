@@ -14,13 +14,14 @@ const iniciais = (nome: string) =>
     .join('') || nome.slice(0, 2).toUpperCase()
 
 export default async function Conversas() {
-  await exigirSessao('chefe', 'financeiro')
+  const s = await exigirSessao()
   const fornecedores = await sql<{ id: number; nome: string; whatsapp: string | null; iaPausada: boolean; ultima: Date | null; texto: string | null; pendentes: number; semResposta: boolean }[]>`
     select f.id, f.nome, f.whatsapp, f.ia_pausada as "iaPausada", u.criada_em as ultima, u.texto,
       (select count(*) from mensagens m where m.fornecedor_id = f.id and m.pendente_ia)::int as pendentes,
       coalesce(u.direcao = 'entrada', false) as "semResposta"
     from fornecedores f
     left join lateral (select criada_em, texto, direcao from mensagens m where m.fornecedor_id = f.id order by id desc limit 1) u on true
+    ${s.perfil === 'obra' ? sql`where exists (select 1 from cotacao_fornecedores cf join cotacoes c on c.id = cf.cotacao_id where cf.fornecedor_id = f.id and c.obra_id = ${s.obraId!})` : sql``}
     order by u.criada_em desc nulls last, f.nome`
 
   return (

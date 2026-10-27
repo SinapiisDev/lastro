@@ -21,6 +21,16 @@ export function validarArquivo(arquivo: unknown): File | string | null {
   return arquivo
 }
 
+// Fotos da obra: o navegador já reduz para JPEG antes de enviar (CampoFotos); aqui só confere.
+export const MAX_FOTOS = 10
+export function validarFotos(lista: unknown[]): File[] | string {
+  const fotos = lista.filter((f): f is File => f instanceof File && f.size > 0)
+  if (fotos.length > MAX_FOTOS) return `Envie até ${MAX_FOTOS} fotos por vez.`
+  if (fotos.some((f) => !['image/jpeg', 'image/png', 'image/webp'].includes(f.type))) return 'Envie as fotos em JPG ou PNG.'
+  if (fotos.some((f) => f.size > TAMANHO_MAXIMO)) return 'Foto maior que 4 MB.'
+  return fotos
+}
+
 // Sobe antes de gravar no banco: se o banco falhar, sobra só um arquivo solto (nunca um registro sem arquivo).
 export async function enviarArquivo(pasta: string, arquivo: File) {
   const limpo = arquivo.name.normalize('NFD').replace(/[^\w.-]+/g, '_').slice(-80)

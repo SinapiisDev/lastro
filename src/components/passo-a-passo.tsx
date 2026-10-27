@@ -117,7 +117,7 @@ const PASSOS: Record<Perfil, Passo[]> = {
     {
       titulo: 'Bem-vindo, engenheiro',
       onde: 'Visão geral',
-      texto: ['Aqui você atualiza o andamento da obra, registra compras e pede cotações. Você só vê as suas obras.'],
+      texto: ['Aqui você atualiza o andamento da obra, preenche o diário de obra, registra compras e pede cotações. Você só vê as suas obras.'],
     },
     {
       titulo: '1. Atualize o serviço feito',
@@ -128,7 +128,15 @@ const PASSOS: Record<Perfil, Passo[]> = {
       ],
     },
     {
-      titulo: '2. Registre uma compra',
+      titulo: '2. Preencha o diário de obra (RDO)',
+      onde: 'Diário › Preencher o RDO de hoje',
+      texto: [
+        'Todo dia: clima, as equipes que trabalharam (próprias e prestadores) com o número de pessoas, os serviços feitos, ocorrências e observações.',
+        'Tire as fotos pelo próprio celular no RDO: elas vão para o relatório e para a galeria da obra. Imprima o dia ou o mês inteiro.',
+      ],
+    },
+    {
+      titulo: '3. Registre uma compra',
       onde: 'Compras › + Nova compra',
       texto: [
         'Escolha a etapa, o item do orçamento, o fornecedor, o valor e as parcelas. Anexe o orçamento ou a nota.',
@@ -136,15 +144,16 @@ const PASSOS: Record<Perfil, Passo[]> = {
       ],
     },
     {
-      titulo: '3. Peça cotação',
+      titulo: '4. Peça cotação',
       onde: 'Cotações › Nova cotação',
       texto: [
         'Marque os itens e os fornecedores e clique em Pedir cotação aos fornecedores. A IA pede os preços pelo WhatsApp.',
+        'Em Conversas você acompanha o que a IA fala com cada fornecedor. Se ela pausar (negociação, dúvida), responda você mesmo.',
         'Quando os preços chegarem, escolha o fornecedor de cada item: vira uma compra que segue a aprovação.',
       ],
     },
     {
-      titulo: '4. Acompanhe as compras',
+      titulo: '5. Acompanhe as compras',
       onde: 'Compras',
       texto: ['Veja a situação de cada compra. Se for recusada, abra e use Corrigir e reenviar.'],
     },

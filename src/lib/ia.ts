@@ -3,11 +3,15 @@ import Anthropic from '@anthropic-ai/sdk'
 import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod'
 import { z } from 'zod'
 import type { ExtracaoIA } from './cotacao'
+import { lerEnsaio, compararEnsaio } from './ia-ensaio'
+import { whatsappReal } from './whatsapp'
 
 const MODELO = 'claude-opus-5-5'
 
+// IA de ensaio: respostas prontas, só para testar no computador. Nunca com WhatsApp real nem na Vercel.
+export const iaEnsaio = () => process.env.IA_ENSAIO === '1' && !whatsappReal() && !process.env.VERCEL
 // O SDK acha a credencial sozinho (ANTHROPIC_API_KEY ou ANTHROPIC_AUTH_TOKEN).
-export const iaDisponivel = () => Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN)
+export const iaDisponivel = () => iaEnsaio() || Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN)
 let cliente: Anthropic | undefined
 const ia = () => (cliente ??= new Anthropic())
 
@@ -83,6 +87,11 @@ export type LinhaConversa = { quando: string; autor: string; texto: string }
 export type AnexoIA = { tipo: string; dados: Buffer }
 
 export async function lerMensagensFornecedor(fornecedor: string, cotacoes: CotacaoAberta[], conversa: LinhaConversa[], anexos: AnexoIA[]) {
+  if (iaEnsaio()) {
+    const r = lerEnsaio(cotacoes, conversa.findLast((l) => l.autor.startsWith('Fornecedor'))?.texto ?? '')
+    if (typeof r === 'string') throw new ErroIA(r)
+    return r
+  }
   const cot = cotacoes
     .map((c) => {
       const itens = c.itens
@@ -130,5 +139,6 @@ Pese, nesta ordem de importância:
 Os totais já vêm calculados: use esses números, não refaça contas. Na explicação, use até 5 frases curtas em português do Brasil, com valores em R$, dizendo por que essa é a opção mais viável e o que se ganha ou perde frente à alternativa mais próxima. Quem decide é o engenheiro.`
 
 export async function compararPropostas(resumo: string) {
+  if (iaEnsaio()) return compararEnsaio(resumo)
   return perguntar(Recomendacao, SISTEMA_COMPARACAO, [{ type: 'text', text: resumo }], 'medium')
 }

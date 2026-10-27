@@ -126,6 +126,17 @@ export function descreverEvento(e: Evento): string {
       const i = e.acao === 'delete' ? a : d
       return `${e.acao === 'delete' ? 'Acesso removido' : 'Acesso liberado'}: pessoa nº ${i.usuario_id} na obra nº ${i.obra_id}`
     }
+    case 'rdos':
+      if (e.acao === 'insert') return `RDO de ${dataBR(d.data)} registrado${d.ocorrencias ? ' (com ocorrência)' : ''}`
+      return `RDO de ${dataBR(d.data)} alterado${mudou('ocorrencias') && d.ocorrencias ? ': ocorrência registrada' : ''}`
+    case 'rdo_equipes': {
+      const i = e.acao === 'delete' ? a : d
+      return `${e.acao === 'delete' ? 'Equipe tirada do RDO' : 'Equipe no RDO'}: ${i.nome}, ${i.pessoas} ${i.pessoas === 1 ? 'pessoa' : 'pessoas'}`
+    }
+    case 'fotos':
+      if (e.acao === 'insert') return `Foto enviada${d.rdo_id ? ' no RDO' : ' na galeria'}${d.legenda ? `: ${d.legenda}` : ''}`
+      if (mudou('removida_em') && d.removida_em) return 'Foto retirada da galeria'
+      return 'Foto alterada'
     case 'config':
       if (mudou('teto_baixo') || mudou('teto_medio')) return `Tetos: baixo ${brl(d.teto_baixo)}, médio ${brl(d.teto_medio)}`
       if (mudou('saldo_caixa') || mudou('saldo_caixa_em'))
