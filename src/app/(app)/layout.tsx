@@ -28,8 +28,10 @@ async function Cabecalho() {
     s.perfil === 'obra'
       ? [
           [`/obras/${s.obraId}`, 'Obra'],
+          [`/obras/${s.obraId}/diario`, 'Diário'],
           ['/orcamento', 'Orçamento'],
           ['/cotacoes', 'Cotações'],
+          ['/conversas', 'Conversas'],
           ['/compras', 'Compras'],
         ]
       : [

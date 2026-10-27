@@ -3,20 +3,21 @@ import { notFound } from 'next/navigation'
 import { CabecalhoTela, Secao, Situacao } from '@ds'
 import { sql } from '@/lib/db'
 import { exigirSessao } from '@/lib/sessao'
-import { carregarFornecedor } from '@/lib/conversa'
+import { carregarFornecedor, fornecedorNaObra } from '@/lib/conversa'
 import { Conversa } from '@/components/conversa'
 
 // Simular uma resposta faz a IA ler a mensagem na hora.
 export const maxDuration = 120
 
 export default async function ConversaFornecedor({ params }: PageProps<'/conversas/[id]'>) {
-  await exigirSessao('chefe', 'financeiro')
+  const s = await exigirSessao()
   const f = await carregarFornecedor(Number((await params).id))
-  if (!f) notFound()
+  if (!f || (s.perfil === 'obra' && !(await fornecedorNaObra(f.id, s.obraId!)))) notFound()
   const cotacoes = await sql<{ id: number; titulo: string; obra: string; situacao: string }[]>`
     select c.id, c.titulo, o.nome as obra, cf.situacao
     from cotacao_fornecedores cf join cotacoes c on c.id = cf.cotacao_id join obras o on o.id = c.obra_id
-    where cf.fornecedor_id = ${f.id} and c.situacao = 'aguardando' order by c.id desc`
+    where cf.fornecedor_id = ${f.id} and c.situacao = 'aguardando' ${s.perfil === 'obra' ? sql`and c.obra_id = ${s.obraId!}` : sql``}
+    order by c.id desc`
 
   return (
     <>
@@ -40,7 +41,7 @@ export default async function ConversaFornecedor({ params }: PageProps<'/convers
             </ul>
           )}
         </Secao>
-        <Conversa fornecedor={f} podeSimular />
+        <Conversa fornecedor={f} />
       </section>
     </>
   )

@@ -159,7 +159,7 @@ export default async function DetalheCotacao({ params }: PageProps<'/cotacoes/[i
                 <Situacao status={`forn_${f.situacao}`} />
               </summary>
               <div className="grid gap-4 p-3.5 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-                <Conversa fornecedor={{ id: f.fornecedorId, nome: f.nome, whatsapp: f.whatsapp, iaPausada: f.iaPausada }} podeSimular={s.perfil !== 'obra'} />
+                <Conversa fornecedor={{ id: f.fornecedorId, nome: f.nome, whatsapp: f.whatsapp, iaPausada: f.iaPausada }} />
                 {aberta && (
                   <div className="flex flex-col gap-4">
                     <FormAcao action={colarResposta.bind(null, f.id)} botao="A IA lê a resposta" className="flex flex-col gap-3">

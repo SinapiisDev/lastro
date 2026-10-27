@@ -122,6 +122,12 @@ export default async function Obra({ params, searchParams }: PageProps<'/obras/[
             <Link href={`/compras?obra=${id}`} className="inline-flex h-8 items-center rounded-full border border-night-3 px-3.5 text-label font-semibold text-night-ink no-underline hover:bg-night-2">
               Compras da obra
             </Link>
+            <Link href={`/obras/${id}/diario`} className="inline-flex h-8 items-center rounded-full border border-night-3 px-3.5 text-label font-semibold text-night-ink no-underline hover:bg-night-2">
+              Diário de obra
+            </Link>
+            <Link href={`/obras/${id}/fotos`} className="inline-flex h-8 items-center rounded-full border border-night-3 px-3.5 text-label font-semibold text-night-ink no-underline hover:bg-night-2">
+              Fotos
+            </Link>
             <Link
               href={editar ? `/obras/${id}` : `/obras/${id}?editar=1`}
               className="inline-flex h-8 items-center rounded-full bg-accent px-3.5 text-label font-bold text-on-accent no-underline hover:brightness-95"

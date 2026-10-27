@@ -19,6 +19,14 @@ export async function carregarFornecedor(id: number) {
   return f ?? null
 }
 
+// Engenheiro só conversa com fornecedor que está numa cotação da obra dele.
+export async function fornecedorNaObra(fornecedorId: number, obraId: number) {
+  const [ok] = await sql`
+    select 1 from cotacao_fornecedores cf join cotacoes c on c.id = cf.cotacao_id
+    where cf.fornecedor_id = ${fornecedorId} and c.obra_id = ${obraId}`
+  return !!ok
+}
+
 // Regra do WhatsApp: mensagem livre só até 24 h depois da última mensagem do fornecedor.
 async function dentroDaJanela(fornecedorId: number) {
   const [r] = await sql<{ ok: boolean }[]>`

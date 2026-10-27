@@ -26,6 +26,9 @@ export function brl(v: number) {
   return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
+// 'AAAA-MM-DD' -> 'segunda-feira' (meio-dia UTC: o fuso não troca o dia)
+export const diaDaSemana = (iso: string) => new Date(`${iso}T12:00:00Z`).toLocaleDateString('pt-BR', { weekday: 'long', timeZone: 'UTC' })
+
 export function dataBR(iso: string) {
   const [a, m, d] = iso.split('-')
   return `${d}/${m}/${a}`
