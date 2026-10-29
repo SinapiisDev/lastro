@@ -52,7 +52,7 @@ npm run dev # liga o Supabase local (aplica supabase/migrations) e depois o site
 | `SESSION_SECRET` | Assina o cookie de entrada. Texto aleatório de 32+ caracteres. |
 | `PLATAFORMA_ADMINS` | E-mails de quem administra o sistema (vende), separados por vírgula. Eles veem a Administração do sistema. |
 | `CRON_SECRET` | Senha da rotina diária de lembretes (a Vercel envia sozinha). Texto aleatório de 32+ caracteres. |
-| `ANTHROPIC_API_KEY` | IA que lê as respostas dos fornecedores e compara propostas (console.anthropic.com → API Keys; cobra por uso). Sem ela, os preços são preenchidos à mão. |
+| `OPENAI_API_KEY` | IA que lê as respostas dos fornecedores e compara propostas (platform.openai.com → API keys; cobra por uso, então ponha um limite de gasto lá). Sem ela, os preços são preenchidos à mão. |
 | `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_ID` | WhatsApp Cloud API (Meta). Sem eles o WhatsApp fica simulado. |
 | `WHATSAPP_APP_SECRET` | Segredo do app na Meta: confere a assinatura de cada mensagem que chega. |
 | `WHATSAPP_VERIFY_TOKEN` | Texto que você inventa e repete na Meta ao cadastrar o webhook. |

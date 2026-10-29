@@ -106,7 +106,7 @@ export async function processarFornecedor(fornecedorId: number, { responder = tr
   const f = await carregarFornecedor(fornecedorId)
   if (!f) return null
   if (responder && f.iaPausada) return 'A IA está pausada para este fornecedor: uma pessoa assumiu a conversa.'
-  if (!iaDisponivel()) return 'A IA está desligada (falta a chave ANTHROPIC_API_KEY). Preencha os preços à mão.'
+  if (!iaDisponivel()) return 'A IA está desligada (falta a chave OPENAI_API_KEY). Preencha os preços à mão.'
 
   // shortcut: duas mensagens quase juntas podem gerar duas leituras em paralelo e a última grava por cima;
   // basta no volume de uma construtora. Se crescer, processar por fila.
