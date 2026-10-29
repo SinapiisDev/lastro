@@ -8,7 +8,6 @@ import { normalizarWhatsapp } from '@/lib/cotacao'
 import { carregarFornecedor, fornecedorNaObra, mandarTexto, registrarEntrada, processarFornecedor, responderAudio } from '@/lib/conversa'
 import { whatsappReal } from '@/lib/whatsapp'
 import { validarArquivo, enviarArquivo } from '@/lib/storage'
-import { CASOS } from '@/lib/ia-ensaio'
 import type { Estado } from '@ds'
 
 async function fornecedorPermitido(s: Sessao, fornecedorId: number) {
@@ -69,8 +68,7 @@ export async function simularMensagem(fornecedorId: number, _: Estado, d: FormDa
     refresh()
     return { ok: 'Áudio simulado: o sistema pediu a mensagem por escrito.' }
   }
-  const caso = d.get('caso') ? CASOS[Number(d.get('caso'))] : undefined
-  const texto = (String(d.get('texto') ?? '').trim() || caso?.texto) ?? ''
+  const texto = String(d.get('texto') ?? '').trim()
   const arquivo = validarArquivo(d.get('arquivo'))
   if (typeof arquivo === 'string') return { erro: arquivo }
   if (!texto && !arquivo) return { erro: 'Escreva a mensagem do fornecedor ou anexe um arquivo.' }
