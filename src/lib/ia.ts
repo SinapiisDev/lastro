@@ -1,47 +1,45 @@
 import 'server-only'
-import Anthropic from '@anthropic-ai/sdk'
-import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod'
+import OpenAI from 'openai'
+import { zodTextFormat } from 'openai/helpers/zod'
 import { z } from 'zod'
 import type { ExtracaoIA } from './cotacao'
-import { lerEnsaio, compararEnsaio } from './ia-ensaio'
-import { whatsappReal } from './whatsapp'
 
-const MODELO = 'claude-opus-5-5'
+// Intermediário da OpenAI: lê foto e PDF de orçamento. gpt-6-luna sai mais barato, se a leitura dele bastar.
+const MODELO = 'gpt-6.1-terra'
 
-// IA de ensaio: respostas prontas, só para testar no computador. Nunca com WhatsApp real nem na Vercel.
-export const iaEnsaio = () => process.env.IA_ENSAIO === '1' && !whatsappReal() && !process.env.VERCEL
-// O SDK acha a credencial sozinho (ANTHROPIC_API_KEY ou ANTHROPIC_AUTH_TOKEN).
-export const iaDisponivel = () => iaEnsaio() || Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN)
-let cliente: Anthropic | undefined
-const ia = () => (cliente ??= new Anthropic())
+// O SDK acha a chave sozinho (OPENAI_API_KEY).
+export const iaDisponivel = () => Boolean(process.env.OPENAI_API_KEY)
+let cliente: OpenAI | undefined
+const ia = () => (cliente ??= new OpenAI())
 
 export class ErroIA extends Error {}
 
-type Conteudo = Anthropic.Beta.BetaContentBlockParam
+type Conteudo = OpenAI.Responses.ResponseInputContent
 
-async function perguntar<T extends z.ZodType>(schema: T, system: string, content: Conteudo[], effort: 'low' | 'medium') {
+async function perguntar<T extends z.ZodType>(schema: T, instructions: string, content: Conteudo[], effort: 'low' | 'medium') {
   let r
   try {
-    r = await ia().beta.messages.parse({
+    r = await ia().responses.parse({
       model: MODELO,
-      max_tokens: 16000,
-      // Se o modelo recusar por engano, o servidor tenta o modelo reserva padrão na mesma chamada.
-      betas: ['server-side-fallback-2026-07-01'],
-      fallbacks: 'default',
-      system,
-      output_config: { effort, format: betaZodOutputFormat(schema) },
-      messages: [{ role: 'user', content }],
+      max_output_tokens: 16000,
+      // Conversa de fornecedor não fica guardada na OpenAI.
+      store: false,
+      reasoning: { effort },
+      instructions,
+      input: [{ role: 'user', content }],
+      text: { format: zodTextFormat(schema, 'resposta') },
     })
   } catch (e) {
-    if (e instanceof Anthropic.AuthenticationError) throw new ErroIA('A chave da IA é inválida. Confira ANTHROPIC_API_KEY.')
-    if (e instanceof Anthropic.RateLimitError) throw new ErroIA('A IA está ocupada agora. Tente de novo em instantes.')
-    if (e instanceof Anthropic.APIConnectionError) throw new ErroIA('Sem conexão com a IA. Tente de novo.')
-    if (e instanceof Anthropic.APIError) throw new ErroIA(`A IA respondeu com erro (${e.status}).`)
+    if (e instanceof OpenAI.AuthenticationError) throw new ErroIA('A chave da IA é inválida. Confira OPENAI_API_KEY.')
+    if (e instanceof OpenAI.RateLimitError) throw new ErroIA('A IA está ocupada agora (ou acabou o crédito). Tente de novo em instantes.')
+    if (e instanceof OpenAI.APIConnectionError) throw new ErroIA('Sem conexão com a IA. Tente de novo.')
+    if (e instanceof OpenAI.APIError) throw new ErroIA(`A IA respondeu com erro (${e.status}).`)
     throw e
   }
-  if (r.stop_reason === 'refusal') throw new ErroIA('A IA se recusou a analisar este conteúdo.')
-  if (r.stop_reason === 'max_tokens' || !r.parsed_output) throw new ErroIA('A IA não conseguiu montar a resposta. Tente de novo.')
-  return r.parsed_output as z.infer<T>
+  if (r.output.some((o) => o.type === 'message' && o.content.some((c) => c.type === 'refusal')))
+    throw new ErroIA('A IA se recusou a analisar este conteúdo.')
+  if (r.status === 'incomplete' || !r.output_parsed) throw new ErroIA('A IA não conseguiu montar a resposta. Tente de novo.')
+  return r.output_parsed as z.infer<T>
 }
 
 // ---------- Leitura das mensagens do fornecedor ----------
@@ -87,11 +85,6 @@ export type LinhaConversa = { quando: string; autor: string; texto: string }
 export type AnexoIA = { tipo: string; dados: Buffer }
 
 export async function lerMensagensFornecedor(fornecedor: string, cotacoes: CotacaoAberta[], conversa: LinhaConversa[], anexos: AnexoIA[]) {
-  if (iaEnsaio()) {
-    const r = lerEnsaio(cotacoes, conversa.findLast((l) => l.autor.startsWith('Fornecedor'))?.texto ?? '')
-    if (typeof r === 'string') throw new ErroIA(r)
-    return r
-  }
   const cot = cotacoes
     .map((c) => {
       const itens = c.itens
@@ -113,12 +106,12 @@ export async function lerMensagensFornecedor(fornecedor: string, cotacoes: Cotac
   // Fotos e PDFs das mensagens novas vão antes do texto.
   const blocos: Conteudo[] = anexos.flatMap((a): Conteudo[] => {
     const data = a.dados.toString('base64')
-    if (a.tipo === 'application/pdf') return [{ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data } }]
+    if (a.tipo === 'application/pdf') return [{ type: 'input_file', filename: 'anexo.pdf', file_data: `data:application/pdf;base64,${data}` }]
     if (['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(a.tipo))
-      return [{ type: 'image', source: { type: 'base64', media_type: a.tipo as 'image/jpeg', data } }]
+      return [{ type: 'input_image', detail: 'auto', image_url: `data:${a.tipo};base64,${data}` }]
     return []
   })
-  return (await perguntar(Extracao, SISTEMA_EXTRACAO, [...blocos, { type: 'text', text: texto }], 'low')) as ExtracaoIA
+  return (await perguntar(Extracao, SISTEMA_EXTRACAO, [...blocos, { type: 'input_text', text: texto }], 'low')) as ExtracaoIA
 }
 
 // ---------- Comparação das propostas ----------
@@ -139,6 +132,5 @@ Pese, nesta ordem de importância:
 Os totais já vêm calculados: use esses números, não refaça contas. Na explicação, use até 5 frases curtas em português do Brasil, com valores em R$, dizendo por que essa é a opção mais viável e o que se ganha ou perde frente à alternativa mais próxima. Quem decide é o engenheiro.`
 
 export async function compararPropostas(resumo: string) {
-  if (iaEnsaio()) return compararEnsaio(resumo)
-  return perguntar(Recomendacao, SISTEMA_COMPARACAO, [{ type: 'text', text: resumo }], 'medium')
+  return perguntar(Recomendacao, SISTEMA_COMPARACAO, [{ type: 'input_text', text: resumo }], 'medium')
 }

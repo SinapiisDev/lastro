@@ -1,9 +1,7 @@
-import { AreaTexto, Balao, Campo, Entrada, FormAcao, ListaConversa, Marcacao, Selecao, type AutorBalao } from '@ds'
+import { AreaTexto, Balao, Campo, Entrada, FormAcao, ListaConversa, Marcacao, type AutorBalao } from '@ds'
 import { sql } from '@/lib/db'
 import { quando } from '@/lib/historico'
 import { whatsappReal } from '@/lib/whatsapp'
-import { iaEnsaio } from '@/lib/ia'
-import { CASOS } from '@/lib/ia-ensaio'
 import { responderComoPessoa, alternarIA, salvarWhatsapp, simularMensagem } from '@/app/(app)/conversas/acoes'
 
 const NOMES: Record<string, string> = { ia: 'Assistente de compras', sistema: 'Mensagem automática', pessoa: 'Equipe' }
@@ -79,18 +77,6 @@ export async function Conversa({ fornecedor }: { fornecedor: { id: number; nome:
           <details className="rounded-md border border-dashed border-line px-3 py-2.5">
             <summary className="cursor-pointer text-table font-semibold">Simular mensagem do fornecedor (teste)</summary>
             <FormAcao action={simularMensagem.bind(null, fornecedor.id)} botao="Receber como se fosse o fornecedor" className="mt-3 flex flex-col gap-3">
-              {iaEnsaio() && (
-                <Campo rotulo="Mensagem pronta (IA de ensaio)" ajuda="Usada quando o texto abaixo fica em branco.">
-                  <Selecao name="caso" defaultValue="">
-                    <option value="">Escrever à mão</option>
-                    {CASOS.map((c, i) => (
-                      <option key={c.titulo} value={i}>
-                        {c.titulo}
-                      </option>
-                    ))}
-                  </Selecao>
-                </Campo>
-              )}
               <Campo rotulo="Texto que o fornecedor mandou">
                 <AreaTexto name="texto" rows={3} placeholder="Ex.: Cimento 32,90 o saco, frete 150, entrego em 3 dias, 30/60" />
               </Campo>

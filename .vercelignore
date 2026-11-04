@@ -1,0 +1,11 @@
+# Publicação pela ferramenta da Vercel (sem GitHub): nunca enviar chaves locais nem lixo de build.
+.env*
+.git
+.github
+.next
+.superpowers
+.vercel
+node_modules
+supabase/.temp
+docs
+*.tsbuildinfo

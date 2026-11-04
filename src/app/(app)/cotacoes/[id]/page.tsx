@@ -97,7 +97,7 @@ export default async function DetalheCotacao({ params }: PageProps<'/cotacoes/[i
                     ? temPreco
                       ? 'Quando os preços chegarem, peça a análise da IA. Na tabela já vem marcado o menor preço de cada item.'
                       : 'Aguardando os fornecedores passarem preço.'
-                    : 'A IA está desligada (falta a chave ANTHROPIC_API_KEY). Na tabela vem marcado o menor preço de cada item.'}
+                    : 'A IA está desligada (falta a chave OPENAI_API_KEY). Na tabela vem marcado o menor preço de cada item.'}
                 </p>
               )}
               {iaDisponivel() && temPreco && (

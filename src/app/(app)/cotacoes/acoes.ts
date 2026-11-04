@@ -176,7 +176,7 @@ export async function analisarCotacao(cotacaoId: number): Promise<Estado> {
   const s = await exigirSessao()
   const c = await carregarCotacao(s, cotacaoId)
   if (c.situacao !== 'aguardando') return { erro: 'Só dá para analisar uma cotação em andamento.' }
-  if (!iaDisponivel()) return { erro: 'A IA está desligada (falta a chave ANTHROPIC_API_KEY). Use a sugestão de menor preço.' }
+  if (!iaDisponivel()) return { erro: 'A IA está desligada (falta a chave OPENAI_API_KEY). Use a sugestão de menor preço.' }
   const { itens, fornecedores, propostas } = await dadosCotacao(cotacaoId)
   if (!propostas.some((p) => Object.values(p.precos).some((v) => typeof v === 'number'))) return { erro: 'Nenhum fornecedor passou preço ainda.' }
   try {
