@@ -1,4 +1,5 @@
 {
+  "framework": "nextjs",
   "regions": ["gru1"],
   "crons": [{ "path": "/api/cron/lembretes", "schedule": "0 12 * * *" }]
 }
