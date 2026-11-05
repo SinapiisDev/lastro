@@ -43,7 +43,7 @@ export default async function Obra({ params, searchParams }: PageProps<'/obras/[
   const s = await exigirSessao()
   const id = Number((await params).id)
   if (!Number.isInteger(id) || !podeVerObra(s, id)) notFound()
-  const editar = (await searchParams).editar === '1'
+  const editar = (await searchParams).editar === '1' && s.perfil !== 'compras'
 
   const [obra] = await sql<
     {
@@ -153,12 +153,14 @@ export default async function Obra({ params, searchParams }: PageProps<'/obras/[
             <Link href={`/obras/${id}/fotos`} className="inline-flex h-8 items-center rounded-full border border-night-3 px-3.5 text-label font-semibold text-night-ink no-underline hover:bg-night-2">
               Fotos
             </Link>
-            <Link
-              href={editar ? `/obras/${id}` : `/obras/${id}?editar=1`}
-              className="inline-flex h-8 items-center rounded-full bg-accent px-3.5 text-label font-bold text-on-accent no-underline hover:brightness-95"
-            >
-              {editar ? 'Fechar edição' : 'Editar etapas'}
-            </Link>
+            {s.perfil !== 'compras' && (
+              <Link
+                href={editar ? `/obras/${id}` : `/obras/${id}?editar=1`}
+                className="inline-flex h-8 items-center rounded-full bg-accent px-3.5 text-label font-bold text-on-accent no-underline hover:brightness-95"
+              >
+                {editar ? 'Fechar edição' : 'Editar etapas'}
+              </Link>
+            )}
           </div>
         </div>
 

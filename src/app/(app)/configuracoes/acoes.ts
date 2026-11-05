@@ -11,7 +11,7 @@ import type { Estado } from '@ds'
 
 const texto = (d: FormData, campo: string) => String(d.get(campo) ?? '').trim()
 const erroUnico = (e: unknown) => (e as { code?: string }).code === '23505'
-const PERFIS: Perfil[] = ['chefe', 'financeiro', 'obra']
+const PERFIS: Perfil[] = ['chefe', 'financeiro', 'obra', 'compras']
 const LOGO_TIPOS = ['image/png', 'image/jpeg', 'image/webp']
 
 export async function salvarTetos(_: Estado, d: FormData): Promise<Estado> {

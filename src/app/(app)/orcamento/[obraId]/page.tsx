@@ -52,7 +52,7 @@ export default async function OrcamentoObra({ params, searchParams }: PageProps<
   const obraId = Number((await params).obraId)
   if (!Number.isInteger(obraId) || !podeVerObra(s, obraId)) notFound()
   const q = await searchParams
-  const editor = s.perfil !== 'obra'
+  const editor = s.perfil === 'chefe' || s.perfil === 'financeiro' // engenheiro e setor de compras só consultam
 
   const [obra] = await sql<{ nome: string; investidor: string | null; contato: string | null }[]>`
     select nome, investidor, investidor_contato as contato from obras where id = ${obraId}`

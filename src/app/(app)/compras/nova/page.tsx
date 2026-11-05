@@ -1,12 +1,18 @@
 import { sql, lerConfig, hoje } from '@/lib/db'
-import { exigirSessao } from '@/lib/sessao'
+import { exigirSessao, obraDeTrabalho } from '@/lib/sessao'
 import { CabecalhoTela } from '@ds'
+import { EscolherObra } from '@/components/escolher-obra'
 import { FormCompra, type Inicial, type ItemOrcado } from './form-compra'
 
 export default async function NovaCompra({ searchParams }: PageProps<'/compras/nova'>) {
-  const s = await exigirSessao('obra')
-  const obraId = s.obraId!
-  const de = Number((await searchParams).de) || 0
+  const s = await exigirSessao('obra', 'compras')
+  const q = await searchParams
+  const de = Number(q.de) || 0
+  // Setor de compras: a obra vem do endereço (ou, ao corrigir uma recusada, da própria compra).
+  const [recusada] = s.perfil === 'compras' && de && !q.obra ? await sql<{ obraId: number }[]>`select obra_id as "obraId" from compras where id = ${de}` : []
+  const obraId = await obraDeTrabalho(s, q.obra ?? recusada?.obraId)
+  if (!obraId) return <EscolherObra contexto="Compras" titulo="Nova compra" destino="/compras/nova" />
+  const [obra] = await sql<{ nome: string }[]>`select nome from obras where id = ${obraId}`
 
   const [subs, itens, fornecedores, config, dia] = await Promise.all([
     sql<{ id: number; nome: string; etapaId: number; etapa: string }[]>`
@@ -47,8 +53,9 @@ export default async function NovaCompra({ searchParams }: PageProps<'/compras/n
 
   return (
     <>
-      <CabecalhoTela contexto="Compras" titulo={de ? `Corrigir e reenviar a compra nº ${de}` : 'Nova compra'} />
+      <CabecalhoTela contexto={`Compras · ${obra.nome}`} titulo={de ? `Corrigir e reenviar a compra nº ${de}` : 'Nova compra'} />
       <FormCompra
+        obraId={obraId}
         etapas={etapas}
         itens={itens}
         fornecedores={fornecedores}

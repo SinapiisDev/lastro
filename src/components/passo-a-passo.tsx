@@ -43,7 +43,7 @@ const PASSOS: Record<Perfil, Passo[]> = {
       titulo: '4. Crie as contas da equipe',
       onde: 'Configurações › Pessoas › Nova pessoa',
       texto: [
-        'Cadastre o nome, o e-mail e a área (financeiro ou engenheiro) de cada pessoa; para o engenheiro, marque as obras que ele cuida.',
+        'Cadastre o nome, o e-mail e a área (financeiro, compras ou engenheiro) de cada pessoa; para o engenheiro, marque as obras que ele cuida.',
         'Sai um link de acesso: copie ou mande pelo WhatsApp. No link, a pessoa confirma o e-mail, cria a senha e já cai no painel da área dela.',
         'Esqueceu a senha ou o link venceu (7 dias)? Em Gerenciar acesso, gere um link novo.',
         'Se alguém sair da empresa, desative a conta: a pessoa sai do sistema na hora.',
@@ -156,6 +156,35 @@ const PASSOS: Record<Perfil, Passo[]> = {
       titulo: '5. Acompanhe as compras',
       onde: 'Compras',
       texto: ['Veja a situação de cada compra. Se for recusada, abra e use Corrigir e reenviar.'],
+    },
+  ],
+  compras: [
+    {
+      titulo: 'Bem-vindo ao setor de compras',
+      onde: 'Visão geral',
+      texto: ['Aqui você pede cotações e registra as compras de todas as obras. Diário, etapas e financeiro ficam com os engenheiros e o financeiro.'],
+    },
+    {
+      titulo: '1. Peça cotação',
+      onde: 'Cotações › Nova cotação',
+      texto: [
+        'Escolha a obra, marque os itens do orçamento (ou inclua itens fora dele) e os fornecedores. A IA pede os preços pelo WhatsApp.',
+        'Em Conversas você acompanha o que a IA fala com cada fornecedor. Se ela pausar (negociação, dúvida), responda você mesmo.',
+        'Quando os preços chegarem, escolha o fornecedor de cada item: vira uma compra que segue a aprovação.',
+      ],
+    },
+    {
+      titulo: '2. Registre uma compra',
+      onde: 'Compras › + Nova compra',
+      texto: [
+        'Escolha a obra, a etapa, o item do orçamento, o fornecedor, o valor e as parcelas. Anexe o orçamento ou a nota.',
+        'Quem aprova depende do valor: até o teto baixo é na hora; acima, vai para o financeiro ou para o dono.',
+      ],
+    },
+    {
+      titulo: '3. Acompanhe as compras',
+      onde: 'Compras',
+      texto: ['Filtre por obra e por situação. Se uma compra for recusada, abra e use Corrigir e reenviar.'],
     },
   ],
 }

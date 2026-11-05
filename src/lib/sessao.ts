@@ -4,11 +4,11 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { connection } from 'next/server'
 import { createHmac, timingSafeEqual } from 'node:crypto'
-import { sqlSistema } from './db'
+import { sql, sqlSistema } from './db'
 
-// 'chefe' é o dono da empresa (o nome interno ficou do começo do sistema).
-export type Perfil = 'chefe' | 'financeiro' | 'obra'
-export const ROTULO_PERFIL: Record<Perfil, string> = { chefe: 'Dono', financeiro: 'Financeiro', obra: 'Engenheiro' }
+// 'chefe' é o dono da empresa (o nome interno ficou do começo do sistema). 'compras' é o setor de compras.
+export type Perfil = 'chefe' | 'financeiro' | 'obra' | 'compras'
+export const ROTULO_PERFIL: Record<Perfil, string> = { chefe: 'Dono', financeiro: 'Financeiro', obra: 'Engenheiro', compras: 'Compras' }
 
 // `usuarioId` é a pessoa dentro de uma construtora; o mesmo e-mail pode estar em várias.
 export type Sessao = { usuarioId: number; empresaId: number; perfil: Perfil; obraId?: number; nome: string; email: string; v: number; exp: number }
@@ -105,7 +105,16 @@ export async function exigirSessao(...perfis: Perfil[]) {
   return s
 }
 
-// Engenheiro só enxerga a obra em que entrou; financeiro e dono enxergam todas.
+// Obra em que se registra compra ou cotação: o engenheiro usa a obra em que entrou; o setor de compras escolhe (só obra ativa).
+export async function obraDeTrabalho(s: Sessao, pedida: unknown): Promise<number | null> {
+  if (s.perfil === 'obra') return s.obraId!
+  const id = Number(pedida)
+  if (!Number.isInteger(id) || id <= 0) return null
+  const [o] = await sql`select 1 from obras where id = ${id} and ativa`
+  return o ? id : null
+}
+
+// Engenheiro só enxerga a obra em que entrou; financeiro, compras e dono enxergam todas.
 export function podeVerObra(s: Sessao, obraId: number) {
   return s.perfil !== 'obra' || s.obraId === obraId
 }

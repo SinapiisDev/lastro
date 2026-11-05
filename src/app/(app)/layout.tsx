@@ -34,6 +34,13 @@ async function Cabecalho() {
           ['/conversas', 'Conversas'],
           ['/compras', 'Compras'],
         ]
+      : s.perfil === 'compras'
+      ? [
+          ['/compras', 'Compras'],
+          ['/cotacoes', 'Cotações'],
+          ['/conversas', 'Conversas'],
+          ['/orcamento', 'Orçamento'],
+        ]
       : [
           ['/financeiro', 'Painel'],
           ['/obras', 'Obras'],

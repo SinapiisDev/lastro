@@ -40,7 +40,9 @@ export function FormCompra({
   tetoMedio,
   hoje,
   inicial = {},
+  obraId,
 }: {
+  obraId: number
   etapas: { id: number; nome: string; subs: { id: number; nome: string }[] }[]
   itens: ItemOrcado[]
   fornecedores: { id: number; nome: string }[]
@@ -77,6 +79,7 @@ export function FormCompra({
 
   return (
     <FormAcao action={criarCompra} botao="Registrar compra" variante="primario" tamanho="lg" className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <input type="hidden" name="obra" value={obraId} />
       <div className="flex min-w-0 flex-col gap-4 xl:row-span-2">
         <Cartao className="flex flex-col gap-4">
           <h2 className="font-display text-h2 font-normal">Onde e de quem</h2>

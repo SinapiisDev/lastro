@@ -3,7 +3,7 @@
 import { redirect, notFound } from 'next/navigation'
 import { refresh } from 'next/cache'
 import { sql, escrever, lerConfig, hoje } from '@/lib/db'
-import { exigirSessao, podeVerObra, nomePerfil } from '@/lib/sessao'
+import { exigirSessao, podeVerObra, nomePerfil, obraDeTrabalho } from '@/lib/sessao'
 import { centavos, brl } from '@/lib/regras'
 import { normalizarWhatsapp, ratearFrete, parcelasPorPrazos, economia, validarRecomendacao } from '@/lib/cotacao'
 import { carregarCotacao, dadosCotacao, resumoParaIA, type ItemCotacao } from '@/lib/cotacoes'
@@ -18,8 +18,9 @@ const dataValida = (x: string) => /^\d{4}-\d{2}-\d{2}$/.test(x) && !isNaN(Date.p
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export async function criarCotacao(_: Estado, d: FormData): Promise<Estado> {
-  const s = await exigirSessao('obra')
-  const obraId = s.obraId!
+  const s = await exigirSessao('obra', 'compras')
+  const obraId = await obraDeTrabalho(s, d.get('obra'))
+  if (!obraId) return { erro: 'Escolha a obra da cotação.' }
   const titulo = texto(d, 'titulo')
   const prazo = texto(d, 'prazo_resposta')
   if (!titulo) return { erro: 'Dê um nome para a cotação (ex.: Concreto da fundação).' }

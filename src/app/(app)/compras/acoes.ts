@@ -3,7 +3,7 @@
 import { redirect, notFound } from 'next/navigation'
 import { refresh } from 'next/cache'
 import { sql, escrever, lerConfig } from '@/lib/db'
-import { exigirSessao, podeVerObra, nomePerfil, type Sessao } from '@/lib/sessao'
+import { exigirSessao, podeVerObra, nomePerfil, obraDeTrabalho, type Sessao } from '@/lib/sessao'
 import { faixaDaCompra, centavos, brl } from '@/lib/regras'
 import { registrarCompra } from '@/lib/compras'
 import { enviarPedido } from '@/lib/conversa'
@@ -23,8 +23,9 @@ async function carregarCompra(s: Sessao, id: number) {
 }
 
 export async function criarCompra(_: Estado, d: FormData): Promise<Estado> {
-  const s = await exigirSessao('obra')
-  const obraId = s.obraId!
+  const s = await exigirSessao('obra', 'compras')
+  const obraId = await obraDeTrabalho(s, d.get('obra'))
+  if (!obraId) return { erro: 'Escolha a obra da compra.' }
 
   const subetapaId = Number(d.get('subetapa'))
   const [sub] = await sql`
@@ -129,7 +130,7 @@ export async function cancelar(compraId: number, _: Estado, d: FormData): Promis
   const c = await carregarCompra(s, compraId)
   const motivo = texto(d, 'motivo')
   if (!motivo) return { erro: 'Escreva o motivo do cancelamento.' }
-  const pode = c.situacao.startsWith('aguardando') || (c.situacao === 'aprovada' && s.perfil !== 'obra')
+  const pode = c.situacao.startsWith('aguardando') || (c.situacao === 'aprovada' && (s.perfil === 'financeiro' || s.perfil === 'chefe'))
   if (!pode) return { erro: 'Essa compra não pode ser cancelada.' }
   const r = await escrever(nomePerfil(s), (tx) => tx`
     update compras set situacao = 'cancelada', motivo = ${motivo}

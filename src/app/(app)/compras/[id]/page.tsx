@@ -87,12 +87,13 @@ export default async function DetalheCompra({ params }: PageProps<'/compras/[id]
       order by id`,
   ])
 
+  const financeiro = s.perfil === 'financeiro' || s.perfil === 'chefe' // aprova, cancela aprovada e paga
   const decide =
-    (c.situacao === 'aguardando_financeiro' && s.perfil !== 'obra') ||
+    (c.situacao === 'aguardando_financeiro' && financeiro) ||
     (c.situacao === 'aguardando_chefe' && s.perfil === 'chefe')
   const algumaPaga = parcelas.some((p) => p.pagaEm)
-  const podeCancelar = !algumaPaga && (c.situacao.startsWith('aguardando') || (c.situacao === 'aprovada' && s.perfil !== 'obra'))
-  const paga = s.perfil !== 'obra' && c.situacao === 'aprovada'
+  const podeCancelar = !algumaPaga && (c.situacao.startsWith('aguardando') || (c.situacao === 'aprovada' && financeiro))
+  const paga = financeiro && c.situacao === 'aprovada'
   const numeroParcela = (pid: number | null) => parcelas.find((p) => p.id === pid)?.numero
   const sobra = (i: (typeof itens)[number]) => (i.orcado ?? 0) - i.outras - i.valor
   const aviso = itens.some((i) => !i.itemChave || i.orcado === null)
@@ -176,7 +177,7 @@ export default async function DetalheCompra({ params }: PageProps<'/compras/[id]
         </p>
       )}
 
-      {c.situacao === 'recusada' && s.perfil === 'obra' && (
+      {c.situacao === 'recusada' && (s.perfil === 'obra' || s.perfil === 'compras') && (
         <Cartao as="div" className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-table">A compra foi recusada. Dá para corrigir e enviar de novo; esta fica guardada como recusada.</p>
           <BotaoLink href={`/compras/nova?de=${c.id}`} variante="primario">

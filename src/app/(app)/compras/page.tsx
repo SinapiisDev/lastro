@@ -45,6 +45,7 @@ export default async function Compras({ searchParams }: PageProps<'/compras'>) {
   }
   const temFiltro = !!(status || busca || (s.perfil !== 'obra' && obraId))
   const comObra = s.perfil !== 'obra'
+  const registra = s.perfil === 'obra' || s.perfil === 'compras' // engenheiro e setor de compras registram compras
 
   return (
     <>
@@ -52,7 +53,7 @@ export default async function Compras({ searchParams }: PageProps<'/compras'>) {
         contexto={`${linhas.length} ${linhas.length === 1 ? 'compra' : 'compras'}${temFiltro ? ' no filtro' : ''}`}
         titulo="Compras"
         acoes={
-          s.perfil === 'obra' && (
+          registra && (
             <BotaoLink href="/compras/nova" variante="primario">
               + Nova compra
             </BotaoLink>
@@ -114,7 +115,7 @@ export default async function Compras({ searchParams }: PageProps<'/compras'>) {
               temFiltro ? (
                 <BotaoLink href="/compras">Limpar filtros</BotaoLink>
               ) : (
-                s.perfil === 'obra' && (
+                registra && (
                   <BotaoLink href="/compras/nova" variante="primario">
                     Nova compra
                   </BotaoLink>
@@ -122,7 +123,7 @@ export default async function Compras({ searchParams }: PageProps<'/compras'>) {
               )
             }
           >
-            {temFiltro ? 'Nenhum resultado para os filtros atuais. Tente outra situação ou busca.' : s.perfil === 'obra' ? 'Use Nova compra para registrar a primeira.' : undefined}
+            {temFiltro ? 'Nenhum resultado para os filtros atuais. Tente outra situação ou busca.' : registra ? 'Use Nova compra para registrar a primeira.' : undefined}
           </EstadoVazio>
         ) : (
           <Tabela minimo={900}>

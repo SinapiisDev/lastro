@@ -109,7 +109,7 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
                       <div className="flex min-w-0 flex-col gap-0.5">
                         <span className="flex flex-wrap items-center gap-2">
                           <span className={`text-body font-semibold ${p.ativo ? '' : 'text-ink-3 line-through'}`}>{p.nome}</span>
-                          <Etiqueta tom={p.perfil === 'chefe' ? 'vinho' : p.perfil === 'financeiro' ? 'info' : 'neutro'}>{ROTULO_PERFIL[p.perfil]}</Etiqueta>
+                          <Etiqueta tom={p.perfil === 'chefe' ? 'vinho' : p.perfil === 'financeiro' ? 'info' : p.perfil === 'compras' ? 'aviso' : 'neutro'}>{ROTULO_PERFIL[p.perfil]}</Etiqueta>
                           {!p.ativo && <Etiqueta tom="neg">Desativada</Etiqueta>}
                           {p.ativo && p.linkAte && <Etiqueta tom="aviso">Link enviado, vale até {quando(p.linkAte)}</Etiqueta>}
                           {p.id === s.usuarioId && <Etiqueta tom="ok">Você</Etiqueta>}
@@ -161,6 +161,7 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
                   <Campo rotulo="Área">
                     <Selecao name="perfil" defaultValue="obra">
                       <option value="obra">Engenheiro (vê só as obras marcadas)</option>
+                      <option value="compras">Compras (cotações e compras de todas as obras)</option>
                       <option value="financeiro">Financeiro (pagamentos, caixa e liberações)</option>
                       <option value="chefe">Dono (vê e aprova tudo)</option>
                     </Selecao>

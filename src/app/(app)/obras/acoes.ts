@@ -56,7 +56,7 @@ export async function salvarProgresso(subetapaId: number, _: Estado, d: FormData
 }
 
 export async function salvarEtapa(etapaId: number, _: Estado, d: FormData): Promise<Estado> {
-  const s = await exigirSessao()
+  const s = await exigirSessao('chefe', 'financeiro', 'obra') // setor de compras não mexe em etapas
   await obraDaEtapa(s, etapaId)
   const nome = texto(d, 'nome')
   const ordem = Number(d.get('ordem'))
@@ -68,7 +68,7 @@ export async function salvarEtapa(etapaId: number, _: Estado, d: FormData): Prom
 }
 
 export async function removerEtapa(etapaId: number): Promise<Estado> {
-  const s = await exigirSessao()
+  const s = await exigirSessao('chefe', 'financeiro', 'obra') // setor de compras não mexe em etapas
   await obraDaEtapa(s, etapaId)
   try {
     await escrever(nomePerfil(s), (tx) => tx`delete from etapas where id = ${etapaId}`)
@@ -81,7 +81,7 @@ export async function removerEtapa(etapaId: number): Promise<Estado> {
 }
 
 export async function adicionarEtapa(obraId: number, _: Estado, d: FormData): Promise<Estado> {
-  const s = await exigirSessao()
+  const s = await exigirSessao('chefe', 'financeiro', 'obra') // setor de compras não mexe em etapas
   if (!podeVerObra(s, obraId)) notFound()
   const nome = texto(d, 'nome')
   if (!nome) return { erro: 'Informe o nome da etapa.' }
@@ -93,7 +93,7 @@ export async function adicionarEtapa(obraId: number, _: Estado, d: FormData): Pr
 }
 
 export async function salvarSubetapa(subetapaId: number, _: Estado, d: FormData): Promise<Estado> {
-  const s = await exigirSessao()
+  const s = await exigirSessao('chefe', 'financeiro', 'obra') // setor de compras não mexe em etapas
   await obraDaSubetapa(s, subetapaId)
   const nome = texto(d, 'nome')
   const ordem = Number(d.get('ordem'))
@@ -105,7 +105,7 @@ export async function salvarSubetapa(subetapaId: number, _: Estado, d: FormData)
 }
 
 export async function removerSubetapa(subetapaId: number): Promise<Estado> {
-  const s = await exigirSessao()
+  const s = await exigirSessao('chefe', 'financeiro', 'obra') // setor de compras não mexe em etapas
   await obraDaSubetapa(s, subetapaId)
   try {
     await escrever(nomePerfil(s), (tx) => tx`delete from subetapas where id = ${subetapaId}`)
@@ -118,7 +118,7 @@ export async function removerSubetapa(subetapaId: number): Promise<Estado> {
 }
 
 export async function adicionarSubetapa(etapaId: number, _: Estado, d: FormData): Promise<Estado> {
-  const s = await exigirSessao()
+  const s = await exigirSessao('chefe', 'financeiro', 'obra') // setor de compras não mexe em etapas
   await obraDaEtapa(s, etapaId)
   const nome = texto(d, 'nome')
   if (!nome) return { erro: 'Informe o nome da subetapa.' }

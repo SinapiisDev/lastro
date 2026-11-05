@@ -7,6 +7,7 @@ import { dataBR } from '@/lib/regras'
 export default async function Cotacoes({ searchParams }: PageProps<'/cotacoes'>) {
   const s = await exigirSessao()
   const obraId = s.perfil === 'obra' ? s.obraId! : Number((await searchParams).obra) || 0
+  const abre = s.perfil === 'obra' || s.perfil === 'compras' // engenheiro e setor de compras abrem cotações
   const cotacoes = await sql<{ id: number; obra: string; titulo: string; situacao: string; prazo: string; respostas: number; fornecedores: number; criadaEm: Date }[]>`
     select c.id, o.nome as obra, c.titulo, c.situacao, c.prazo_resposta as prazo, c.criada_em as "criadaEm",
       (select count(*) from cotacao_fornecedores cf where cf.cotacao_id = c.id)::int as fornecedores,
@@ -23,7 +24,7 @@ export default async function Cotacoes({ searchParams }: PageProps<'/cotacoes'>)
         contexto={abertas ? `${abertas} ${abertas === 1 ? 'cotação aberta' : 'cotações abertas'}` : 'Preços pedidos pela IA aos fornecedores'}
         titulo="Cotações"
         acoes={
-          s.perfil === 'obra' && (
+          abre && (
             <BotaoLink href="/cotacoes/nova" variante="primario">
               Nova cotação
             </BotaoLink>
@@ -31,7 +32,7 @@ export default async function Cotacoes({ searchParams }: PageProps<'/cotacoes'>)
         }
       >
         <p className="max-w-3xl text-table text-ink-2">
-          A IA pede os preços aos fornecedores pelo WhatsApp, preenche a tabela e indica a opção mais viável. Quem decide é o engenheiro, e a
+          A IA pede os preços aos fornecedores pelo WhatsApp, preenche a tabela e indica a opção mais viável. Quem decide é o engenheiro ou o setor de compras, e a
           escolha vira compra no fluxo de aprovação.
         </p>
       </CabecalhoTela>
@@ -40,14 +41,14 @@ export default async function Cotacoes({ searchParams }: PageProps<'/cotacoes'>)
           <EstadoVazio
             titulo="Nenhuma cotação ainda"
             acao={
-              s.perfil === 'obra' && (
+              abre && (
                 <BotaoLink href="/cotacoes/nova" variante="primario">
                   Nova cotação
                 </BotaoLink>
               )
             }
           >
-            {s.perfil === 'obra' ? 'Peça preços de vários fornecedores de uma vez.' : 'Os engenheiros abrem as cotações a partir da obra.'}
+            {abre ? 'Peça preços de vários fornecedores de uma vez.' : 'O engenheiro e o setor de compras abrem as cotações.'}
           </EstadoVazio>
         ) : (
           <Tabela minimo={720}>

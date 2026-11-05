@@ -1,16 +1,19 @@
 import { CabecalhoTela, Campo, Entrada, EstadoVazio, FormAcao, Marcacao, Secao } from '@ds'
 import { sql, hoje } from '@/lib/db'
-import { exigirSessao } from '@/lib/sessao'
+import { exigirSessao, obraDeTrabalho } from '@/lib/sessao'
+import { EscolherObra } from '@/components/escolher-obra'
 import { somarDias } from '@/lib/regras'
 import { criarCotacao } from '../acoes'
 import { ItensLivres } from './itens-livres'
 
-const qtd = (n: number) => n.toLocaleString('pt-BR', { maximumFractionDigits: 3 })
+const qtd = (n: number) => n.toLocaleString('pt-BR', { maximumFractionDigits: 4 })
 
-export default async function NovaCotacao() {
-  const s = await exigirSessao('obra')
-  const obraId = s.obraId!
-  const [itens, subetapas, fornecedores, dia] = await Promise.all([
+export default async function NovaCotacao({ searchParams }: PageProps<'/cotacoes/nova'>) {
+  const s = await exigirSessao('obra', 'compras')
+  const obraId = await obraDeTrabalho(s, (await searchParams).obra)
+  if (!obraId) return <EscolherObra contexto="Cotações" titulo="Nova cotação" destino="/cotacoes/nova" />
+  const [[obra], itens, subetapas, fornecedores, dia] = await Promise.all([
+    sql<{ nome: string }[]>`select nome from obras where id = ${obraId}`,
     sql<{ chave: string; descricao: string; unidade: string; quantidade: number; etapa: string; subetapa: string }[]>`
       select i.chave, i.descricao, i.unidade, i.quantidade, e.nome as etapa, s.nome as subetapa
       from orcamento_itens i join v_orcamento_vigente o on o.id = i.orcamento_id
@@ -29,10 +32,11 @@ export default async function NovaCotacao() {
 
   return (
     <>
-      <CabecalhoTela contexto="Cotações" titulo="Nova cotação">
+      <CabecalhoTela contexto={`Cotações · ${obra.nome}`} titulo="Nova cotação">
         <p className="max-w-2xl text-table text-ink-2">Escolha os itens e os fornecedores. A IA pede os preços pelo WhatsApp e monta a comparação.</p>
       </CabecalhoTela>
       <FormAcao action={criarCotacao} botao="Criar cotação" variante="primario" tamanho="lg" className="grid max-w-4xl gap-4">
+        <input type="hidden" name="obra" value={obraId} />
         <Secao titulo="Identificação">
           <div className="grid gap-3.5 sm:grid-cols-[1fr_14rem]">
             <Campo rotulo="Nome da cotação">
@@ -67,7 +71,7 @@ export default async function NovaCotacao() {
                   />
                   <label className="flex items-center gap-2 text-label font-semibold text-ink-2">
                     <span className="sr-only">Quantidade de {i.descricao}</span>
-                    <Entrada name={`qtd_${i.chave}`} type="number" min="0.001" step="0.001" defaultValue={i.quantidade} className="text-right" />
+                    <Entrada name={`qtd_${i.chave}`} type="number" min="0.0001" step="any" defaultValue={i.quantidade} className="text-right" />
                     <span className="w-10 shrink-0">{i.unidade}</span>
                   </label>
                 </div>
