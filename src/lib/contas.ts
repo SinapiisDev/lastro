@@ -60,7 +60,7 @@ export async function respostaConvite(p: { nome: string; email: string; empresa:
     link,
     email: p.email,
     assunto: `Seu acesso ao Lastro da ${p.empresa}`,
-    mensagem: `Olá, ${p.nome}! Seu acesso ao Lastro da ${p.empresa} está pronto. Abra o link, confirme o e-mail ${p.email} e crie a sua senha (vale por ${LINK_VALIDADE_DIAS} dias): ${link}\n\nDepois, para entrar é só abrir ${entrar} com o seu e-mail e a senha.`,
+    mensagem: `Olá, ${p.nome}! Seu acesso ao Lastro da ${p.empresa} está pronto. Abra o link abaixo, confirme o e-mail ${p.email} e crie a sua senha. O link funciona uma vez e vale por ${LINK_VALIDADE_DIAS} dias; a senha não vence. ${link}\n\nDepois, para entrar é só abrir ${entrar} com o seu e-mail e a senha.`,
   }
 }
 
