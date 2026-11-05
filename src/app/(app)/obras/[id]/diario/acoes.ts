@@ -1,27 +1,25 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { escrever, hoje } from '@/lib/db'
+import { escrever, hoje, type Tx } from '@/lib/db'
 import { exigirSessao, nomePerfil, podeVerObra } from '@/lib/sessao'
 import { enviarArquivo, validarFotos } from '@/lib/storage'
 import { CLIMAS } from '@/components/rotulos'
+import { SECOES_RDO, linhasDoForm, type ChaveSecao, type LinhaRdo } from '@/lib/rdo'
 import type { Estado } from '@ds'
 
 const texto = (d: FormData, campo: string) => String(d.get(campo) ?? '').trim()
 
-type Equipe = { nome: string; funcao: string | null; pessoas: number }
-
-function equipesDoForm(d: FormData): Equipe[] | string {
-  const nomes = d.getAll('equipe_nome').map((v) => String(v).trim())
-  const funcoes = d.getAll('equipe_funcao').map((v) => String(v).trim())
-  const pessoas = d.getAll('equipe_pessoas').map((v) => Number(v))
-  const lista: Equipe[] = []
-  for (let i = 0; i < nomes.length; i++) {
-    if (!nomes[i]) continue
-    if (!Number.isInteger(pessoas[i]) || pessoas[i] < 1 || pessoas[i] > 999) return `Informe quantas pessoas da equipe "${nomes[i]}" trabalharam.`
-    lista.push({ nome: nomes[i].slice(0, 120), funcao: funcoes[i]?.slice(0, 120) || null, pessoas: pessoas[i] })
-  }
-  return lista
+// Só regrava a lista se mudou (cada troca vira evento no histórico).
+async function regravar(tx: Tx, rdoId: number, chave: ChaveSecao, linhas: LinhaRdo[], extra?: (l: LinhaRdo) => LinhaRdo) {
+  const { tabela, campos, ...resto } = SECOES_RDO[chave]
+  const filtro = 'filtro' in resto ? resto.filtro : undefined
+  const nomes = campos.map((c) => c.nome)
+  const atuais = await tx<LinhaRdo[]>`
+    select ${tx(nomes)} from ${tx(tabela)} where rdo_id = ${rdoId} ${filtro ? tx`and tipo = ${filtro.tipo}` : tx``} order by id`
+  if (JSON.stringify(atuais) === JSON.stringify(linhas)) return
+  await tx`delete from ${tx(tabela)} where rdo_id = ${rdoId} ${filtro ? tx`and tipo = ${filtro.tipo}` : tx``}`
+  if (linhas.length) await tx`insert into ${tx(tabela)} ${tx(linhas.map((l) => ({ rdo_id: rdoId, ...filtro, ...(extra ? extra(l) : l) })))}`
 }
 
 // Um RDO por obra e dia: salvar de novo atualiza o mesmo relatório.
@@ -32,8 +30,12 @@ export async function salvarRdo(obraId: number, data: string, _: Estado, d: Form
   const climaManha = texto(d, 'clima_manha')
   const climaTarde = texto(d, 'clima_tarde')
   if (!(climaManha in CLIMAS) || !(climaTarde in CLIMAS)) return { erro: 'Informe o clima da manhã e da tarde.' }
-  const equipes = equipesDoForm(d)
-  if (typeof equipes === 'string') return { erro: equipes }
+  const listas = {} as Record<ChaveSecao, LinhaRdo[]>
+  for (const chave of Object.keys(SECOES_RDO) as ChaveSecao[]) {
+    const linhas = linhasDoForm(d, chave)
+    if (typeof linhas === 'string') return { erro: linhas }
+    listas[chave] = linhas
+  }
   const fotos = validarFotos(d.getAll('fotos'))
   if (typeof fotos === 'string') return { erro: fotos }
 
@@ -44,26 +46,21 @@ export async function salvarRdo(obraId: number, data: string, _: Estado, d: Form
     // A obra precisa ser desta construtora (a trava do banco esconde as das outras).
     if (!(await tx`select 1 from obras where id = ${obraId}`).length) throw new Error('Obra não encontrada')
     const [r] = await tx<{ id: number }[]>`
-      insert into rdos (obra_id, data, clima_manha, clima_tarde, servicos, ocorrencias, observacoes, autor)
-      values (${obraId}, ${data}, ${climaManha}, ${climaTarde}, ${texto(d, 'servicos') || null}, ${texto(d, 'ocorrencias') || null},
-              ${texto(d, 'observacoes') || null}, ${autor})
+      insert into rdos (obra_id, data, clima_manha, clima_tarde, ocorrencias, observacoes, autor)
+      values (${obraId}, ${data}, ${climaManha}, ${climaTarde}, ${texto(d, 'ocorrencias') || null}, ${texto(d, 'observacoes') || null}, ${autor})
       on conflict (obra_id, data) do update set clima_manha = excluded.clima_manha, clima_tarde = excluded.clima_tarde,
-        servicos = excluded.servicos, ocorrencias = excluded.ocorrencias, observacoes = excluded.observacoes
+        ocorrencias = excluded.ocorrencias, observacoes = excluded.observacoes
       returning id`
 
-    // Equipes: só regrava se mudou (cada troca vira evento no histórico).
-    const atuais = await tx<Equipe[]>`select nome, funcao, pessoas from rdo_equipes where rdo_id = ${r.id} order by id`
-    if (JSON.stringify(atuais) !== JSON.stringify(equipes)) {
-      await tx`delete from rdo_equipes where rdo_id = ${r.id}`
-      if (equipes.length) {
-        const prestadores = await tx<{ id: number; nome: string }[]>`select id, nome from fornecedores`
-        const idDe = (nome: string) => prestadores.find((p) => p.nome.toLowerCase() === nome.toLowerCase())?.id ?? null
-        await tx`insert into rdo_equipes ${tx(equipes.map((e) => ({ rdo_id: r.id, fornecedor_id: idDe(e.nome), ...e })))}`
-      }
-    }
+    // Equipe com o mesmo nome de um prestador cadastrado fica ligada a ele.
+    const prestadores = await tx<{ id: number; nome: string }[]>`select id, nome from fornecedores`
+    const fornecedor = (nome: unknown) => prestadores.find((p) => p.nome.toLowerCase() === String(nome).toLowerCase())?.id ?? null
+    for (const chave of Object.keys(SECOES_RDO) as ChaveSecao[])
+      await regravar(tx, r.id, chave, listas[chave], chave === 'equipes' ? (l) => ({ ...l, fornecedor_id: fornecedor(l.nome) }) : undefined)
+
     if (caminhos.length)
       await tx`insert into fotos ${tx(caminhos.map((caminho) => ({ obra_id: obraId, rdo_id: r.id, caminho, autor })))}`
   })
-  // Vai para a visualização: o formulário some, e as equipes aparecem como ficaram gravadas.
+  // Vai para a visualização: o formulário some, e as listas aparecem como ficaram gravadas.
   redirect(`/obras/${obraId}/diario/${data}`)
 }

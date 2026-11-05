@@ -5,6 +5,7 @@ import { exigirSessao, ROTULO_PERFIL, type Perfil } from '@/lib/sessao'
 import { brl } from '@/lib/regras'
 import { quando } from '@/lib/historico'
 import { LinkDeAcesso } from '@/components/link-de-acesso'
+import { CamposObra } from '@/components/campos-obra'
 import { salvarTetos, salvarEmpresa, salvarObra, salvarFornecedor, criarPessoa, salvarObrasPessoa, alternarAtivo, gerarConvite } from './acoes'
 
 const ABAS = [
@@ -21,8 +22,24 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
   const aba = ABAS.find(([k]) => k === pedida)?.[0] ?? 'pessoas'
   const [config, obras, fornecedores, pessoas] = await Promise.all([
     lerConfig(),
-    sql<{ id: number; nome: string; endereco: string | null; ativa: boolean }[]>`
-      select id, nome, endereco, ativa from obras order by ativa desc, nome`,
+    sql<
+      {
+        id: number
+        nome: string
+        endereco: string | null
+        investidor: string | null
+        cidade: string | null
+        inicio: string | null
+        termino: string | null
+        categoria: string | null
+        situacao: string
+        controlaEstoque: boolean
+        ativa: boolean
+      }[]
+    >`
+      select id, nome, endereco, investidor, cidade, inicio, termino, categoria, situacao,
+        controla_estoque as "controlaEstoque", ativa
+      from obras order by ativa desc, nome`,
     sql<{ id: number; nome: string; cnpj: string | null; telefone: string | null; whatsapp: string | null }[]>`
       select id, nome, cnpj, telefone, whatsapp from fornecedores order by nome`,
     sql<{ id: number; nome: string; email: string; perfil: Perfil; ativo: boolean; ultimoAcesso: Date | null; linkAte: Date | null; obras: number[] }[]>`
@@ -168,7 +185,7 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
 
         {aba === 'obras' && (
           <Cartao className="flex flex-col gap-5 p-6!">
-            <Titulo titulo="Obras" texto="Nome, endereço e se a obra segue ativa. Quem enxerga cada obra se define em Pessoas." />
+            <Titulo titulo="Obras" texto="Dados da obra e a situação dela. Quem enxerga cada obra se define em Pessoas." />
             {obras.length === 0 ? (
               <EstadoVazio titulo="Nenhuma obra cadastrada">Cadastre pela tela Obras.</EstadoVazio>
             ) : (
@@ -179,13 +196,7 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
                   botao="Salvar obra"
                   className="grid gap-3.5 border-b border-line pb-5 last:border-0 last:pb-0 sm:grid-cols-2"
                 >
-                  <Campo rotulo="Nome">
-                    <Entrada name="nome" required defaultValue={o.nome} />
-                  </Campo>
-                  <Campo rotulo="Endereço">
-                    <Entrada name="endereco" defaultValue={o.endereco ?? ''} />
-                  </Campo>
-                  <Marcacao name="ativa" defaultChecked={o.ativa} rotulo="Obra ativa (desmarque para encerrar; os engenheiros dela deixam de ver)" className="self-center" />
+                  <CamposObra obra={o} />
                 </FormAcao>
               ))
             )}
@@ -225,11 +236,33 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
 
         {aba === 'empresa' && (
           <Cartao className="flex flex-col gap-5 p-6!">
-            <Titulo titulo="Empresa" texto="Aparece nas mensagens do WhatsApp e no orçamento impresso." />
-            <FormAcao action={salvarEmpresa} botao="Salvar" variante="primario" className="flex flex-col gap-4 sm:max-w-xl">
-              <Campo rotulo="Nome que os fornecedores veem nas mensagens do WhatsApp">
+            <Titulo titulo="Empresa" texto="Aparece nas mensagens do WhatsApp e no cabeçalho do RDO e do orçamento impressos." />
+            <FormAcao action={salvarEmpresa} botao="Salvar" variante="primario" className="grid gap-3.5 sm:max-w-3xl sm:grid-cols-2">
+              <Campo rotulo="Nome da empresa" ajuda="É também o nome que os fornecedores veem no WhatsApp." className="sm:col-span-2">
                 <Entrada name="nome_empresa" required defaultValue={config.nomeEmpresa} />
               </Campo>
+              <Campo rotulo="CNPJ">
+                <Entrada name="cnpj" defaultValue={config.cnpj ?? ''} />
+              </Campo>
+              <Campo rotulo="E-mail">
+                <Entrada name="email" type="email" defaultValue={config.email ?? ''} />
+              </Campo>
+              <Campo rotulo="Endereço">
+                <Entrada name="endereco" defaultValue={config.endereco ?? ''} />
+              </Campo>
+              <Campo rotulo="Site">
+                <Entrada name="site" defaultValue={config.site ?? ''} />
+              </Campo>
+              <Campo rotulo="Logo (PNG, JPG ou WEBP, até 250 KB)">
+                <Entrada name="logo" type="file" accept="image/png,image/jpeg,image/webp" className="py-2.5" />
+              </Campo>
+              {config.logo && (
+                <div className="flex items-center gap-4 self-end">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- logo guardado no banco como data URL */}
+                  <img src={config.logo} alt="Logo atual" className="h-12 w-auto" />
+                  <Marcacao name="tirar_logo" rotulo="Tirar o logo" />
+                </div>
+              )}
             </FormAcao>
           </Cartao>
         )}

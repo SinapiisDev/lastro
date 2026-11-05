@@ -5,6 +5,7 @@ import { refresh } from 'next/cache'
 import { sql, escrever } from '@/lib/db'
 import { exigirSessao, podeVerObra, nomePerfil, type Sessao } from '@/lib/sessao'
 import { ETAPAS_PADRAO } from '@/lib/etapas-padrao'
+import { dadosObra } from '@/lib/obra'
 import type { Estado } from '@ds'
 
 const texto = (d: FormData, campo: string) => String(d.get(campo) ?? '').trim()
@@ -22,15 +23,12 @@ async function obraDaSubetapa(s: Sessao, subetapaId: number) {
 
 export async function criarObra(_: Estado, d: FormData): Promise<Estado> {
   const s = await exigirSessao('chefe', 'financeiro')
-  const nome = texto(d, 'nome')
-  if (!nome) return { erro: 'Informe o nome da obra.' }
+  const dados = dadosObra(d)
+  if (typeof dados === 'string') return { erro: dados }
   let id: number
   try {
     id = await escrever(nomePerfil(s), async (tx) => {
-      const [o] = await tx<{ id: number }[]>`
-        insert into obras (nome, endereco)
-        values (${nome}, ${texto(d, 'endereco') || null})
-        returning id`
+      const [o] = await tx<{ id: number }[]>`insert into obras ${tx(dados)} returning id`
       for (const [i, [etapa, subetapas]] of ETAPAS_PADRAO.entries()) {
         const [e] = await tx<{ id: number }[]>`
           insert into etapas (obra_id, nome, ordem) values (${o.id}, ${etapa}, ${i + 1}) returning id`
