@@ -3,11 +3,11 @@
 import { useState, type ReactNode } from 'react'
 import { Botao, classesBotao, useEnvioSemApagar, type VarianteBotao, type TamanhoBotao } from '@ds'
 
-export type EstadoLink = { erro?: string; ok?: string; link?: string; mensagem?: string } | null
+export type EstadoLink = { erro?: string; ok?: string; link?: string; mensagem?: string; email?: string; assunto?: string } | null
 
 /**
  * Formulário que gera um link de acesso. O link só existe nesta resposta (no banco fica o hash), então ele
- * aparece aqui com "Copiar" e "Enviar pelo WhatsApp" para o dono passar adiante.
+ * aparece aqui com "Copiar", "Enviar pelo WhatsApp" e "Enviar por e-mail" (abre o e-mail de quem cadastra, já preenchido).
  */
 export function LinkDeAcesso({
   action,
@@ -58,6 +58,14 @@ export function LinkDeAcesso({
             >
               Enviar pelo WhatsApp
             </a>
+            {estado.email && (
+              <a
+                href={`mailto:${estado.email}?subject=${encodeURIComponent(estado.assunto ?? 'Seu acesso ao Lastro')}&body=${encodeURIComponent(estado.mensagem ?? estado.link)}`}
+                className={classesBotao('secundario', 'sm')}
+              >
+                Enviar por e-mail
+              </a>
+            )}
           </div>
         </div>
       )}

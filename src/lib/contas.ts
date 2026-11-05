@@ -54,10 +54,13 @@ async function linkDoConvite(token: string) {
 export async function respostaConvite(p: { nome: string; email: string; empresa: string }, token: string, ok: string): Promise<EstadoLink> {
   await sql`insert into contas (email) values (${p.email}) on conflict do nothing`
   const link = await linkDoConvite(token)
+  const entrar = `${new URL(link).origin}/entrar`
   return {
     ok,
     link,
-    mensagem: `Olá, ${p.nome}! Seu acesso ao Lastro da ${p.empresa} está pronto. Abra o link, confirme o e-mail ${p.email} e crie a sua senha (vale por ${LINK_VALIDADE_DIAS} dias): ${link}`,
+    email: p.email,
+    assunto: `Seu acesso ao Lastro da ${p.empresa}`,
+    mensagem: `Olá, ${p.nome}! Seu acesso ao Lastro da ${p.empresa} está pronto. Abra o link, confirme o e-mail ${p.email} e crie a sua senha (vale por ${LINK_VALIDADE_DIAS} dias): ${link}\n\nDepois, para entrar é só abrir ${entrar} com o seu e-mail e a senha.`,
   }
 }
 
