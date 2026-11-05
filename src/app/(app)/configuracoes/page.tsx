@@ -117,6 +117,7 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
                         <span className="text-caption text-ink-3">
                           {p.email} · {p.ultimoAcesso ? `último acesso ${quando(p.ultimoAcesso)}` : 'aguardando o primeiro acesso'}
                           {p.perfil === 'obra' && ` · ${p.obras.map((id) => obras.find((o) => o.id === id)?.nome).filter(Boolean).join(', ') || 'sem obra'}`}
+                          {p.perfil === 'compras' && p.obras.length > 0 && ` · também atua em ${p.obras.map((id) => obras.find((o) => o.id === id)?.nome).filter(Boolean).join(', ')}`}
                         </span>
                       </div>
                       {p.id !== s.usuarioId && (
@@ -132,9 +133,11 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
                               Para quando o link venceu ou {p.nome} esqueceu a senha. No link, a pessoa cria uma senha nova; o link anterior deixa de valer.
                             </span>
                           </LinkDeAcesso>
-                          {p.perfil === 'obra' && (
+                          {(p.perfil === 'obra' || p.perfil === 'compras') && (
                             <FormAcao action={salvarObrasPessoa.bind(null, p.id)} botao="Salvar obras" tamanho="sm" className="flex flex-col gap-2.5">
-                              <span className="text-label font-semibold text-ink-2">Obras que {p.nome} enxerga</span>
+                              <span className="text-label font-semibold text-ink-2">
+                                {p.perfil === 'compras' ? `Obras em que ${p.nome} também atua como engenheiro` : `Obras que ${p.nome} enxerga`}
+                              </span>
                               {obrasAtivas.map((o) => (
                                 <Marcacao key={o.id} name="obras" value={o.id} defaultChecked={p.obras.includes(o.id)} rotulo={o.nome} />
                               ))}
@@ -169,6 +172,7 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
                 </div>
                 <fieldset className="flex flex-col gap-2">
                   <legend className="mb-1.5 text-label font-semibold text-ink-2">Obras do engenheiro</legend>
+                  <span className="-mt-1 text-caption text-ink-3">Para a área Compras é opcional: marque as obras em que a pessoa também atua como engenheiro (diário, fotos, % feito).</span>
                   {obrasAtivas.length === 0 ? (
                     <span className="text-label text-ink-3">Cadastre uma obra antes de criar a conta do engenheiro.</span>
                   ) : (

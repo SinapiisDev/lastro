@@ -22,7 +22,9 @@ async function Cabecalho() {
   const s = await exigirSessao()
   const [config, [u]] = await Promise.all([
     lerConfig(),
-    sql<{ visto: boolean }[]>`select tutorial_visto_em is not null as visto from usuarios where id = ${s.usuarioId}`,
+    sql<{ visto: boolean; obras: number }[]>`
+      select tutorial_visto_em is not null as visto, (select count(*) from usuario_obras uo where uo.usuario_id = u.id)::int as obras
+      from usuarios u where id = ${s.usuarioId}`,
   ])
   const links: [string, string][] =
     s.perfil === 'obra'
@@ -36,6 +38,7 @@ async function Cabecalho() {
         ]
       : s.perfil === 'compras'
       ? [
+          ...(u?.obras ? ([['/obras', 'Minhas obras']] as [string, string][]) : []),
           ['/compras', 'Compras'],
           ['/cotacoes', 'Cotações'],
           ['/conversas', 'Conversas'],

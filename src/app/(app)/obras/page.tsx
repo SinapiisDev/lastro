@@ -9,7 +9,9 @@ import { criarObra } from './acoes'
 const codigo = (id: number) => `OB-${String(id).padStart(3, '0')}`
 
 export default async function Obras() {
-  await exigirSessao('chefe', 'financeiro')
+  const s = await exigirSessao('chefe', 'financeiro', 'compras')
+  // Setor de compras vê aqui só as obras em que também atua como engenheiro.
+  const minhas = s.perfil === 'compras'
   const obras = await sql<
     { id: number; nome: string; investidor: string | null; cidade: string | null; situacao: string; ativa: boolean; previsto: number; gasto: number; progresso: number }[]
   >`
@@ -21,15 +23,18 @@ export default async function Obras() {
         select avg(s.progresso) as p from etapas e join subetapas s on s.etapa_id = e.id
         where e.obra_id = o.id group by e.id) x), 0)::int as progresso
     from obras o
+    ${minhas ? sql`where exists (select 1 from usuario_obras uo where uo.obra_id = o.id and uo.usuario_id = ${s.usuarioId})` : sql``}
     order by o.ativa desc, o.nome`
   const ativas = obras.filter((o) => o.ativa).length
 
   return (
     <>
-      <CabecalhoTela contexto={`${ativas} ${ativas === 1 ? 'obra ativa' : 'obras ativas'}`} titulo="Obras" />
-      <Secao titulo="Todas as obras">
+      <CabecalhoTela contexto={`${ativas} ${ativas === 1 ? 'obra ativa' : 'obras ativas'}`} titulo={minhas ? 'Minhas obras' : 'Obras'} />
+      <Secao titulo={minhas ? 'Obras em que você atua como engenheiro' : 'Todas as obras'}>
         {obras.length === 0 ? (
-          <EstadoVazio titulo="Nenhuma obra ainda">Cadastre a primeira logo abaixo; ela já começa com a lista padrão de etapas.</EstadoVazio>
+          <EstadoVazio titulo="Nenhuma obra ainda">
+            {minhas ? 'O dono marca em Configurações › Pessoas as obras em que você também atua.' : 'Cadastre a primeira logo abaixo; ela já começa com a lista padrão de etapas.'}
+          </EstadoVazio>
         ) : (
           <Tabela minimo={760}>
             <thead>
@@ -70,12 +75,14 @@ export default async function Obras() {
         )}
       </Secao>
 
+      {!minhas && (
       <Secao titulo="Cadastrar obra">
         <p className="text-table text-ink-3">A obra começa com a lista padrão de etapas, que pode ser ajustada depois. Para o engenheiro enxergar a obra, ligue a conta dele em Configurações › Pessoas.</p>
         <FormAcao action={criarObra} botao="Cadastrar obra" variante="primario" className="grid gap-3.5 sm:max-w-3xl sm:grid-cols-2">
           <CamposObra />
         </FormAcao>
       </Secao>
+      )}
     </>
   )
 }

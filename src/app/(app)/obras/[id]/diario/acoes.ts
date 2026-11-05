@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { escrever, hoje, type Tx } from '@/lib/db'
-import { exigirSessao, nomePerfil, podeVerObra } from '@/lib/sessao'
+import { exigirSessao, nomePerfil, atuaNaObra } from '@/lib/sessao'
 import { enviarArquivo, validarFotos } from '@/lib/storage'
 import { CLIMAS } from '@/components/rotulos'
 import { SECOES_RDO, linhasDoForm, type ChaveSecao, type LinhaRdo } from '@/lib/rdo'
@@ -24,8 +24,8 @@ async function regravar(tx: Tx, rdoId: number, chave: ChaveSecao, linhas: LinhaR
 
 // Um RDO por obra e dia: salvar de novo atualiza o mesmo relatório.
 export async function salvarRdo(obraId: number, data: string, _: Estado, d: FormData): Promise<Estado> {
-  const s = await exigirSessao('obra', 'chefe')
-  if (!podeVerObra(s, obraId)) return { erro: 'Você não tem acesso a esta obra.' }
+  const s = await exigirSessao('obra', 'chefe', 'compras')
+  if (!(await atuaNaObra(s, obraId))) return { erro: 'Você não tem acesso a esta obra.' }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(data) || data > (await hoje())) return { erro: 'Escolha um dia até hoje.' }
   const climaManha = texto(d, 'clima_manha')
   const climaTarde = texto(d, 'clima_tarde')

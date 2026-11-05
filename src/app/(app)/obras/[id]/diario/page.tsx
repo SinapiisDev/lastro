@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { Botao, BotaoImprimir, BotaoLink, CabecalhoTela, Cartao, Entrada, EstadoVazio, Etiqueta, Marca } from '@ds'
 import { sql, hoje, lerConfig } from '@/lib/db'
-import { exigirSessao, podeVerObra } from '@/lib/sessao'
+import { exigirSessao, podeVerObra, atuaNaObra } from '@/lib/sessao'
 import { dataBR, diaDaSemana, mesBR, somarDias } from '@/lib/regras'
 import { CLIMAS } from '@/components/rotulos'
 
@@ -58,7 +58,7 @@ export default async function Diario({ params, searchParams }: PageProps<'/obras
       count(*) filter (where data between ${inicio} and ${fim} and ocorrencias is not null)::int as "comOcorrencia",
       bool_or(data = ${hojeIso}) as "temHoje"
     from rdos where obra_id = ${id}`
-  const escreve = s.perfil === 'obra' || s.perfil === 'chefe'
+  const escreve = await atuaNaObra(s, id)
   const filtro = (extra: Record<string, string>) => `/obras/${id}/diario?${new URLSearchParams({ mes, ...(soOcorrencias ? { ocorrencias: '1' } : {}), ...extra })}`
 
   return (

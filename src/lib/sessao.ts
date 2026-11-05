@@ -114,6 +114,16 @@ export async function obraDeTrabalho(s: Sessao, pedida: unknown): Promise<number
   return o ? id : null
 }
 
+// Quem toca a obra (diário, fotos, % feito, etapas): o dono; o engenheiro, na obra em que entrou; o setor de compras,
+// nas obras que o dono marcou para ele (acesso duplo: compras de todas + engenheiro nessas).
+export async function atuaNaObra(s: Sessao, obraId: number) {
+  if (s.perfil === 'chefe') return true
+  if (s.perfil === 'obra') return s.obraId === obraId
+  if (s.perfil !== 'compras') return false
+  const [l] = await sql`select 1 from usuario_obras where usuario_id = ${s.usuarioId} and obra_id = ${obraId}`
+  return !!l
+}
+
 // Engenheiro só enxerga a obra em que entrou; financeiro, compras e dono enxergam todas.
 export function podeVerObra(s: Sessao, obraId: number) {
   return s.perfil !== 'obra' || s.obraId === obraId

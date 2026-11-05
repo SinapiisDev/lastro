@@ -162,7 +162,10 @@ const PASSOS: Record<Perfil, Passo[]> = {
     {
       titulo: 'Bem-vindo ao setor de compras',
       onde: 'Visão geral',
-      texto: ['Aqui você pede cotações e registra as compras de todas as obras. Diário, etapas e financeiro ficam com os engenheiros e o financeiro.'],
+      texto: [
+        'Aqui você pede cotações e registra as compras de todas as obras.',
+        'Se o dono marcar obras em que você também atua como engenheiro, elas aparecem em Minhas obras: nelas você preenche o diário, envia fotos e atualiza o % feito.',
+      ],
     },
     {
       titulo: '1. Peça cotação',

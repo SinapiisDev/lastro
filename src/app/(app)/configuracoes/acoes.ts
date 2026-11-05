@@ -1,7 +1,7 @@
 'use server'
 
 import { refresh } from 'next/cache'
-import { escrever, lerConfig } from '@/lib/db'
+import { sql, escrever, lerConfig } from '@/lib/db'
 import { exigirSessao, nomePerfil, type Perfil } from '@/lib/sessao'
 import { normalizarWhatsapp } from '@/lib/cotacao'
 import { dadosObra } from '@/lib/obra'
@@ -96,7 +96,7 @@ export async function criarPessoa(_: EstadoLink, d: FormData): Promise<EstadoLin
       const [u] = await tx<{ id: number }[]>`
         insert into usuarios (nome, perfil, email, convite, convite_expira_em) values (${nome}, ${perfil}, ${email}, ${hash}, now() + make_interval(days => ${LINK_VALIDADE_DIAS}))
         returning id`
-      if (perfil === 'obra')
+      if ((perfil === 'obra' || perfil === 'compras') && obras.length)
         await tx`insert into usuario_obras ${tx(obras.map((obra_id) => ({ usuario_id: u.id, obra_id })))}`
     })
   } catch (e) {
@@ -123,10 +123,13 @@ export async function gerarConvite(id: number): Promise<EstadoLink> {
 export async function salvarObrasPessoa(id: number, _: Estado, d: FormData): Promise<Estado> {
   const s = await exigirSessao('chefe')
   const obras = obrasDoForm(d)
-  if (obras.length === 0) return { erro: 'Marque pelo menos uma obra.' }
+  const [p] = await sql<{ perfil: Perfil }[]>`select perfil from usuarios where id = ${id}`
+  if (!p) return { erro: 'Pessoa não encontrada.' }
+  // Engenheiro precisa de ao menos uma obra; o setor de compras pode não atuar em nenhuma.
+  if (obras.length === 0 && p.perfil === 'obra') return { erro: 'Marque pelo menos uma obra.' }
   await escrever(nomePerfil(s), async (tx) => {
     await tx`delete from usuario_obras where usuario_id = ${id} and obra_id <> all(${obras})`
-    await tx`insert into usuario_obras ${tx(obras.map((obra_id) => ({ usuario_id: id, obra_id })))} on conflict do nothing`
+    if (obras.length) await tx`insert into usuario_obras ${tx(obras.map((obra_id) => ({ usuario_id: id, obra_id })))} on conflict do nothing`
   })
   refresh()
   return { ok: 'Obras salvas.' }

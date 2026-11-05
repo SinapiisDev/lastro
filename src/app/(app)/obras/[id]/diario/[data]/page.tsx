@@ -20,7 +20,7 @@ import {
   Tr,
 } from '@ds'
 import { sql, hoje, lerConfig } from '@/lib/db'
-import { exigirSessao, podeVerObra } from '@/lib/sessao'
+import { exigirSessao, podeVerObra, atuaNaObra } from '@/lib/sessao'
 import { dataBR, diaDaSemana, somarDias } from '@/lib/regras'
 import { quando } from '@/lib/historico'
 import { CLIMAS, SITUACOES_OBRA } from '@/components/rotulos'
@@ -67,7 +67,7 @@ export default async function DiaDoDiario({ params, searchParams }: PageProps<'/
   const [listas, fotos] = rdo
     ? await Promise.all([lerListas(rdo.id), sql<{ id: number; legenda: string | null }[]>`select id, legenda from fotos where rdo_id = ${rdo.id} and removida_em is null order by id`])
     : [vazias, []]
-  const escreve = s.perfil === 'obra' || s.perfil === 'chefe'
+  const escreve = await atuaNaObra(s, id)
   const editar = escreve && (!rdo || (await searchParams).editar === '1')
   const titulo = `${dataBR(data)} · ${diaDaSemana(data)}`
   const anterior = somarDias(data, -1)

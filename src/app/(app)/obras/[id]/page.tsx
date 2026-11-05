@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { BarraEtapa, BarrasMensais, Campo, Cartao, Dinheiro, Entrada, Etiqueta, FaixaEscura, FormAcao, Kpi, Legenda, Predio3D, type Progresso } from '@ds'
 import { sql } from '@/lib/db'
-import { exigirSessao, podeVerObra } from '@/lib/sessao'
+import { exigirSessao, podeVerObra, atuaNaObra } from '@/lib/sessao'
 import { brl, dataBR, progressoEtapa, gastoNaFrente } from '@/lib/regras'
 import { SITUACOES_OBRA } from '@/components/rotulos'
 import {
@@ -43,7 +43,9 @@ export default async function Obra({ params, searchParams }: PageProps<'/obras/[
   const s = await exigirSessao()
   const id = Number((await params).id)
   if (!Number.isInteger(id) || !podeVerObra(s, id)) notFound()
-  const editar = (await searchParams).editar === '1' && s.perfil !== 'compras'
+  // Setor de compras só edita e marca % nas obras em que também atua.
+  const mexe = s.perfil !== 'compras' || (await atuaNaObra(s, id))
+  const editar = (await searchParams).editar === '1' && mexe
 
   const [obra] = await sql<
     {
@@ -96,7 +98,7 @@ export default async function Obra({ params, searchParams }: PageProps<'/obras/[
   const pctGasto = previstoTotal > 0 ? (gastoTotal / previstoTotal) * 100 : 0
   const emAlerta = lista.filter((e) => gastoNaFrente(e.gasto, e.previsto, e.pct)).length
   const concluidas = lista.filter((e) => e.subs.length && e.pct === 100).length
-  const atualizaProgresso = s.perfil === 'obra' || s.perfil === 'chefe'
+  const atualizaProgresso = s.perfil !== 'financeiro' && mexe
   const emAndamento = lista.find((e) => e.subs.length && e.pct < 100)
 
   return (
@@ -153,7 +155,7 @@ export default async function Obra({ params, searchParams }: PageProps<'/obras/[
             <Link href={`/obras/${id}/fotos`} className="inline-flex h-8 items-center rounded-full border border-night-3 px-3.5 text-label font-semibold text-night-ink no-underline hover:bg-night-2">
               Fotos
             </Link>
-            {s.perfil !== 'compras' && (
+            {mexe && (
               <Link
                 href={editar ? `/obras/${id}` : `/obras/${id}?editar=1`}
                 className="inline-flex h-8 items-center rounded-full bg-accent px-3.5 text-label font-bold text-on-accent no-underline hover:brightness-95"

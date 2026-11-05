@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { BotaoLink, CabecalhoTela, Campo, CampoFotos, Entrada, EstadoVazio, FormAcao, Secao } from '@ds'
 import { sql } from '@/lib/db'
-import { exigirSessao, podeVerObra } from '@/lib/sessao'
+import { exigirSessao, podeVerObra, atuaNaObra } from '@/lib/sessao'
 import { dataBR, diaDaSemana } from '@/lib/regras'
 import { enviarFotos, removerFoto } from './acoes'
 
@@ -24,7 +24,7 @@ export default async function Fotos({ params }: PageProps<'/obras/[id]/fotos'>) 
     order by dia desc, f.id desc
     limit 300`
   const dias = [...new Set(fotos.map((f) => f.dia))]
-  const escreve = s.perfil === 'obra' || s.perfil === 'chefe'
+  const escreve = await atuaNaObra(s, id)
 
   return (
     <>
