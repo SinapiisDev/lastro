@@ -15,7 +15,7 @@ export default async function NovaCotacao() {
       select i.chave, i.descricao, i.unidade, i.quantidade, e.nome as etapa, s.nome as subetapa
       from orcamento_itens i join v_orcamento_vigente o on o.id = i.orcamento_id
       join subetapas s on s.id = i.subetapa_id join etapas e on e.id = s.etapa_id
-      where o.obra_id = ${obraId} and i.tipo <> 'mao_de_obra'
+      where o.obra_id = ${obraId} and i.tipo in ('material', 'equipamento', 'frete') and i.quantidade > 0
       order by e.ordem, e.id, s.ordem, s.id, i.id`,
     sql<{ id: number; nome: string; etapa: string }[]>`
       select s.id, s.nome, e.nome as etapa from subetapas s join etapas e on e.id = s.etapa_id

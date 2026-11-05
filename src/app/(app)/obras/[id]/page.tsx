@@ -15,7 +15,7 @@ import {
   adicionarSubetapa,
 } from '../acoes'
 
-type Sub = { id: number; etapaId: number; nome: string; ordem: number; progresso: number; previsto: number; gasto: number; vinculos: number }
+type Sub = { id: number; etapaId: number; nome: string; grupo: string | null; ordem: number; progresso: number; previsto: number; gasto: number; vinculos: number }
 
 const situacaoEtapa = (pct: number) => (pct === 0 ? 'Não iniciada' : pct === 100 ? 'Concluída' : 'Em andamento')
 const pctTexto = (v: number) => `${v.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%`
@@ -58,9 +58,10 @@ export default async function Obra({ params, searchParams }: PageProps<'/obras/[
       medido: number | null
       orcamentoAntigo: string | null
       controlaEstoque: boolean
+      area: number | null
     }[]
   >`
-    select nome, endereco, investidor, cidade, inicio, termino, categoria, situacao, medido,
+    select nome, endereco, investidor, cidade, inicio, termino, categoria, situacao, medido, area,
       orcamento_antigo as "orcamentoAntigo", controla_estoque as "controlaEstoque"
     from obras where id = ${id}`
   if (!obra) notFound()
@@ -68,7 +69,7 @@ export default async function Obra({ params, searchParams }: PageProps<'/obras/[
     select id, nome, ordem from etapas where obra_id = ${id} order by ordem, id`
   // Previsto vem do orçamento vigente; gasto, dos itens de compras aprovadas.
   const subs = await sql<Sub[]>`
-    select s.id, s.etapa_id as "etapaId", s.nome, s.ordem, s.progresso,
+    select s.id, s.etapa_id as "etapaId", s.nome, s.grupo, s.ordem, s.progresso,
       coalesce((select previsto from v_previsto p where p.subetapa_id = s.id), 0) as previsto,
       coalesce((select sum(ci.valor) from compra_itens ci join compras c on c.id = ci.compra_id
                 where ci.subetapa_id = s.id and c.situacao = 'aprovada'), 0) as gasto,
@@ -140,6 +141,9 @@ export default async function Obra({ params, searchParams }: PageProps<'/obras/[
             <Link href={`/orcamento/${id}`} className="inline-flex h-8 items-center rounded-full border border-night-3 px-3.5 text-label font-semibold text-night-ink no-underline hover:bg-night-2">
               Orçamento
             </Link>
+            <Link href={`/obras/${id}/apropriacao`} className="inline-flex h-8 items-center rounded-full border border-night-3 px-3.5 text-label font-semibold text-night-ink no-underline hover:bg-night-2">
+              Apropriação
+            </Link>
             <Link href={`/compras?obra=${id}`} className="inline-flex h-8 items-center rounded-full border border-night-3 px-3.5 text-label font-semibold text-night-ink no-underline hover:bg-night-2">
               Compras da obra
             </Link>
@@ -165,6 +169,7 @@ export default async function Obra({ params, searchParams }: PageProps<'/obras/[
                 [
                   ['Cliente', obra.investidor],
                   ['Cidade', obra.cidade],
+                  ['Área', obra.area && `${obra.area.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} m²`],
                   ['Prazo', obra.inicio || obra.termino ? `${obra.inicio ? dataBR(obra.inicio) : '?'} até ${obra.termino ? dataBR(obra.termino) : '?'}` : null],
                   ['Medido no sistema antigo', obra.medido !== null ? `${obra.medido.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}%` : null],
                   ['Orçamento no sistema antigo', obra.orcamentoAntigo && `nº ${obra.orcamentoAntigo}`],
@@ -281,7 +286,12 @@ export default async function Obra({ params, searchParams }: PageProps<'/obras/[
               </summary>
               <div className="flex flex-col px-5 pb-4 lg:pl-16">
                 {e.subs.length === 0 && <p className="border-t border-line py-2.5 text-table text-ink-3">Sem subetapas. Use Editar etapas para incluir.</p>}
-                {e.subs.map((x) => (
+                {e.subs.map((x, si) => [
+                  x.grupo && x.grupo !== e.subs[si - 1]?.grupo && (
+                    <p key={`g${x.id}`} className="border-t border-line pt-3 pb-1 text-label font-bold text-ink-2 uppercase">
+                      {x.grupo}
+                    </p>
+                  ),
                   <div
                     key={x.id}
                     className="grid items-center gap-x-4 gap-y-2 border-t border-line py-2.5 lg:grid-cols-[minmax(150px,1.1fr)_minmax(220px,2fr)_150px_150px_28px]"
@@ -311,8 +321,8 @@ export default async function Obra({ params, searchParams }: PageProps<'/obras/[
                       <Dinheiro valor={x.previsto} />
                     </span>
                     <span className="hidden lg:block" />
-                  </div>
-                ))}
+                  </div>,
+                ])}
               </div>
             </details>
           ))}

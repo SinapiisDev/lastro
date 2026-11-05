@@ -5,11 +5,11 @@ import { refresh } from 'next/cache'
 import { sql, escrever, type Tx } from '@/lib/db'
 import { exigirSessao, nomePerfil } from '@/lib/sessao'
 import type { Estado } from '@ds'
+import { TIPOS_ITEM } from '@/components/rotulos'
 
 // Orçamento é montado pelo chefe e pelo financeiro; o engenheiro só consulta.
 const exigir = () => exigirSessao('chefe', 'financeiro')
 const texto = (d: FormData, campo: string) => String(d.get(campo) ?? '').trim()
-const TIPOS = ['material', 'mao_de_obra', 'equipamento']
 
 async function carregar(orcamentoId: number) {
   const [o] = await sql<{ obraId: number; versao: number; situacao: string }[]>`
@@ -44,7 +44,7 @@ function lerItem(d: FormData) {
   if (!item.unidade) return 'Informe a unidade (m³, saco, m², diária…).'
   if (!(item.quantidade > 0)) return 'A quantidade precisa ser maior que zero.'
   if (!(item.preco >= 0)) return 'Informe o preço unitário.'
-  if (!TIPOS.includes(item.tipo)) return 'Escolha o tipo do item.'
+  if (!Object.hasOwn(TIPOS_ITEM, item.tipo)) return 'Escolha o tipo do item.'
   return item
 }
 

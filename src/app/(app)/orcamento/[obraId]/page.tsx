@@ -38,9 +38,12 @@ import {
 
 type Versao = { id: number; versao: number; situacao: string; bdi: number; motivo: string | null; criadoEm: Date; aprovadoEm: Date | null }
 type Item = { id: number; subetapaId: number; descricao: string; unidade: string; quantidade: number; preco: number; tipo: string; total: number; comprado: number }
-type Sub = { id: number; nome: string; etapaId: number; etapa: string }
+type Sub = { id: number; nome: string; etapaId: number; etapa: string; grupo: string | null; quantidade: number | null; unidade: string | null }
 
-const qtd = (n: number) => n.toLocaleString('pt-BR', { maximumFractionDigits: 3 })
+const qtd = (n: number) => n.toLocaleString('pt-BR', { maximumFractionDigits: 4 })
+// Serviço com a quantidade dele (ex.: "Contrapiso · 120 m²"); 1 verba (VB) não diz nada e fica de fora.
+const nomeServico = (x: Sub) =>
+  x.quantidade && !(x.quantidade === 1 && x.unidade === 'VB') ? `${x.nome} · ${qtd(x.quantidade)} ${x.unidade ?? ''}`.trim() : x.nome
 const pct = (parte: number, todo: number) => (todo > 0 ? `${((parte / todo) * 100).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%` : '—')
 const dois = (n: number) => String(n).padStart(2, '0')
 
@@ -85,7 +88,7 @@ export default async function OrcamentoObra({ params, searchParams }: PageProps<
 
   const [subs, itens, [{ fora }], config] = await Promise.all([
     sql<Sub[]>`
-      select s.id, s.nome, e.id as "etapaId", e.nome as etapa from subetapas s join etapas e on e.id = s.etapa_id
+      select s.id, s.nome, e.id as "etapaId", e.nome as etapa, s.grupo, s.quantidade, s.unidade from subetapas s join etapas e on e.id = s.etapa_id
       where e.obra_id = ${obraId} order by e.ordem, e.id, s.ordem, s.id`,
     sql<Item[]>`
       select i.id, i.subetapa_id as "subetapaId", i.descricao, i.unidade, i.quantidade, i.preco_unitario as preco, i.tipo,
@@ -220,11 +223,19 @@ export default async function OrcamentoObra({ params, searchParams }: PageProps<
                         </tr>
                         {e.subs
                           .filter((x) => x.itens.length)
-                          .map((x) => [
+                          .map((x, si, lista) => [
+                            x.grupo && x.grupo !== lista[si - 1]?.grupo && (
+                              <tr key={`g${x.id}`}>
+                                <td />
+                                <td colSpan={9} className="px-2 pt-4 pb-0.5 text-label font-bold text-ink-2 uppercase">
+                                  {x.grupo}
+                                </td>
+                              </tr>
+                            ),
                             <tr key={`s${x.id}`}>
                               <td />
                               <td colSpan={9} className="px-2 pt-3 pb-1 text-label font-semibold text-ink-3">
-                                {x.nome}
+                                {nomeServico(x)}
                               </td>
                             </tr>,
                             ...x.itens.map((i) => (
@@ -471,7 +482,10 @@ function Editor({
           </div>
           {e.subs.map((x) => (
             <div key={x.id} className="grid gap-3 border-l-4 border-line pl-4">
-              <p className="text-table font-semibold">{x.nome}</p>
+              <p className="text-table font-semibold">
+                {x.grupo && <span className="text-ink-3">{x.grupo} › </span>}
+                {nomeServico(x)}
+              </p>
               {x.itens.map((i) => (
                 <div key={i.id} className="flex flex-wrap items-end gap-2 border-b border-line pb-3">
                   <FormAcao action={salvarItem.bind(null, i.id)} botao="Salvar" className="grid flex-1 items-end gap-2.5 sm:grid-cols-[1fr_9rem_5rem_6rem_8rem_auto]">
@@ -515,7 +529,7 @@ function CamposItem({ item }: { item?: Item }) {
         <Entrada name="unidade" required defaultValue={item?.unidade} placeholder={item ? undefined : 'saco'} />
       </Campo>
       <Campo rotulo="Qtd.">
-        <Entrada name="quantidade" type="number" min="0.001" step="0.001" required defaultValue={item?.quantidade} />
+        <Entrada name="quantidade" type="number" min="0.0001" step="0.0001" required defaultValue={item?.quantidade} />
       </Campo>
       <Campo rotulo="Preço unit. (R$)">
         <Entrada name="preco_unitario" type="number" min={0} step="0.01" required defaultValue={item?.preco} />

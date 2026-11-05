@@ -4,7 +4,14 @@ export const FAIXAS = { baixa: 'Teto baixo (sem aprovação)', media: 'Teto méd
 
 export const CLIMAS: Record<string, string> = { bom: 'Bom', nublado: 'Nublado', chuva: 'Chuva', impraticavel: 'Impraticável' }
 
-export const TIPOS_ITEM: Record<string, string> = { material: 'Material', mao_de_obra: 'Mão de obra', equipamento: 'Equipamento' }
+export const TIPOS_ITEM: Record<string, string> = {
+  material: 'Material',
+  mao_de_obra: 'Mão de obra',
+  equipamento: 'Equipamento',
+  frete: 'Frete',
+  servico: 'Serviço',
+  outros: 'Outros',
+}
 
 // Situação da obra (as mesmas do sistema antigo). Finalizada e cancelada saem das listas do dia a dia.
 export const SITUACOES_OBRA: Record<string, [string, TomEtiqueta]> = {
