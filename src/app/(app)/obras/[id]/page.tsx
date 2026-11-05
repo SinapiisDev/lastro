@@ -101,6 +101,8 @@ export default async function Obra({ params, searchParams }: PageProps<'/obras/[
   return (
     <>
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1.3fr)_minmax(320px,1fr)]">
+        {/* No celular a faixa escura sai de cima do prédio e vai para baixo dele. */}
+        <div className="relative">
         <div className="relative h-[460px] overflow-hidden rounded-xl bg-surface sm:h-[600px]">
           <div className="absolute inset-0">
             <Predio3D progresso={progresso3D(lista)} enquadreX={0.24} enquadreY={0.04} rotulo={`Prédio em 3D: ${pctObra}% do serviço feito na obra`} />
@@ -114,7 +116,7 @@ export default async function Obra({ params, searchParams }: PageProps<'/obras/[
             <h1 className="font-display text-[30px] leading-[1.05] font-light tracking-[-0.02em] sm:text-titulo">{obra.nome}</h1>
             {obra.endereco && <span className="text-[13px] font-medium text-ink-2">{obra.endereco}</span>}
           </div>
-          <div className="pointer-events-none absolute top-44 left-6 w-44 rounded-[18px] border border-surface/70 bg-surface/55 px-4 py-3.5 shadow-2 backdrop-blur-md">
+          <div className="pointer-events-none relative mx-6 w-44 rounded-[18px] sm:absolute sm:top-44 sm:left-6 sm:mx-0 border border-surface/70 bg-surface/55 px-4 py-3.5 shadow-2 backdrop-blur-md">
             <div className="flex items-baseline justify-between">
               <span className="text-caption font-semibold text-ink-2">Físico</span>
               <span className="font-display text-[30px] font-light">
@@ -127,7 +129,8 @@ export default async function Obra({ params, searchParams }: PageProps<'/obras/[
             </div>
             <div className="mt-2 text-[11px] font-semibold text-ink-2">{emAndamento ? `Em andamento: ${emAndamento.nome}` : 'Obra concluída'}</div>
           </div>
-          <div className="absolute inset-x-5 bottom-5 flex flex-wrap items-center gap-2 rounded-[20px] bg-night px-4 py-3.5 text-night-ink">
+        </div>
+          <div className="mt-3 flex sm:absolute sm:inset-x-5 sm:bottom-5 sm:mt-0 flex-wrap items-center gap-2 rounded-[20px] bg-night px-4 py-3.5 text-night-ink">
             <div className="mr-auto flex flex-col gap-0.5">
               <span className="text-[11px] font-semibold text-night-ink-3">Serviço feito na obra</span>
               <span className="text-body font-medium">

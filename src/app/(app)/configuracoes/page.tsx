@@ -54,7 +54,7 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
 
   return (
     <section className="grid items-start gap-4 pt-2 lg:grid-cols-[240px_minmax(0,1fr)]">
-      <nav className="flex flex-col gap-1 lg:sticky lg:top-4" aria-label="Seções das configurações">
+      <nav className="flex min-w-0 flex-col gap-1 lg:sticky lg:top-4" aria-label="Seções das configurações">
         <h1 className="mx-2.5 mt-2 mb-2.5 font-display text-[28px] font-light">Configurações</h1>
         <div className="ds-sem-barra flex gap-1 overflow-x-auto lg:flex-col">
           {ABAS.map(([k, t]) => (

@@ -350,3 +350,12 @@ body {
     background: var(--fixed-paper);
   }
 }
+
+/* No celular, campo com letra menor que 16px faz o iPhone dar zoom ao tocar nele. Fora de camada para vencer as utilitárias. */
+@media (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
