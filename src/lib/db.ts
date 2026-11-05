@@ -85,9 +85,22 @@ export function escrever<T>(perfil: string, fn: (tx: Tx) => Promise<T>) {
 }
 
 export async function lerConfig() {
-  const [c] = await sql<{ tetoBaixo: number; tetoMedio: number; saldoCaixa: number; saldoCaixaEm: string; nomeEmpresa: string }[]>`
+  const [c] = await sql<
+    {
+      tetoBaixo: number
+      tetoMedio: number
+      saldoCaixa: number
+      saldoCaixaEm: string
+      nomeEmpresa: string
+      cnpj: string | null
+      endereco: string | null
+      email: string | null
+      site: string | null
+      logo: string | null
+    }[]
+  >`
     select teto_baixo as "tetoBaixo", teto_medio as "tetoMedio", saldo_caixa as "saldoCaixa",
-           saldo_caixa_em as "saldoCaixaEm", nome_empresa as "nomeEmpresa"
+           saldo_caixa_em as "saldoCaixaEm", nome_empresa as "nomeEmpresa", cnpj, endereco, email, site, logo
     from config`
   return c
 }

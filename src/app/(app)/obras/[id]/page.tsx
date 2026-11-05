@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation'
 import { BarraEtapa, BarrasMensais, Campo, Cartao, Dinheiro, Entrada, Etiqueta, FaixaEscura, FormAcao, Kpi, Legenda, Predio3D, type Progresso } from '@ds'
 import { sql } from '@/lib/db'
 import { exigirSessao, podeVerObra } from '@/lib/sessao'
-import { brl, progressoEtapa, gastoNaFrente } from '@/lib/regras'
+import { brl, dataBR, progressoEtapa, gastoNaFrente } from '@/lib/regras'
+import { SITUACOES_OBRA } from '@/components/rotulos'
 import {
   salvarProgresso,
   salvarEtapa,
@@ -44,8 +45,24 @@ export default async function Obra({ params, searchParams }: PageProps<'/obras/[
   if (!Number.isInteger(id) || !podeVerObra(s, id)) notFound()
   const editar = (await searchParams).editar === '1'
 
-  const [obra] = await sql<{ nome: string; endereco: string | null; ativa: boolean }[]>`
-    select nome, endereco, ativa from obras where id = ${id}`
+  const [obra] = await sql<
+    {
+      nome: string
+      endereco: string | null
+      investidor: string | null
+      cidade: string | null
+      inicio: string | null
+      termino: string | null
+      categoria: string | null
+      situacao: string
+      medido: number | null
+      orcamentoAntigo: string | null
+      controlaEstoque: boolean
+    }[]
+  >`
+    select nome, endereco, investidor, cidade, inicio, termino, categoria, situacao, medido,
+      orcamento_antigo as "orcamentoAntigo", controla_estoque as "controlaEstoque"
+    from obras where id = ${id}`
   if (!obra) notFound()
   const etapas = await sql<{ id: number; nome: string; ordem: number }[]>`
     select id, nome, ordem from etapas where obra_id = ${id} order by ordem, id`
@@ -89,9 +106,10 @@ export default async function Obra({ params, searchParams }: PageProps<'/obras/[
             <Predio3D progresso={progresso3D(lista)} enquadreX={0.24} enquadreY={0.04} rotulo={`Prédio em 3D: ${pctObra}% do serviço feito na obra`} />
           </div>
           <div className="pointer-events-none relative flex max-w-[420px] flex-col gap-2.5 p-6 sm:p-7">
-            <span className="text-label font-semibold text-ink-3">
+            <span className="flex flex-wrap items-center gap-2 text-label font-semibold text-ink-3">
               Obra {String(id).padStart(3, '0')}
-              {!obra.ativa && ' · encerrada'}
+              {obra.categoria && ` · ${obra.categoria}`}
+              <Etiqueta tom={SITUACOES_OBRA[obra.situacao][1]}>{SITUACOES_OBRA[obra.situacao][0]}</Etiqueta>
             </span>
             <h1 className="font-display text-[30px] leading-[1.05] font-light tracking-[-0.02em] sm:text-titulo">{obra.nome}</h1>
             {obra.endereco && <span className="text-[13px] font-medium text-ink-2">{obra.endereco}</span>}
@@ -138,6 +156,27 @@ export default async function Obra({ params, searchParams }: PageProps<'/obras/[
         </div>
 
         <div className="grid content-start gap-4 sm:grid-cols-2">
+          <Cartao as="div" className="sm:col-span-2">
+            <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+              {(
+                [
+                  ['Cliente', obra.investidor],
+                  ['Cidade', obra.cidade],
+                  ['Prazo', obra.inicio || obra.termino ? `${obra.inicio ? dataBR(obra.inicio) : '?'} até ${obra.termino ? dataBR(obra.termino) : '?'}` : null],
+                  ['Medido no sistema antigo', obra.medido !== null ? `${obra.medido.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}%` : null],
+                  ['Orçamento no sistema antigo', obra.orcamentoAntigo && `nº ${obra.orcamentoAntigo}`],
+                  ['Estoque', obra.controlaEstoque ? 'Controla estoque' : 'Não controla'],
+                ] as [string, string | null][]
+              )
+                .filter(([, v]) => v)
+                .map(([rotulo, valor]) => (
+                  <div key={rotulo} className="flex min-w-0 flex-col gap-0.5">
+                    <dt className="text-caption font-semibold text-ink-3">{rotulo}</dt>
+                    <dd className="text-table font-semibold">{valor}</dd>
+                  </div>
+                ))}
+            </dl>
+          </Cartao>
           <Cartao as="div" className="flex flex-col gap-3.5 sm:col-span-2">
             <div className="flex items-center justify-between gap-2">
               <span className="text-label font-semibold text-ink-3">Gasto x previsto</span>

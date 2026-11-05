@@ -8,9 +8,10 @@ import { CLIMAS } from '@/components/rotulos'
 
 type Linha = {
   data: string
+  numero: number
   climaManha: string
   climaTarde: string
-  servicos: string | null
+  tarefas: string | null
   ocorrencias: string | null
   observacoes: string | null
   equipes: string | null
@@ -44,7 +45,8 @@ export default async function Diario({ params, searchParams }: PageProps<'/obras
   const fim = somarDias(`${outroMes(mes, 1)}-01`, -1)
 
   const rdos = await sql<Linha[]>`
-    select r.data, r.clima_manha as "climaManha", r.clima_tarde as "climaTarde", r.servicos, r.ocorrencias, r.observacoes,
+    select r.data, r.numero, r.clima_manha as "climaManha", r.clima_tarde as "climaTarde", r.ocorrencias, r.observacoes,
+      (select string_agg(t.servico || coalesce(' — ' || t.descricao, ''), chr(10) order by t.id) from rdo_tarefas t where t.rdo_id = r.id) as tarefas,
       (select string_agg(e.nome, ', ' order by e.id) from rdo_equipes e where e.rdo_id = r.id) as equipes,
       coalesce((select sum(e.pessoas) from rdo_equipes e where e.rdo_id = r.id), 0)::int as pessoas,
       (select count(*) from fotos f where f.rdo_id = r.id and f.removida_em is null)::int as fotos
@@ -139,7 +141,7 @@ export default async function Diario({ params, searchParams }: PageProps<'/obras
               <Cartao className="flex flex-col gap-2.5">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <Link href={`/obras/${id}/diario/${r.data}`} className="font-display text-h2 font-normal no-underline hover:underline">
-                    {dataBR(r.data)} <span className="text-body text-ink-3">· {diaDaSemana(r.data)}</span>
+                    {dataBR(r.data)} <span className="text-body text-ink-3">· {diaDaSemana(r.data)} · RDO nº {String(r.numero).padStart(6, '0')}</span>
                   </Link>
                   <span className="flex flex-wrap items-center gap-2 text-label font-semibold text-ink-2">
                     {CLIMAS[r.climaManha]} / {CLIMAS[r.climaTarde]}
@@ -150,7 +152,7 @@ export default async function Diario({ params, searchParams }: PageProps<'/obras
                   {r.equipes ? `${r.equipes} · ${r.pessoas} ${r.pessoas === 1 ? 'pessoa' : 'pessoas'}` : 'Sem equipe registrada'}
                   {r.fotos > 0 && ` · ${r.fotos} ${r.fotos === 1 ? 'foto' : 'fotos'}`}
                 </span>
-                {r.servicos && <p className="line-clamp-3 text-body whitespace-pre-line print:line-clamp-none">{r.servicos}</p>}
+                {r.tarefas && <p className="line-clamp-3 text-body whitespace-pre-line print:line-clamp-none">{r.tarefas}</p>}
                 {r.ocorrencias && (
                   <p className="rounded-md bg-warn-bg px-3 py-2 text-table whitespace-pre-line text-warn">
                     <strong>Ocorrência:</strong> {r.ocorrencias}

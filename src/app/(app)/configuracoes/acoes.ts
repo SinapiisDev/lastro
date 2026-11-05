@@ -4,6 +4,7 @@ import { refresh } from 'next/cache'
 import { escrever, lerConfig } from '@/lib/db'
 import { exigirSessao, nomePerfil, type Perfil } from '@/lib/sessao'
 import { normalizarWhatsapp } from '@/lib/cotacao'
+import { dadosObra } from '@/lib/obra'
 import { LINK_VALIDADE_DIAS, emailValido, normalizarEmail, novoConvite, respostaConvite } from '@/lib/contas'
 import type { EstadoLink } from '@/components/link-de-acesso'
 import type { Estado } from '@ds'
@@ -11,6 +12,7 @@ import type { Estado } from '@ds'
 const texto = (d: FormData, campo: string) => String(d.get(campo) ?? '').trim()
 const erroUnico = (e: unknown) => (e as { code?: string }).code === '23505'
 const PERFIS: Perfil[] = ['chefe', 'financeiro', 'obra']
+const LOGO_TIPOS = ['image/png', 'image/jpeg', 'image/webp']
 
 export async function salvarTetos(_: Estado, d: FormData): Promise<Estado> {
   const s = await exigirSessao('chefe')
@@ -27,19 +29,25 @@ export async function salvarEmpresa(_: Estado, d: FormData): Promise<Estado> {
   const s = await exigirSessao('chefe')
   const nome = texto(d, 'nome_empresa')
   if (!nome) return { erro: 'Informe o nome da empresa.' }
-  await escrever(nomePerfil(s), (tx) => tx`update config set nome_empresa = ${nome}`)
+  const dados: Record<string, string | null> = { nome_empresa: nome }
+  for (const c of ['cnpj', 'endereco', 'email', 'site']) dados[c] = texto(d, c).slice(0, 200) || null
+  const arquivo = d.get('logo')
+  if (arquivo instanceof File && arquivo.size > 0) {
+    if (!LOGO_TIPOS.includes(arquivo.type)) return { erro: 'O logo precisa ser PNG, JPG ou WEBP.' }
+    if (arquivo.size > 250_000) return { erro: 'O logo pode ter no máximo 250 KB.' }
+    dados.logo = `data:${arquivo.type};base64,${Buffer.from(await arquivo.arrayBuffer()).toString('base64')}`
+  } else if (d.get('tirar_logo') === 'on') dados.logo = null
+  await escrever(nomePerfil(s), (tx) => tx`update config set ${tx(dados)}`)
   refresh()
-  return { ok: 'Salvo. É o nome que os fornecedores veem nas mensagens.' }
+  return { ok: 'Salvo.' }
 }
 
 export async function salvarObra(obraId: number, _: Estado, d: FormData): Promise<Estado> {
   const s = await exigirSessao('chefe')
-  const nome = texto(d, 'nome')
-  if (!nome) return { erro: 'Informe o nome.' }
+  const dados = dadosObra(d)
+  if (typeof dados === 'string') return { erro: dados }
   try {
-    await escrever(nomePerfil(s), (tx) => tx`
-      update obras set nome = ${nome}, endereco = ${texto(d, 'endereco') || null}, ativa = ${d.get('ativa') === 'on'}
-      where id = ${obraId}`)
+    await escrever(nomePerfil(s), (tx) => tx`update obras set ${tx(dados)} where id = ${obraId}`)
   } catch (e) {
     if (erroUnico(e)) return { erro: 'Já existe uma obra com esse nome.' }
     throw e
