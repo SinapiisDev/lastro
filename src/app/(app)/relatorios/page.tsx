@@ -44,7 +44,7 @@ export default async function Relatorios({ searchParams }: PageProps<'/relatorio
     sql<{ id: number; obraId: number; obra: string; fornecedorId: number; fornecedor: string; descricao: string; valor: number; data: string }[]>`
       select c.id, c.obra_id as "obraId", c.obra, c.fornecedor_id as "fornecedorId", c.fornecedor, c.descricao, c.valor,
              (c.criada_em at time zone 'America/Sao_Paulo')::date as data
-      from v_compras c where c.faixa = 'baixa' and c.situacao = 'aprovada' ${periodo}
+      from v_compras c where c.faixa = 'baixa' and c.situacao = 'aprovada' and c.origem = 'obra' ${periodo}
       order by c.criada_em desc`,
     sql<{ id: number; compraId: number; numero: number; obra: string; fornecedor: string; valor: number; vencimento: string }[]>`
       select p.id, p.compra_id as "compraId", p.numero, c.obra, c.fornecedor, p.valor, p.vencimento

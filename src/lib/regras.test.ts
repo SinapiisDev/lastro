@@ -10,6 +10,7 @@ import {
   somarDias,
   totalItem,
   comBdi,
+  restanteDoPagamento,
 } from './regras.ts'
 
 test('orçamento: total do item em centavos e preço com BDI', () => {
@@ -80,4 +81,12 @@ test('fracionamento: mesmo fornecedor e obra em 7 dias passando o teto', () => {
     2000,
   )
   assert.deepEqual([...suspeitas].sort(), [1, 2, 5])
+})
+
+test('pagamento parcial: o restante vira parcela nova, sem erro de centavos', () => {
+  assert.equal(restanteDoPagamento(1456, 100), 1356)
+  assert.equal(restanteDoPagamento(0.3, 0.1), 0.2)
+  assert.equal(restanteDoPagamento(1456, 1456), 0)
+  assert.match(String(restanteDoPagamento(1456, 1456.01)), /passa o da parcela/)
+  assert.match(String(restanteDoPagamento(1456, 0)), /Informe/)
 })

@@ -65,6 +65,15 @@ export function gastoNaFrente(gasto: number, previsto: number, progresso: number
   return (gasto / previsto) * 100 > progresso
 }
 
+// Pagamento (ou recebimento) de parte de uma parcela: o que sobra vira uma parcela nova.
+// Devolve o restante (0 = pagou tudo) ou a mensagem de erro.
+export function restanteDoPagamento(valorParcela: number, pago: number): number | string {
+  if (!(pago > 0)) return 'Informe o valor pago.'
+  const resto = centavos(valorParcela) - centavos(pago)
+  if (resto < 0) return `O valor pago passa o da parcela (${brl(valorParcela)}).`
+  return resto / 100
+}
+
 export type Movimento = { data: string; valor: number } // valor > 0 entra, < 0 sai
 
 // Projeção mês a mês a partir do saldo de hoje. O que está atrasado cai no mês atual.

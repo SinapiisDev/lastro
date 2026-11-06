@@ -53,13 +53,17 @@ export function descreverEvento(e: Evento): string {
 
   switch (e.tabela) {
     case 'compras':
+      if (e.acao === 'insert' && d.origem === 'financeiro') return `Documento a pagar nº ${d.id} lançado pelo financeiro: ${d.descricao}, ${brl(d.valor)}`
       if (e.acao === 'insert') return `Compra nº ${d.id} registrada: ${brl(d.valor)}, ${NOME_SITUACAO[d.situacao]}`
       if (mudou('situacao'))
         return `Compra nº ${d.id}: ${NOME_SITUACAO[a.situacao]} → ${NOME_SITUACAO[d.situacao]}${d.motivo ? ` (motivo: ${d.motivo})` : ''}`
       if (mudou('pedido_enviado_em') && d.pedido_enviado_em) return `Pedido da compra nº ${d.id} enviado ao fornecedor`
       return `Compra nº ${d.id} alterada`
     case 'parcelas':
+      if (e.acao === 'insert' && d.saldo_de) return `Restante virou a parcela ${d.numero} da compra nº ${d.compra_id}: ${brl(d.valor)}, vence em ${dataBR(d.vencimento)}`
       if (e.acao === 'insert') return `Parcela ${d.numero} da compra nº ${d.compra_id}: ${brl(d.valor)}, vence em ${dataBR(d.vencimento)}`
+      if (mudou('paga_em') && d.paga_em && mudou('valor'))
+        return `Parcela ${d.numero} da compra nº ${d.compra_id} paga em parte em ${dataBR(d.paga_em)}: ${brl(d.valor)} de ${brl(a.valor)}`
       if (mudou('paga_em') && d.paga_em) return `Parcela ${d.numero} da compra nº ${d.compra_id} paga em ${dataBR(d.paga_em)}`
       return `Parcela ${d.numero} da compra nº ${d.compra_id} alterada`
     case 'anexos':
@@ -80,7 +84,10 @@ export function descreverEvento(e: Evento): string {
       if (mudou('progresso')) return `${d.nome}: serviço feito ${a.progresso}% → ${d.progresso}%`
       return `Subetapa ${d.nome} alterada`
     case 'entradas':
+      if (e.acao === 'insert' && d.saldo_de) return `Restante a receber: ${d.descricao}, ${brl(d.valor)} para ${dataBR(d.previsto_para)}`
       if (e.acao === 'insert') return `Entrada prevista: ${d.descricao}, ${brl(d.valor)} para ${dataBR(d.previsto_para)}`
+      if (mudou('recebida_em') && d.recebida_em && mudou('valor'))
+        return `Entrada recebida em parte em ${dataBR(d.recebida_em)}: ${d.descricao}, ${brl(d.valor)} de ${brl(a.valor)}`
       if (mudou('recebida_em') && d.recebida_em) return `Entrada recebida em ${dataBR(d.recebida_em)}: ${d.descricao}, ${brl(d.valor)}`
       if (mudou('cancelada') && d.cancelada) return `Entrada cancelada: ${d.descricao}`
       return `Entrada alterada: ${d.descricao}`

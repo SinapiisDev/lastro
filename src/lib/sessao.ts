@@ -129,6 +129,9 @@ export function podeVerObra(s: Sessao, obraId: number) {
   return s.perfil !== 'obra' || s.obraId === obraId
 }
 
+// Quem cuida do dinheiro: aprova, paga e vê os documentos do financeiro (imposto, salário…).
+export const ehFinanceiro = (s: Sessao) => s.perfil === 'financeiro' || s.perfil === 'chefe'
+
 // Como a pessoa aparece no histórico.
 export const nomePerfil = (s: Sessao) => `${s.nome} (${ROTULO_PERFIL[s.perfil]})`
 

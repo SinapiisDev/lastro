@@ -218,7 +218,14 @@ export default async function Financeiro({ searchParams }: PageProps<'/financeir
           )}
         </Secao>
 
-        <Secao titulo="Parcelas a vencer" acao={<span className="text-label font-semibold text-ink-3">próximos 30 dias</span>}>
+        <Secao
+          titulo="Parcelas a vencer"
+          acao={
+            <Link href="/financeiro/pagar" className="text-[12.5px] font-bold no-underline">
+              próximos 30 dias · Contas a pagar ›
+            </Link>
+          }
+        >
           {aPagar.length === 0 && <EstadoVazio titulo="Nada para pagar">Nenhuma parcela vence nos próximos 30 dias.</EstadoVazio>}
           {(
             [
@@ -310,7 +317,12 @@ export default async function Financeiro({ searchParams }: PageProps<'/financeir
         </div>
 
         <div className="flex flex-col gap-2.5">
-          <h2 className="mb-1.5 font-display text-[28px] font-light">Entradas previstas</h2>
+          <div className="mb-1.5 flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="font-display text-[28px] font-light">Entradas previstas</h2>
+            <Link href="/financeiro/receber" className="text-[12.5px] font-bold text-accent-night no-underline">
+              Receber em parte · Contas a receber ›
+            </Link>
+          </div>
           {entradas.length === 0 && <p className="text-[13px] text-night-ink-3">Nenhuma entrada prevista. Lance os aportes do investidor e as medições logo abaixo.</p>}
           {entradas.map((e) => (
             <div key={e.id} className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 rounded-[16px] bg-night-2 px-4 py-3.5">

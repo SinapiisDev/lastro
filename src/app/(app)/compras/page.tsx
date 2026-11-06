@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { BotaoLink, CabecalhoTela, Cartao, ChipOpcao, Dinheiro, EstadoVazio, LinhaTotal, SeletorPilula, Situacao, Tabela, Td, Th, Tr } from '@ds'
 import { sql } from '@/lib/db'
-import { exigirSessao } from '@/lib/sessao'
+import { exigirSessao, ehFinanceiro } from '@/lib/sessao'
 
 const STATUS = [
   ['', 'Todas'],
@@ -22,11 +22,11 @@ export default async function Compras({ searchParams }: PageProps<'/compras'>) {
 
   const obras = s.perfil === 'obra' ? [] : await sql<{ id: number; nome: string }[]>`select id, nome from obras order by nome`
   const compras = await sql<
-    { id: number; criadaEm: Date; obra: string; etapa: string; subetapa: string; fornecedor: string; descricao: string; valor: number; status: string }[]
+    { id: number; criadaEm: Date; obra: string; etapa: string; subetapa: string; fornecedor: string; descricao: string; valor: number; status: string; origem: string }[]
   >`
-    select id, criada_em as "criadaEm", obra, etapa, subetapa, fornecedor, descricao, valor, status
+    select id, criada_em as "criadaEm", obra, etapa, subetapa, fornecedor, descricao, valor, status, origem
     from v_compras
-    where true ${obraId ? sql`and obra_id = ${obraId}` : sql``} ${status ? sql`and status = ${status}` : sql``}
+    where true ${ehFinanceiro(s) ? sql`` : sql`and origem = 'obra'`} ${obraId ? sql`and obra_id = ${obraId}` : sql``} ${status ? sql`and status = ${status}` : sql``}
     order by id desc
     limit 300`
 
@@ -145,6 +145,7 @@ export default async function Compras({ searchParams }: PageProps<'/compras'>) {
                     <Link href={`/compras/${c.id}`} className="font-bold">
                       {c.id}
                     </Link>
+                    {c.origem === 'financeiro' && <span className="block text-caption text-ink-3">documento</span>}
                   </Td>
                   <Td className="max-w-xs">
                     <span className="block truncate font-semibold" title={c.descricao}>

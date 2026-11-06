@@ -9,6 +9,7 @@ import {
   CartaoDocumento,
   Dinheiro,
   Entrada,
+  EntradaDinheiro,
   EstadoVazio,
   Etiqueta,
   FormAcao,
@@ -27,11 +28,11 @@ import {
   type EstadoPasso,
 } from '@ds'
 import { sql } from '@/lib/db'
-import { exigirSessao, podeVerObra } from '@/lib/sessao'
+import { exigirSessao, podeVerObra, ehFinanceiro } from '@/lib/sessao'
 import { brl, dataBR, mesBR, projetarFluxo } from '@/lib/regras'
 import { contextoFluxo } from '@/lib/fluxo'
 import { descreverEvento, quando, NOME_DOCUMENTO, type Evento } from '@/lib/historico'
-import { FAIXAS } from '@/components/rotulos'
+import { FAIXAS, NATUREZAS, TIPOS_DOCUMENTO } from '@/components/rotulos'
 import { TabelaFluxo } from '@/components/tabela-fluxo'
 import { decidir, cancelar, registrarPagamento, anexar, reenviarPedido } from '../acoes'
 
@@ -52,6 +53,11 @@ type Compra = {
   criadaEm: Date
   cotacaoId: number | null
   pedidoEnviado: Date | null
+  origem: string
+  natureza: string
+  tipoDocumento: string | null
+  numeroDocumento: string | null
+  emissao: string | null
 }
 
 export default async function DetalheCompra({ params }: PageProps<'/compras/[id]'>) {
@@ -60,9 +66,11 @@ export default async function DetalheCompra({ params }: PageProps<'/compras/[id]
   if (!Number.isInteger(id)) notFound()
   const [c] = await sql<Compra[]>`
     select id, obra_id as "obraId", obra, etapa, subetapa, fornecedor, descricao, valor, justificativa,
-           faixa, situacao, status, motivo, criada_em as "criadaEm", cotacao_id as "cotacaoId", pedido_enviado_em as "pedidoEnviado"
+           faixa, situacao, status, motivo, criada_em as "criadaEm", cotacao_id as "cotacaoId", pedido_enviado_em as "pedidoEnviado",
+           origem, natureza, tipo_documento as "tipoDocumento", numero_documento as "numeroDocumento", emissao
     from v_compras where id = ${id}`
-  if (!c || !podeVerObra(s, c.obraId)) notFound()
+  if (!c || !podeVerObra(s, c.obraId) || (c.origem === 'financeiro' && !ehFinanceiro(s))) notFound()
+  const documento = c.origem === 'financeiro'
 
   const [itens, parcelas, anexos, eventos] = await Promise.all([
     // Cada item com o orçado (versão vigente) e o que outras compras aprovadas já levaram dele.
@@ -74,9 +82,10 @@ export default async function DetalheCompra({ params }: PageProps<'/compras/[id]
                   where x.item_chave = ci.item_chave and c2.situacao = 'aprovada' and c2.id <> ci.compra_id), 0) as outras
       from compra_itens ci join subetapas s on s.id = ci.subetapa_id join etapas e on e.id = s.etapa_id
       where ci.compra_id = ${id} order by ci.id`,
-    sql<{ id: number; numero: number; valor: number; vencimento: string; pagaEm: string | null; vencida: boolean }[]>`
-      select id, numero, valor, vencimento, paga_em as "pagaEm", (paga_em is null and vencimento < hoje()) as vencida
-      from parcelas where compra_id = ${id} order by numero`,
+    sql<{ id: number; numero: number; valor: number; vencimento: string; pagaEm: string | null; vencida: boolean; saldoDe: number | null }[]>`
+      select p.id, p.numero, p.valor, p.vencimento, p.paga_em as "pagaEm", (p.paga_em is null and p.vencimento < hoje()) as vencida,
+        (select x.numero from parcelas x where x.id = p.saldo_de) as "saldoDe"
+      from parcelas p where p.compra_id = ${id} order by p.numero`,
     sql<{ id: number; parcelaId: number | null; tipo: string; nome: string; criadoEm: Date }[]>`
       select id, parcela_id as "parcelaId", tipo, nome, criado_em as "criadoEm"
       from anexos where compra_id = ${id} order by id`,
@@ -113,16 +122,26 @@ export default async function DetalheCompra({ params }: PageProps<'/compras/[id]
     <>
       <section className="flex flex-wrap items-end justify-between gap-4 px-1 pt-2">
         <div className="flex min-w-0 flex-col gap-1.5">
-          <Link href="/compras" className="text-label font-semibold text-ink-3 no-underline hover:text-ink">
-            ‹ Compras · Compra nº {c.id}
+          <Link href={documento ? '/financeiro/pagar' : '/compras'} className="text-label font-semibold text-ink-3 no-underline hover:text-ink">
+            {documento ? `‹ Contas a pagar · Documento nº ${c.id}` : `‹ Compras · Compra nº ${c.id}`}
           </Link>
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="max-w-3xl font-display text-[28px] leading-[1.1] font-light tracking-[-0.02em] sm:text-[36px]">{titulo}</h1>
             <Situacao status={c.status} grande />
           </div>
           <span className="text-[13px] font-medium text-ink-2">
-            <Link href={`/obras/${c.obraId}`}>{c.obra}</Link> · {c.etapa} › {c.subetapa} · {c.fornecedor} · registrada em {quando(c.criadaEm)}
+            <Link href={`/obras/${c.obraId}`}>{c.obra}</Link> · {c.etapa} › {c.subetapa} · {c.fornecedor} · {documento ? 'lançado' : 'registrada'} em {quando(c.criadaEm)}
           </span>
+          {documento && (
+            <span className="flex flex-wrap gap-2">
+              <Etiqueta tom="info">{NATUREZAS[c.natureza][0]}</Etiqueta>
+              <Etiqueta>
+                {c.tipoDocumento ? TIPOS_DOCUMENTO[c.tipoDocumento] : 'Documento'}
+                {c.numeroDocumento && ` nº ${c.numeroDocumento}`}
+                {c.emissao && ` · emissão ${dataBR(c.emissao)}`}
+              </Etiqueta>
+            </span>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-3.5">
           <div className="flex flex-col items-end">
@@ -158,8 +177,8 @@ export default async function DetalheCompra({ params }: PageProps<'/compras/[id]
         itens={[
           { titulo: 'Registrada', detalhe: quando(c.criadaEm), estado: 'feito' },
           {
-            titulo: c.situacao === 'aguardando_chefe' || c.faixa === 'alta' ? 'Aprovação do dono' : c.faixa === 'baixa' ? 'Aprovação automática' : 'Liberação do financeiro',
-            detalhe: c.situacao === 'recusada' ? 'Recusada' : c.situacao === 'cancelada' ? 'Cancelada' : aprovada ? 'Aprovada' : FAIXAS[c.faixa],
+            titulo: documento ? 'Lançado pelo financeiro' : c.situacao === 'aguardando_chefe' || c.faixa === 'alta' ? 'Aprovação do dono' : c.faixa === 'baixa' ? 'Aprovação automática' : 'Liberação do financeiro',
+            detalhe: c.situacao === 'recusada' ? 'Recusada' : c.situacao === 'cancelada' ? 'Cancelada' : documento ? 'Sem aprovação' : aprovada ? 'Aprovada' : FAIXAS[c.faixa],
             estado: passoAprovacao,
           },
           {
@@ -188,7 +207,7 @@ export default async function DetalheCompra({ params }: PageProps<'/compras/[id]
 
       <section className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_400px]">
         <div className="flex min-w-0 flex-col gap-4">
-          <Secao titulo="Itens e orçamento">
+          <Secao titulo={documento ? 'Descrição e serviço da obra' : 'Itens e orçamento'}>
             <p className="text-table whitespace-pre-line text-ink-2">{c.descricao}</p>
             {c.justificativa && (
               <p className="text-table">
@@ -216,7 +235,11 @@ export default async function DetalheCompra({ params }: PageProps<'/compras/[id]
                     <Td num forte>
                       <Dinheiro valor={i.valor} />
                     </Td>
-                    {i.itemChave && i.orcado !== null ? (
+                    {documento ? (
+                      <Td colSpan={3} className="text-right text-caption text-ink-3">
+                        documento do financeiro
+                      </Td>
+                    ) : i.itemChave && i.orcado !== null ? (
                       <>
                         <Td num className="text-ink-2">
                           <Dinheiro valor={i.orcado} />
@@ -240,7 +263,7 @@ export default async function DetalheCompra({ params }: PageProps<'/compras/[id]
                 <tr aria-hidden className="h-2" />
                 <LinhaTotal>
                   <td colSpan={2} className="px-2">
-                    Total · {FAIXAS[c.faixa]}
+                    {documento ? 'Total' : `Total · ${FAIXAS[c.faixa]}`}
                   </td>
                   <td className="px-2 text-right">
                     <Dinheiro valor={c.valor} />
@@ -281,7 +304,9 @@ export default async function DetalheCompra({ params }: PageProps<'/compras/[id]
               <tbody>
                 {parcelas.map((p) => (
                   <Tr key={p.id}>
-                    <Td className="font-semibold">{p.numero}ª</Td>
+                    <Td className="font-semibold">
+                      {p.numero}ª{p.saldoDe && <span className="block text-caption font-normal text-ink-3">restante da {p.saldoDe}ª</span>}
+                    </Td>
                     <Td>{dataBR(p.vencimento)}</Td>
                     <Td num forte>
                       <Dinheiro valor={p.valor} />
@@ -308,12 +333,25 @@ export default async function DetalheCompra({ params }: PageProps<'/compras/[id]
                       <summary className="cursor-pointer text-table font-semibold">
                         Registrar pagamento da {p.numero}ª parcela ({brl(p.valor)})
                       </summary>
-                      <FormAcao action={registrarPagamento.bind(null, p.id)} botao="Confirmar pagamento" variante="primario" className="mt-3 grid gap-3 sm:grid-cols-3 sm:items-start">
-                        <Campo rotulo="Pago em">
-                          <Entrada name="paga_em" type="date" required />
-                        </Campo>
-                        <CampoAnexo name="boleto" titulo="Boleto (opcional)" />
-                        <CampoAnexo name="comprovante" titulo="Comprovante (opcional)" />
+                      <FormAcao action={registrarPagamento.bind(null, p.id)} botao="Confirmar pagamento" variante="primario" className="mt-3 flex flex-col gap-3">
+                        <div className="grid gap-3 sm:grid-cols-3 sm:items-start">
+                          <Campo rotulo="Pago em">
+                            <Entrada name="paga_em" type="date" required />
+                          </Campo>
+                          <Campo rotulo="Valor pago">
+                            <EntradaDinheiro name="valor_pago" required min="0.01" defaultValue={p.valor} />
+                          </Campo>
+                          <Campo rotulo="Pagou só uma parte? Vencimento do restante">
+                            <Entrada name="restante_vencimento" type="date" />
+                          </Campo>
+                        </div>
+                        <p className="text-caption text-ink-3">
+                          Se o valor pago for menor que {brl(p.valor)}, o restante vira uma parcela nova com o vencimento informado.
+                        </p>
+                        <div className="grid gap-3 sm:grid-cols-2 sm:items-start">
+                          <CampoAnexo name="boleto" titulo="Boleto (opcional)" />
+                          <CampoAnexo name="comprovante" titulo="Comprovante (opcional)" />
+                        </div>
                       </FormAcao>
                     </details>
                   ))}

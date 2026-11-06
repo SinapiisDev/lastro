@@ -3,8 +3,8 @@
 import { redirect, notFound } from 'next/navigation'
 import { refresh } from 'next/cache'
 import { sql, escrever, lerConfig } from '@/lib/db'
-import { exigirSessao, podeVerObra, nomePerfil, obraDeTrabalho, type Sessao } from '@/lib/sessao'
-import { faixaDaCompra, centavos, brl } from '@/lib/regras'
+import { exigirSessao, podeVerObra, nomePerfil, obraDeTrabalho, ehFinanceiro, type Sessao } from '@/lib/sessao'
+import { faixaDaCompra, centavos, brl, dataBR, restanteDoPagamento } from '@/lib/regras'
 import { registrarCompra } from '@/lib/compras'
 import { enviarPedido } from '@/lib/conversa'
 import { validarArquivo, enviarArquivo } from '@/lib/storage'
@@ -16,9 +16,9 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const TIPOS_ANEXO =['nota_fiscal', 'orcamento', 'pedido', 'boleto', 'comprovante', 'outro']
 
 async function carregarCompra(s: Sessao, id: number) {
-  const [c] = await sql<{ obraId: number; situacao: string }[]>`
-    select obra_id as "obraId", situacao from v_compras where id = ${id}`
-  if (!c || !podeVerObra(s, c.obraId)) notFound()
+  const [c] = await sql<{ obraId: number; situacao: string; origem: string }[]>`
+    select obra_id as "obraId", situacao, origem from v_compras where id = ${id}`
+  if (!c || !podeVerObra(s, c.obraId) || (c.origem === 'financeiro' && !ehFinanceiro(s))) notFound()
   return c
 }
 
@@ -141,15 +141,22 @@ export async function cancelar(compraId: number, _: Estado, d: FormData): Promis
   return { ok: 'Compra cancelada.' }
 }
 
+// Pagamento da parcela inteira ou de parte dela: no parcial, a parcela fica com o valor pago e o restante
+// vira uma parcela nova, com o vencimento informado (como no sistema antigo).
 export async function registrarPagamento(parcelaId: number, _: Estado, d: FormData): Promise<Estado> {
   const s = await exigirSessao('financeiro', 'chefe')
-  const [p] = await sql<{ compraId: number; obraId: number; situacao: string; numero: number }[]>`
-    select p.compra_id as "compraId", c.obra_id as "obraId", c.situacao, p.numero
+  const [p] = await sql<{ compraId: number; obraId: number; situacao: string; numero: number; valor: number }[]>`
+    select p.compra_id as "compraId", c.obra_id as "obraId", c.situacao, p.numero, p.valor
     from parcelas p join v_compras c on c.id = p.compra_id where p.id = ${parcelaId}`
   if (!p) notFound()
   if (p.situacao !== 'aprovada') return { erro: 'Só dá para pagar parcela de compra aprovada.' }
   const data = texto(d, 'paga_em')
   if (!dataValida(data)) return { erro: 'Informe a data do pagamento.' }
+  const pago = texto(d, 'valor_pago') ? Number(d.get('valor_pago')) : p.valor
+  const resto = restanteDoPagamento(p.valor, pago)
+  if (typeof resto === 'string') return { erro: resto }
+  const venceResto = texto(d, 'restante_vencimento')
+  if (resto > 0 && !dataValida(venceResto)) return { erro: `Pagamento parcial: informe quando vence o restante (${brl(resto)}).` }
 
   const arquivos: [string, File][] = []
   for (const tipo of ['boleto', 'comprovante']) {
@@ -159,17 +166,26 @@ export async function registrarPagamento(parcelaId: number, _: Estado, d: FormDa
   }
   const enviados = await Promise.all(arquivos.map(async ([tipo, a]) => [tipo, a.name, await enviarArquivo(`obra-${p.obraId}`, a)]))
 
-  const pagou = await escrever(nomePerfil(s), async (tx) => {
-    const r = await tx`update parcelas set paga_em = ${data} where id = ${parcelaId} and paga_em is null`
-    if (!r.count) return false
+  const nova = await escrever(nomePerfil(s), async (tx) => {
+    const r = await tx`update parcelas set paga_em = ${data}, valor = ${pago} where id = ${parcelaId} and paga_em is null and valor = ${p.valor}`
+    if (!r.count) return null
     for (const [tipo, nome, caminho] of enviados) {
       await tx`insert into anexos (compra_id, parcela_id, tipo, nome, caminho) values (${p.compraId}, ${parcelaId}, ${tipo}, ${nome}, ${caminho})`
     }
-    return true
+    if (!resto) return 0
+    const [n] = await tx<{ numero: number }[]>`
+      insert into parcelas (compra_id, numero, valor, vencimento, saldo_de)
+      values (${p.compraId}, (select max(numero) + 1 from parcelas where compra_id = ${p.compraId}), ${resto}, ${venceResto}, ${parcelaId})
+      returning numero`
+    return n.numero
   })
-  if (!pagou) return { erro: 'Essa parcela já estava paga.' }
+  if (nova === null) return { erro: 'Essa parcela já estava paga ou mudou. Recarregue a página.' }
   refresh()
-  return { ok: `Parcela ${p.numero} paga.` }
+  return {
+    ok: nova
+      ? `Pago ${brl(pago)} da ${p.numero}ª parcela. O restante, ${brl(resto)}, virou a ${nova}ª parcela, com vencimento em ${dataBR(venceResto)}.`
+      : `Parcela ${p.numero} paga.`,
+  }
 }
 
 export async function anexar(compraId: number, _: Estado, d: FormData): Promise<Estado> {

@@ -46,6 +46,8 @@ async function Cabecalho() {
         ]
       : [
           ['/financeiro', 'Painel'],
+          ['/financeiro/pagar', 'A pagar'],
+          ['/financeiro/receber', 'A receber'],
           ['/obras', 'Obras'],
           ['/orcamento', 'Orçamento'],
           ['/cotacoes', 'Cotações'],

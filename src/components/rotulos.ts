@@ -23,3 +23,20 @@ export const SITUACOES_OBRA: Record<string, [string, TomEtiqueta]> = {
 }
 
 export const CATEGORIAS_OBRA = ['Construção Casa', 'Construção Prédio', 'Reforma', 'Gerencial']
+
+// Documentos do financeiro (a pagar e a receber), como no sistema antigo.
+export const NATUREZAS: Record<string, [string, string]> = {
+  provisao: ['Provisão', 'documento lançado (nota, boleto, contrato)'],
+  previsao: ['Previsão', 'estimativa, ainda sem documento'],
+  adiantamento: ['Adiantamento', 'pago ou recebido antes do documento'],
+}
+export const TIPOS_DOCUMENTO: Record<string, string> = {
+  nota_fiscal: 'Nota fiscal',
+  boleto: 'Boleto',
+  contrato: 'Contrato',
+  recibo: 'Recibo',
+  fatura: 'Fatura',
+  guia: 'Guia de imposto',
+  folha: 'Folha de pagamento',
+  outro: 'Outro',
+}

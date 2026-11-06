@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { AreaTexto, Botao, Campo, CampoAnexo, Cartao, Dinheiro, Entrada, FormAcao, Selecao } from '@ds'
-import { brl, centavos, dividirParcelas, faixaDaCompra } from '@/lib/regras'
+import { brl, faixaDaCompra } from '@/lib/regras'
+import { CamposParcelas, useParcelamento } from '@/components/parcelamento'
 import { criarCompra } from '../acoes'
 
 type Parcela = { valor: number; vencimento: string }
@@ -52,9 +53,6 @@ export function FormCompra({
   inicial?: Inicial
 }) {
   const [valor, setValor] = useState(inicial.valor ? String(inicial.valor) : '')
-  const [parcelas, setParcelas] = useState<Parcela[]>(inicial.parcelas ?? [])
-  const [quantidade, setQuantidade] = useState(inicial.parcelas?.length ?? 1)
-  const [primeiro, setPrimeiro] = useState(inicial.parcelas?.[0]?.vencimento ?? hoje)
   const [novoFornecedor, setNovoFornecedor] = useState(fornecedores.length === 0)
   const [subetapa, setSubetapa] = useState(String(inicial.subetapaId ?? ''))
   const [itemChave, setItemChave] = useState(inicial.itemChave ?? '')
@@ -64,14 +62,7 @@ export function FormCompra({
   const item = daSubetapa.find((i) => i.chave === itemChave)
   const sobra = item ? item.orcado - item.comprado : 0
   const faixa = total > 0 ? faixaDaCompra(total, tetoBaixo, tetoMedio) : null
-  const soma = parcelas.reduce((t, p) => t + centavos(p.valor || 0), 0) / 100
-  const bate = total > 0 && centavos(soma) === centavos(total)
-
-  function redistribuir(v = total, q = quantidade, d = primeiro) {
-    setParcelas(v > 0 && q > 0 && d ? dividirParcelas(v, q, d) : [])
-  }
-  const mudarParcela = (i: number, campo: keyof Parcela, x: string) =>
-    setParcelas((ps) => ps.map((p, j) => (j === i ? { ...p, [campo]: campo === 'valor' ? Number(x) : x } : p)))
+  const pc = useParcelamento(total, hoje, inicial.parcelas)
 
   // Régua das faixas: o marcador anda até 1,5× o teto médio.
   const escala = tetoMedio * 1.5
@@ -175,80 +166,11 @@ export function FormCompra({
 
         <Cartao className="flex flex-col gap-4">
           <h2 className="font-display text-h2 font-normal">Pagamento</h2>
-          <div className="grid gap-3.5 sm:grid-cols-3">
+          <CamposParcelas p={pc} total={total}>
             <Campo rotulo="Valor total (R$)">
-              <Entrada
-                name="valor"
-                type="number"
-                min="0.01"
-                step="0.01"
-                required
-                value={valor}
-                onChange={(e) => {
-                  setValor(e.target.value)
-                  redistribuir(Number(e.target.value))
-                }}
-                className="text-right"
-              />
+              <Entrada name="valor" type="number" min="0.01" step="0.01" required value={valor} onChange={(e) => setValor(e.target.value)} className="text-right" />
             </Campo>
-            <Campo rotulo="Parcelas">
-              <Entrada
-                type="number"
-                min={1}
-                max={48}
-                value={quantidade}
-                onChange={(e) => {
-                  setQuantidade(Number(e.target.value))
-                  redistribuir(total, Number(e.target.value))
-                }}
-              />
-            </Campo>
-            <Campo rotulo="Primeiro vencimento">
-              <Entrada
-                type="date"
-                value={primeiro}
-                onChange={(e) => {
-                  setPrimeiro(e.target.value)
-                  redistribuir(total, quantidade, e.target.value)
-                }}
-              />
-            </Campo>
-          </div>
-
-          {parcelas.length > 0 && (
-            <div className="flex flex-col gap-2">
-              <p className="text-label font-semibold text-ink-2">Parcelas (a prazo; dá para ajustar valor e data de cada uma)</p>
-              {parcelas.map((p, i) => (
-                <div key={i} className="grid grid-cols-[2.5rem_1fr_1fr] items-center gap-2">
-                  <span className="text-label font-bold text-ink-3">{i + 1}ª</span>
-                  <Entrada
-                    name="parcela_valor"
-                    type="number"
-                    min="0.01"
-                    step="0.01"
-                    required
-                    aria-label={`Valor da parcela ${i + 1}`}
-                    value={p.valor}
-                    onChange={(e) => mudarParcela(i, 'valor', e.target.value)}
-                    className="text-right"
-                  />
-                  <Entrada
-                    name="parcela_vencimento"
-                    type="date"
-                    required
-                    aria-label={`Vencimento da parcela ${i + 1}`}
-                    value={p.vencimento}
-                    onChange={(e) => mudarParcela(i, 'vencimento', e.target.value)}
-                  />
-                </div>
-              ))}
-              {!bate && (
-                <p className="text-caption font-semibold text-neg">
-                  As parcelas somam {brl(soma)} e o total é {brl(total || 0)}.
-                </p>
-              )}
-            </div>
-          )}
+          </CamposParcelas>
 
           <Campo rotulo={`Motivo da compra ${faixa === 'alta' ? '(obrigatório)' : '(opcional)'}`}>
             <AreaTexto name="justificativa" rows={2} required={faixa === 'alta'} defaultValue={inicial.justificativa ?? ''} />
@@ -276,7 +198,7 @@ export function FormCompra({
           <span className="text-label font-semibold text-night-ink-3">Total da compra</span>
           <span className="font-display text-[36px] leading-tight font-light">{total > 0 ? <Dinheiro valor={total} noturno /> : 'R$ 0,00'}</span>
           <span className="text-label font-medium text-night-ink-2">
-            {parcelas.length > 1 ? `${parcelas.length} parcelas a partir de ${primeiro.split('-').reverse().join('/')}` : 'Pagamento em uma vez'}
+            {pc.parcelas.length > 1 ? `${pc.parcelas.length} parcelas a partir de ${pc.primeiro.split('-').reverse().join('/')}` : 'Pagamento em uma vez'}
           </span>
         </Cartao>
         <Cartao as="div" className="flex flex-col gap-3">
