@@ -31,6 +31,17 @@ Cada pessoa entra com o próprio e-mail e senha. O aparelho fica conectado por 3
 
 A IA nunca fecha compra nem negocia. Qualquer pessoa pode assumir uma conversa (a IA pausa), e resposta que chegou por fora pode ser colada na cotação. Sem a chave da IA, os preços são preenchidos à mão; sem o WhatsApp configurado, o sistema funciona em **modo simulado** (as mensagens ficam só no sistema, e em Conversas dá para simular a resposta do fornecedor).
 
+## Importar contas a pagar do sistema antigo
+
+Em Financeiro › Contas a pagar › **Importar planilha**, o financeiro ou o dono envia o relatório "Documentos a pagar" exportado em .xlsx.
+
+- Cada linha é uma parcela, e o documento é o mesmo "Doc." + obra + fornecedor. Entra como documento do financeiro, já aprovado. As parcelas liquidadas entram pagas, com a data do pagamento, e as outras ficam em aberto.
+- O valor é o **líquido**, depois de descontos e retenções. Parcela quitada com líquido zero fica de fora, e a tela mostra a linha.
+- A parcela "2.1/3" é o restante de um pagamento parcial e fica ligada à 2ª.
+- Antes de gravar, a tela mostra o resumo e você escolhe a obra do sistema para cada obra da planilha. O sistema sugere a de mesmo nome, ou cadastra uma obra nova com as etapas padrão.
+- Os documentos ficam no serviço "Sistema anterior › Documentos importados" de cada obra. Fornecedor com o mesmo nome aproveita o cadastro, e os novos são cadastrados.
+- Mandar a mesma planilha (ou uma mais nova) de novo não duplica: só os documentos novos entram (`compras.importacao_chave`).
+
 ## Rodar no computador
 
 Precisa de Node 20+ e do **Docker Desktop aberto** (o banco local roda dentro dele; depois de reiniciar o computador, abra o Docker antes).

@@ -90,9 +90,14 @@ export default async function ContasPagar({ searchParams }: PageProps<'/financei
         contexto={`${linhas.length} ${linhas.length === 1 ? 'parcela' : 'parcelas'}${temFiltro ? ' no filtro' : ''}${linhas.length === 500 ? ' (mostrando as 500 primeiras)' : ''}`}
         titulo="Contas a pagar"
         acoes={
-          <BotaoLink href="/financeiro/pagar/novo" variante="primario">
-            + Novo documento a pagar
-          </BotaoLink>
+          <>
+            <BotaoLink href="/financeiro/pagar/importar" variante="secundario">
+              Importar planilha
+            </BotaoLink>
+            <BotaoLink href="/financeiro/pagar/novo" variante="primario">
+              + Novo documento a pagar
+            </BotaoLink>
+          </>
         }
       />
 

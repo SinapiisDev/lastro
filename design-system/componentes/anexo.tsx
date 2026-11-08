@@ -8,9 +8,17 @@ const MAXIMO = 4 * 1024 * 1024 // espelha a regra do servidor (src/lib/storage.t
 
 const tamanho = (b: number) => (b < 1024 * 1024 ? `${Math.max(1, Math.round(b / 1024))} KB` : `${(b / 1024 / 1024).toFixed(1).replace('.', ',')} MB`)
 
+function validarDocumento(f: File) {
+  if (!TIPOS.includes(f.type)) return 'Formato não aceito. Envie PDF, JPG ou PNG.'
+  if (f.size > MAXIMO) return 'Arquivo maior que 4 MB.'
+  return null
+}
+
 /**
  * Área de anexo (DESIGN.md §3): vazio, arrastando, enviando, escolhido e erro.
  * É um <input type="file"> de verdade: funciona com server actions e com teclado.
+ * Para outro formato (ex.: planilha), passe `accept` e `validar`; `aoEscolher` recebe o arquivo já validado
+ * e `enviando` mostra o estado de envio quando o envio não é pelo formulário.
  */
 export function CampoAnexo({
   name,
@@ -18,25 +26,34 @@ export function CampoAnexo({
   descricao = 'PDF ou foto · até 4 MB',
   obrigatorio = false,
   className = '',
+  accept = 'application/pdf,image/*',
+  validar = validarDocumento,
+  aoEscolher,
+  enviando,
 }: {
   name: string
   titulo: string
   descricao?: ReactNode
   obrigatorio?: boolean
   className?: string
+  accept?: string
+  /** devolve o motivo da recusa, ou null se o arquivo serve */
+  validar?: (f: File) => string | null
+  aoEscolher?: (f: File | null) => void
+  enviando?: boolean
 }) {
   const [arquivo, setArquivo] = useState<File | null>(null)
   const [erro, setErro] = useState<string | null>(null)
   const [arrastando, setArrastando] = useState(false)
-  const { pending } = useFormStatus()
+  const status = useFormStatus()
+  const pending = enviando ?? status.pending
 
   function escolher(lista: FileList | null) {
     const f = lista?.[0] ?? null
-    setErro(null)
+    const motivo = f && validar(f)
+    setErro(motivo || null)
     setArquivo(f)
-    if (!f) return
-    if (!TIPOS.includes(f.type)) setErro('Formato não aceito. Envie PDF, JPG ou PNG.')
-    else if (f.size > MAXIMO) setErro('Arquivo maior que 4 MB.')
+    aoEscolher?.(f && !motivo ? f : null)
   }
   const sobre = (e: DragEvent, v: boolean) => {
     e.preventDefault()
@@ -62,7 +79,7 @@ export function CampoAnexo({
       <input
         type="file"
         name={name}
-        accept="application/pdf,image/*"
+        accept={accept}
         className="absolute inset-0 cursor-pointer opacity-0"
         onChange={(e) => escolher(e.target.files)}
         required={obrigatorio}
