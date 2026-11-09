@@ -59,6 +59,24 @@ export function progressoEtapa(progressos: number[]) {
   return Math.round(progressos.reduce((a, b) => a + b, 0) / progressos.length)
 }
 
+// Avanço físico pesado pelo valor orçado de cada serviço (é assim que se mede obra): o box de R$ 3 mil
+// não pesa igual às esquadrias de R$ 60 mil. Sem orçamento, cada serviço pesa igual.
+// Só mostra 100% quando tudo está 100% (99,6% arredondaria para 100 com serviço por fazer).
+export function progressoPorValor(servicos: { progresso: number; previsto: number }[]) {
+  if (!servicos.length) return 0
+  const peso = (x: { previsto: number }) => Math.max(x.previsto, 0)
+  const total = servicos.reduce((t, x) => t + peso(x), 0)
+  const pct = total > 0 ? Math.round(servicos.reduce((t, x) => t + x.progresso * peso(x), 0) / total) : progressoEtapa(servicos.map((x) => x.progresso))
+  return pct === 100 && servicos.some((x) => x.progresso < 100) ? 99 : pct
+}
+
+// Obra inteira: pelo valor de todos os serviços; sem orçamento, a média das etapas (cada etapa pesa igual).
+export function progressoObra(servicos: { etapaId: number; progresso: number; previsto: number }[]) {
+  if (servicos.some((x) => x.previsto > 0)) return progressoPorValor(servicos)
+  const etapas = [...new Set(servicos.map((x) => x.etapaId))]
+  return progressoEtapa(etapas.map((id) => progressoPorValor(servicos.filter((x) => x.etapaId === id))))
+}
+
 // Laranja quando o dinheiro gasto corre na frente do serviço feito.
 export function gastoNaFrente(gasto: number, previsto: number, progresso: number) {
   if (previsto <= 0) return gasto > 0

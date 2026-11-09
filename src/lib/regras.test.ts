@@ -4,6 +4,8 @@ import {
   faixaDaCompra,
   dividirParcelas,
   progressoEtapa,
+  progressoPorValor,
+  progressoObra,
   gastoNaFrente,
   projetarFluxo,
   detectarFracionamento,
@@ -89,4 +91,23 @@ test('pagamento parcial: o restante vira parcela nova, sem erro de centavos', ()
   assert.equal(restanteDoPagamento(1456, 1456), 0)
   assert.match(String(restanteDoPagamento(1456, 1456.01)), /passa o da parcela/)
   assert.match(String(restanteDoPagamento(1456, 0)), /Informe/)
+})
+
+test('avanço pesado pelo valor orçado', () => {
+  // Esquadrias 60 mil e guarda-corpos 21 mil feitos, box de 3 mil por fazer: 96%, não 67%.
+  const esquadrias = [
+    { progresso: 100, previsto: 60000 },
+    { progresso: 100, previsto: 21000 },
+    { progresso: 0, previsto: 3000 },
+  ]
+  assert.equal(progressoPorValor(esquadrias), 96)
+  assert.equal(progressoEtapa(esquadrias.map((x) => x.progresso)), 67)
+  // Sem orçamento, cada serviço pesa igual.
+  assert.equal(progressoPorValor([{ progresso: 100, previsto: 0 }, { progresso: 0, previsto: 0 }]), 50)
+  // Quase tudo feito não vira 100%.
+  assert.equal(progressoPorValor([{ progresso: 100, previsto: 99900 }, { progresso: 0, previsto: 100 }]), 99)
+  assert.equal(progressoPorValor([]), 0)
+  // Obra: pelo valor de todos os serviços; sem orçamento, média das etapas.
+  assert.equal(progressoObra([{ etapaId: 1, progresso: 100, previsto: 90000 }, { etapaId: 2, progresso: 0, previsto: 10000 }, { etapaId: 2, progresso: 0, previsto: 0 }]), 90)
+  assert.equal(progressoObra([{ etapaId: 1, progresso: 100, previsto: 0 }, { etapaId: 2, progresso: 0, previsto: 0 }, { etapaId: 2, progresso: 100, previsto: 0 }]), 75)
 })

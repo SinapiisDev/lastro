@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { BarraEtapa, CabecalhoTela, Dinheiro, EstadoVazio, Etiqueta, FormAcao, Secao, Tabela, Td, Th, Tr } from '@ds'
 import { sql } from '@/lib/db'
 import { exigirSessao } from '@/lib/sessao'
+import { progressoObra } from '@/lib/regras'
 import { CamposObra } from '@/components/campos-obra'
 import { SITUACOES_OBRA } from '@/components/rotulos'
 import { criarObra } from './acoes'
@@ -13,15 +14,15 @@ export default async function Obras() {
   // Setor de compras vê aqui só as obras em que também atua como engenheiro.
   const minhas = s.perfil === 'compras'
   const obras = await sql<
-    { id: number; nome: string; investidor: string | null; cidade: string | null; situacao: string; ativa: boolean; previsto: number; gasto: number; progresso: number }[]
+    { id: number; nome: string; investidor: string | null; cidade: string | null; situacao: string; ativa: boolean; previsto: number; gasto: number; servicos: { etapaId: number; progresso: number; previsto: number }[] }[]
   >`
     select o.id, o.nome, o.investidor, o.cidade, o.situacao, o.ativa,
       coalesce((select sum(p.previsto) from v_previsto p join subetapas s on s.id = p.subetapa_id
                 join etapas e on e.id = s.etapa_id where e.obra_id = o.id), 0) as previsto,
       coalesce((select sum(valor) from v_compras c where c.obra_id = o.id and c.situacao = 'aprovada'), 0) as gasto,
-      coalesce((select round(avg(p)) from (
-        select avg(s.progresso) as p from etapas e join subetapas s on s.etapa_id = e.id
-        where e.obra_id = o.id group by e.id) x), 0)::int as progresso
+      coalesce((select json_agg(json_build_object('etapaId', e.id, 'progresso', s.progresso, 'previsto', coalesce(p.previsto, 0)))
+        from etapas e join subetapas s on s.etapa_id = e.id left join v_previsto p on p.subetapa_id = s.id
+        where e.obra_id = o.id), '[]') as servicos
     from obras o
     ${minhas ? sql`where exists (select 1 from usuario_obras uo where uo.obra_id = o.id and uo.usuario_id = ${s.usuarioId})` : sql``}
     order by o.ativa desc, o.nome`
@@ -60,7 +61,7 @@ export default async function Obras() {
                     </Link>
                   </Td>
                   <Td>
-                    <BarraEtapa feito={o.progresso} gastoPct={o.previsto > 0 ? (o.gasto / o.previsto) * 100 : undefined} />
+                    <BarraEtapa feito={progressoObra(o.servicos.map((x) => ({ ...x, previsto: Number(x.previsto) })))} gastoPct={o.previsto > 0 ? (o.gasto / o.previsto) * 100 : undefined} />
                   </Td>
                   <Td num forte>
                     <Dinheiro valor={o.gasto} />

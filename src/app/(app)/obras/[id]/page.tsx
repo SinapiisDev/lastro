@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { BarraEtapa, BarrasMensais, Campo, Cartao, Dinheiro, Entrada, Etiqueta, FaixaEscura, FormAcao, Kpi, Legenda, Predio3D, type Progresso } from '@ds'
 import { sql } from '@/lib/db'
 import { exigirSessao, podeVerObra, atuaNaObra } from '@/lib/sessao'
-import { brl, dataBR, progressoEtapa, gastoNaFrente } from '@/lib/regras'
+import { brl, dataBR, progressoPorValor, progressoObra, gastoNaFrente } from '@/lib/regras'
 import { SITUACOES_OBRA } from '@/components/rotulos'
 import {
   salvarProgresso,
@@ -89,12 +89,12 @@ export default async function Obra({ params, searchParams }: PageProps<'/obras/[
       subs: filhas,
       previsto: filhas.reduce((t, x) => t + x.previsto, 0),
       gasto: filhas.reduce((t, x) => t + x.gasto, 0),
-      pct: progressoEtapa(filhas.map((x) => x.progresso)),
+      pct: progressoPorValor(filhas), // pesado pelo valor orçado de cada subetapa
     }
   })
   const previstoTotal = lista.reduce((t, e) => t + e.previsto, 0)
   const gastoTotal = lista.reduce((t, e) => t + e.gasto, 0)
-  const pctObra = progressoEtapa(lista.filter((e) => e.subs.length).map((e) => e.pct))
+  const pctObra = progressoObra(subs)
   const pctGasto = previstoTotal > 0 ? (gastoTotal / previstoTotal) * 100 : 0
   const emAlerta = lista.filter((e) => gastoNaFrente(e.gasto, e.previsto, e.pct)).length
   const concluidas = lista.filter((e) => e.subs.length && e.pct === 100).length
@@ -249,6 +249,10 @@ export default async function Obra({ params, searchParams }: PageProps<'/obras/[
               </span>
             </div>
           </div>
+          <p className="text-label text-ink-3">
+            O executado da etapa e da obra pesa cada subetapa pelo valor orçado: um serviço de R$ 3 mil conta menos que um de R$ 60 mil.
+            {previstoTotal > 0 ? '' : ' Sem orçamento, cada subetapa pesa igual.'}
+          </p>
           <div className="hidden grid-cols-[28px_minmax(150px,1.1fr)_minmax(220px,2fr)_150px_150px_28px] gap-4 px-5 text-label font-semibold text-ink-3 lg:grid">
             <span />
             <span>Etapa</span>
