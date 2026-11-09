@@ -44,6 +44,7 @@ const PERIODOS = [
 const DIAS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
 const diaSemana = (iso: string) => DIAS[new Date(iso + 'T12:00:00Z').getUTCDay()]
 const fimDoMes = (iso: string) => new Date(Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7), 0)).toISOString().slice(0, 10)
+const MOSTRAR = 5 // parcelas por grupo no painel
 const quando = (d: Date) => d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })
 
 export default async function Financeiro({ searchParams }: PageProps<'/financeiro'>) {
@@ -88,7 +89,7 @@ export default async function Financeiro({ searchParams }: PageProps<'/financeir
   const linhas = projetarFluxo(saldo, movimentos, hoje, 6)
   const nomeObra = obras.find((o) => o.id === obraId)?.nome
   const semana = Array.from({ length: 7 }, (_, i) => somarDias(hoje, i))
-  const vencidas = aPagar.filter((p) => p.vencimento < hoje)
+  const vencidas = aPagar.filter((p) => p.vencimento < hoje).reverse() // as que venceram há menos tempo primeiro
   const deHoje = aPagar.filter((p) => p.vencimento === hoje)
   const proximas = aPagar.filter((p) => p.vencimento > hoje)
   const href = (o: Record<string, string | number>) => {
@@ -249,19 +250,23 @@ export default async function Financeiro({ searchParams }: PageProps<'/financeir
           {aPagar.length === 0 && <EstadoVazio titulo="Nada para pagar">Nenhuma parcela vence nos próximos 30 dias.</EstadoVazio>}
           {(
             [
-              ['Vencidas', vencidas, 'text-neg'],
-              ['Hoje', deHoje, 'text-ink'],
-              ['Próximos dias', proximas, 'text-ink-2'],
+              ['Vencidas', vencidas, 'text-neg', { situacao: 'vencidas' }],
+              ['Hoje', deHoje, 'text-ink', { de: hoje, ate: hoje }],
+              ['Próximos dias', proximas, 'text-ink-2', { de: somarDias(hoje, 1), ate: somarDias(hoje, 30) }],
             ] as const
           )
             .filter(([, itens]) => itens.length)
-            .map(([nome, itens, cor]) => (
-              <div key={nome} className="flex flex-col">
-                <div className={`flex justify-between pt-2 pb-1.5 text-label font-bold ${cor}`}>
-                  <span>{nome}</span>
+            .map(([nome, itens, cor, filtro]) => (
+              // Sanfona: o cabeçalho mostra quantas e quanto; aberta, só as primeiras (o resto em Contas a pagar).
+              <details key={nome} open={nome !== 'Próximos dias' || !(vencidas.length || deHoje.length)} className="group">
+                <summary className={`flex cursor-pointer items-center gap-2 rounded-sm pt-2 pb-1.5 text-label font-bold hover:bg-surface-2 ${cor}`}>
+                  <span className="inline-block w-3 text-center text-ink-3 transition-transform group-open:rotate-90">›</span>
+                  <span className="flex-1">
+                    {nome} · {itens.length}
+                  </span>
                   <Dinheiro valor={(nome === 'Vencidas' ? -1 : 1) * itens.reduce((t, p) => t + p.valor, 0)} />
-                </div>
-                {itens.map((p) => (
+                </summary>
+                {itens.slice(0, MOSTRAR).map((p) => (
                   <Link
                     key={p.id}
                     href={`/compras/${p.compraId}`}
@@ -279,7 +284,15 @@ export default async function Financeiro({ searchParams }: PageProps<'/financeir
                     </span>
                   </Link>
                 ))}
-              </div>
+                {itens.length > MOSTRAR && (
+                  <Link
+                    href={`/financeiro/pagar?${new URLSearchParams({ ...(obraId ? { obra: String(obraId) } : {}), ...filtro })}`}
+                    className="block border-t border-line py-2.5 text-center text-[12.5px] font-bold no-underline hover:bg-surface-2"
+                  >
+                    Ver {itens.length > MOSTRAR + 1 ? `as outras ${itens.length - MOSTRAR}` : 'a outra'} em Contas a pagar ›
+                  </Link>
+                )}
+              </details>
             ))}
         </Secao>
       </section>
