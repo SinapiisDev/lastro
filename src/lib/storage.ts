@@ -60,3 +60,15 @@ export async function linkTemporario(caminho: string) {
   const { signedURL } = (await r.json()) as { signedURL: string }
   return `${base()}${signedURL}`
 }
+
+// Envio direto do navegador para o Storage (sem passar pelo limite de 4,5 MB da Vercel): o servidor autoriza
+// um caminho de cada vez e o navegador faz o PUT nesse endereço. Vale por 2 horas.
+export async function linkDeEnvio(caminho: string) {
+  const r = await fetch(`${base()}/object/upload/sign/${BUCKET}/${caminho}`, { method: 'POST', headers: cabecalhos() })
+  if (!r.ok) throw new Error(`Falha ao autorizar o envio (${r.status}): ${await r.text()}`)
+  const { url } = (await r.json()) as { url: string }
+  return `${base()}${url}`
+}
+
+/** Nome de arquivo seguro para caminho no Storage (sem acento, espaço ou barra). */
+export const nomeNoStorage = (nome: string) => nome.normalize('NFD').replace(/[^\w.-]+/g, '_').replace(/_+/g, '_').slice(-100)

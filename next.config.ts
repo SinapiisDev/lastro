@@ -1,6 +1,14 @@
 import type { NextConfig } from "next";
 
 const dev = process.env.NODE_ENV === "development";
+// O navegador sobe anexos grandes direto no Storage do Supabase (endereço autorizado pelo servidor, um por arquivo).
+const storage = (() => {
+  try {
+    return process.env.SUPABASE_URL ? ` ${new URL(process.env.SUPABASE_URL).origin}` : "";
+  } catch {
+    return "";
+  }
+})();
 
 // Só o próprio site carrega scripts, estilos e fontes; nada de iframe, plugin ou formulário para fora.
 // Sem nonce para não perder a pré-renderização: o único script inline é o do tema (texto fixo).
@@ -10,7 +18,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' blob: data:",
   "font-src 'self'",
-  `connect-src 'self'${dev ? " ws:" : ""}`,
+  `connect-src 'self'${storage}${dev ? " ws:" : ""}`,
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

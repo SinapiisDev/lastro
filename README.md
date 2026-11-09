@@ -43,6 +43,10 @@ Em Financeiro › Contas a pagar › **Importar planilha**, o financeiro ou o do
 - Antes de gravar, a tela mostra o resumo e você escolhe a obra do sistema para cada obra da planilha. O sistema sugere a de mesmo nome, ou cadastra uma obra nova com as etapas padrão.
 - Os documentos ficam no serviço "Sistema anterior › Documentos importados" de cada obra. Fornecedor com o mesmo nome aproveita o cadastro, e os novos são cadastrados.
 - Mandar a mesma planilha (ou uma mais nova) de novo não duplica: só os documentos novos entram (`compras.importacao_chave`).
+- Numa planilha mais nova, o que foi pago no sistema antigo depois da última importação é baixado aqui: o par da parcela é o vencimento e o valor (pago com juros fica com o valor pago; pago em parte vira parcela paga + o resto, igual ao pagamento parcial do sistema). Parcela já paga aqui não muda.
+- Uma obra da planilha pode ficar de fora ("Não importar"), por exemplo as despesas do escritório de outra empresa; dá para importar depois com a mesma planilha.
+
+**Anexos** (Importar planilha › Importar anexos): escolha a pasta baixada do sistema antigo, com uma subpasta por documento com o número dele (ex.: `001840/nota.pdf`). Cada arquivo é anexado ao documento importado de mesmo número, com o tipo pelo nome (XML e "NF" = nota fiscal, "boleto", "comprovante"…). O navegador sobe direto para o Storage, com um endereço autorizado pelo servidor para cada arquivo (sem o limite de 4 MB das telas); enviar a pasta de novo pula o que já subiu.
 
 ## Contas bancárias e conciliação
 

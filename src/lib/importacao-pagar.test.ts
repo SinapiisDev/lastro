@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { deflateRawSync } from 'node:zlib'
 import { lerPlanilha } from './xlsx.ts'
-import { lerDocumentosPagar, dataDaCelula, valorDaCelula, acharObra } from './importacao-pagar.ts'
+import { lerDocumentosPagar, dataDaCelula, valorDaCelula, acharObra, planejarAtualizacao } from './importacao-pagar.ts'
 
 // Zip mínimo (compactado) com os arquivos de uma planilha.
 function zip(arquivos: Record<string, string>) {
@@ -115,4 +115,37 @@ test('obra do sistema com o mesmo nome, sem acento, caixa ou "Obra" na frente', 
   assert.equal(acharObra('OBRA DONA IZMENIA', obras), 1)
   assert.equal(acharObra('BELLE TORRE', obras), 2)
   assert.equal(acharObra('ACPAC', obras), null)
+})
+
+test('reimportação: baixa o que o sistema antigo pagou e traz o resto do pagamento parcial', () => {
+  const aqui = [
+    { id: 10, numero: 1, valor: 500, vencimento: '2026-10-01', pagaEm: '2026-10-01' },
+    { id: 11, numero: 2, valor: 500, vencimento: '2026-11-01', pagaEm: null },
+    { id: 12, numero: 3, valor: 1751.68, vencimento: '2026-12-01', pagaEm: null },
+    { id: 13, numero: 4, valor: 300, vencimento: '2027-01-01', pagaEm: null },
+    { id: 14, numero: 5, valor: 200, vencimento: '2027-03-01', pagaEm: null },
+  ]
+  const planilha = [
+    { numero: 1, saldoDe: null, valor: 500, vencimento: '2026-10-01', pagaEm: '2026-10-01' },
+    { numero: 2, saldoDe: null, valor: 500, vencimento: '2026-11-01', pagaEm: '2026-11-07' }, // pago depois
+    { numero: 3, saldoDe: null, valor: 1216.08, vencimento: '2026-12-01', pagaEm: '2026-12-02' }, // pago em parte
+    { numero: 4, saldoDe: 3, valor: 535.6, vencimento: '2026-12-01', pagaEm: null }, // o resto
+    { numero: 5, saldoDe: null, valor: 300, vencimento: '2027-01-01', pagaEm: null }, // igual
+    { numero: 7, saldoDe: null, valor: 221.82, vencimento: '2027-03-01', pagaEm: '2027-03-05' }, // pago com juros
+    { numero: 6, saldoDe: null, valor: 99, vencimento: '2027-02-01', pagaEm: null }, // parcela nova sem par: fica de fora
+  ]
+  const r = planejarAtualizacao(planilha, aqui)
+  assert.deepEqual(r.baixar, [
+    { id: 11, pagaEm: '2026-11-07', valor: 500 },
+    { id: 12, pagaEm: '2026-12-02', valor: 1216.08 },
+    { id: 14, pagaEm: '2027-03-05', valor: 221.82 },
+  ])
+  assert.deepEqual(r.novas, [{ valor: 535.6, vencimento: '2026-12-01', pagaEm: null, saldoDe: 12 }])
+  assert.equal(r.semPar, 1)
+  // Nada muda quando a planilha é a mesma.
+  const igual = planejarAtualizacao(aqui.map((p) => ({ numero: p.numero, saldoDe: null, valor: p.valor, vencimento: p.vencimento, pagaEm: p.pagaEm })), aqui)
+  assert.deepEqual(igual, { baixar: [], novas: [], semPar: 0 })
+  // Pago aqui e em aberto lá: não desfaz.
+  const desfaz = planejarAtualizacao([{ numero: 1, saldoDe: null, valor: 500, vencimento: '2026-10-01', pagaEm: null }], [aqui[0]])
+  assert.deepEqual(desfaz, { baixar: [], novas: [], semPar: 0 })
 })

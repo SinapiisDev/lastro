@@ -173,3 +173,72 @@ export function acharObra(nome: string, obras: { id: number; nome: string }[]) {
   const chave = (s: string) => normalizar(s).replace(/^OBRA\s+/, '')
   return obras.find((o) => chave(o.nome) === chave(nome))?.id ?? null
 }
+
+// --- Documento que já veio numa importação anterior: o que mudou no sistema antigo desde então ---
+
+export type ParcelaDoSistema = { id: number; numero: number; valor: number; vencimento: string; pagaEm: string | null }
+export type AtualizacaoDoDocumento = {
+  /** Parcelas em aberto aqui que o sistema antigo já pagou (valor menor = pagamento parcial). */
+  baixar: { id: number; pagaEm: string; valor: number }[]
+  /** Restos de pagamento parcial que surgiram depois: entram ligados à parcela que foi paga em parte. */
+  novas: { valor: number; vencimento: string; pagaEm: string | null; saldoDe: number }[]
+  /** Parcelas da planilha sem par aqui (que não são resto de pagamento parcial): ficam de fora. */
+  semPar: number
+}
+
+/**
+ * Compara as parcelas da planilha com as que o documento já tem. O par é pelo vencimento e o valor;
+ * parcela aberta aqui e paga lá com valor maior foi paga com juros; com valor menor, é pagamento parcial (como o "Liquidado parcial" do sistema antigo,
+ * cujo restante vem na linha seguinte, "1.1/1"). Nada que já está pago aqui muda.
+ */
+export function planejarAtualizacao(planilha: ParcelaImportada[], sistema: ParcelaDoSistema[]): AtualizacaoDoDocumento {
+  const livres = [...sistema]
+  const parDe = new Map<number, ParcelaDoSistema>() // número na planilha → parcela daqui
+  const parcial = new Set<number>()
+  const tirar = (p: ParcelaDoSistema) => livres.splice(livres.indexOf(p), 1)
+  // 1º o par exato (mesmo vencimento e valor), preferindo a mesma situação; depois o pagamento parcial.
+  for (const x of planilha) {
+    const mesmos = livres.filter((p) => p.vencimento === x.vencimento && centavos(p.valor) === centavos(x.valor))
+    const p = mesmos.find((p) => !!p.pagaEm === !!x.pagaEm) ?? mesmos[0]
+    if (p) {
+      parDe.set(x.numero, p)
+      tirar(p)
+    }
+  }
+  for (const x of planilha) {
+    if (parDe.has(x.numero) || !x.pagaEm) continue
+    const p = livres.find((p) => !p.pagaEm && p.vencimento === x.vencimento && centavos(p.valor) > centavos(x.valor))
+    if (p) {
+      parDe.set(x.numero, p)
+      parcial.add(x.numero)
+      tirar(p)
+    }
+  }
+  // Pago com juros ou multa: mesmo vencimento, valor pago maior. Fica o valor que saiu de fato.
+  for (const x of planilha) {
+    if (parDe.has(x.numero) || !x.pagaEm) continue
+    const p = livres.find((p) => !p.pagaEm && p.vencimento === x.vencimento && centavos(p.valor) < centavos(x.valor))
+    if (p) {
+      parDe.set(x.numero, p)
+      tirar(p)
+    }
+  }
+  const baixar: AtualizacaoDoDocumento['baixar'] = []
+  for (const x of planilha) {
+    const p = parDe.get(x.numero)
+    if (p && !p.pagaEm && x.pagaEm) baixar.push({ id: p.id, pagaEm: x.pagaEm, valor: x.valor })
+  }
+  const novas: AtualizacaoDoDocumento['novas'] = []
+  let semPar = 0
+  for (const x of planilha) {
+    if (parDe.has(x.numero)) continue
+    const origem = x.saldoDe ? parDe.get(x.saldoDe) : undefined
+    // Só entra o resto de uma parcela que acabou de ser paga em parte aqui: o total do documento não muda.
+    if (origem && x.saldoDe && parcial.has(x.saldoDe)) {
+      novas.push({ valor: x.valor, vencimento: x.vencimento, pagaEm: x.pagaEm, saldoDe: origem.id })
+      parDe.set(x.numero, origem)
+      parcial.add(x.numero) // o resto do resto também entra
+    } else semPar++
+  }
+  return { baixar, novas, semPar }
+}

@@ -2,7 +2,7 @@ import 'server-only'
 import type { Tx } from './db'
 import { faixaDaCompra } from './regras.ts'
 import { ETAPAS_PADRAO } from './etapas-padrao.ts'
-import { normalizar, type DocumentoImportado } from './importacao-pagar.ts'
+import { normalizar, planejarAtualizacao, type DocumentoImportado, type ParcelaDoSistema } from './importacao-pagar.ts'
 
 // Serviço em que entram os documentos importados de cada obra (a planilha não diz a etapa).
 export const ETAPA_IMPORTADOS = 'Sistema anterior'
@@ -132,4 +132,48 @@ export async function gravarImportacao(
     await tx`update parcelas set saldo_de = ${parcelaDe.get(`${p.compraId}.${p.saldoDe}`)!} where id = ${parcelaDe.get(`${p.compraId}.${p.numero}`)!}`
   }
   return { documentos: entraram.length, parcelas: parcelas.length, obrasNovas, fornecedoresNovos: faltam.size }
+}
+
+export type PlanoImportados = {
+  baixar: { id: number; pagaEm: string; valor: number }[]
+  novas: { compraId: number; valor: number; vencimento: string; pagaEm: string | null; saldoDe: number }[]
+  semPar: number
+}
+
+/** Documentos da planilha que já estão aqui: o que o sistema antigo pagou depois da importação anterior. */
+export async function planejarImportados(q: Tx, docs: DocumentoImportado[]): Promise<PlanoImportados> {
+  const plano: PlanoImportados = { baixar: [], novas: [], semPar: 0 }
+  for (const lote of emLotes(docs)) {
+    const linhas = await q<(ParcelaDoSistema & { chave: string; compraId: number })[]>`
+      select c.importacao_chave as chave, c.id as "compraId", p.id, p.numero, p.valor, p.vencimento, p.paga_em as "pagaEm"
+      from compras c join parcelas p on p.compra_id = c.id
+      where c.situacao = 'aprovada' and c.importacao_chave in ${q(lote.map((d) => d.chave))}
+      order by p.numero`
+    const porChave = new Map<string, (ParcelaDoSistema & { compraId: number })[]>()
+    for (const l of linhas) porChave.set(l.chave, [...(porChave.get(l.chave) ?? []), l])
+    for (const doc of lote) {
+      const aqui = porChave.get(doc.chave)
+      if (!aqui) continue
+      const r = planejarAtualizacao(doc.parcelas, aqui)
+      plano.baixar.push(...r.baixar)
+      plano.novas.push(...r.novas.map((n) => ({ ...n, compraId: aqui[0].compraId })))
+      plano.semPar += r.semPar
+    }
+  }
+  return plano
+}
+
+/** Aplica o plano: só baixa parcela que continua em aberto (se alguém pagou aqui nesse meio-tempo, fica como está). */
+export async function aplicarImportados(tx: Tx, plano: PlanoImportados) {
+  let baixadas = 0
+  for (const b of plano.baixar) {
+    const r = await tx`update parcelas set paga_em = ${b.pagaEm}, valor = ${b.valor}, agendada_para = null where id = ${b.id} and paga_em is null`
+    baixadas += r.count
+  }
+  for (const n of plano.novas) {
+    await tx`
+      insert into parcelas (compra_id, numero, valor, vencimento, paga_em, saldo_de)
+      values (${n.compraId}, (select max(numero) + 1 from parcelas where compra_id = ${n.compraId}), ${n.valor}, ${n.vencimento}, ${n.pagaEm}, ${n.saldoDe})`
+  }
+  return { baixadas, restos: plano.novas.length }
 }

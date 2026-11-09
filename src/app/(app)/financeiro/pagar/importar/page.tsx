@@ -1,4 +1,4 @@
-import { CabecalhoTela } from '@ds'
+import { BotaoLink, CabecalhoTela } from '@ds'
 import { sql } from '@/lib/db'
 import { exigirSessao } from '@/lib/sessao'
 import { FormImportar } from './form-importar'
@@ -11,7 +11,15 @@ export default async function ImportarPlanilha() {
   const obras = await sql<{ id: number; nome: string }[]>`select id, nome from obras order by ativa desc, nome`
   return (
     <>
-      <CabecalhoTela contexto="Contas a pagar" titulo="Importar planilha" />
+      <CabecalhoTela
+        contexto="Contas a pagar"
+        titulo="Importar planilha"
+        acoes={
+          <BotaoLink href="/financeiro/pagar/importar/anexos" variante="fantasma">
+            Importar anexos ›
+          </BotaoLink>
+        }
+      />
       <FormImportar obras={obras} />
     </>
   )
