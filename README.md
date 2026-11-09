@@ -29,7 +29,9 @@ Cada pessoa entra com o próprio e-mail e senha. O aparelho fica conectado por 3
 4. "Analisar com a IA" indica a opção mais viável (preço, frete, prazo de pagamento, entrega), com explicação.
 5. O engenheiro escolhe; vira uma compra por fornecedor, que segue a aprovação por teto. O pedido só vai ao fornecedor depois de aprovado.
 
-A IA nunca fecha compra nem negocia. Qualquer pessoa pode assumir uma conversa (a IA pausa), e resposta que chegou por fora pode ser colada na cotação. Sem a chave da IA, os preços são preenchidos à mão; sem o WhatsApp configurado, o sistema funciona em **modo simulado** (as mensagens ficam só no sistema, e em Conversas dá para simular a resposta do fornecedor).
+A IA nunca fecha compra nem negocia. Qualquer pessoa pode assumir uma conversa (a IA pausa), e resposta que chegou por fora pode ser colada na cotação. Sem a chave da IA, os preços são preenchidos à mão.
+
+**Sem o número oficial do WhatsApp** (variáveis `WHATSAPP_*` vazias), tudo funciona pelo WhatsApp de quem usa o sistema: o pedido de cotação, as perguntas da IA e o pedido de compra ficam prontos na conversa, com o botão **"Mandar pelo meu WhatsApp"** (abre o WhatsApp com o texto escrito); a resposta do fornecedor é colada na cotação (ou em Conversas) e a IA lê. Nesse modo não há lembrete automático. Quando o número oficial for configurado, as mensagens passam a sair e chegar sozinhas, sem mudar nada no que já foi feito.
 
 ## Importar contas a pagar do sistema antigo
 
@@ -76,7 +78,7 @@ npm run dev # liga o Supabase local (aplica supabase/migrations) e depois o site
 | `PLATAFORMA_ADMINS` | E-mails de quem administra o sistema (vende), separados por vírgula. Eles veem a Administração do sistema. |
 | `CRON_SECRET` | Senha da rotina diária de lembretes (a Vercel envia sozinha). Texto aleatório de 32+ caracteres. |
 | `OPENAI_API_KEY` | IA que lê as respostas dos fornecedores e compara propostas (platform.openai.com → API keys; cobra por uso, então ponha um limite de gasto lá). Sem ela, os preços são preenchidos à mão. |
-| `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_ID` | WhatsApp Cloud API (Meta). Sem eles o WhatsApp fica simulado. |
+| `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_ID` | WhatsApp Cloud API (Meta). Sem eles, as mensagens saem pelo WhatsApp de quem usa o sistema (botão "Mandar pelo meu WhatsApp"). |
 | `WHATSAPP_APP_SECRET` | Segredo do app na Meta: confere a assinatura de cada mensagem que chega. |
 | `WHATSAPP_VERIFY_TOKEN` | Texto que você inventa e repete na Meta ao cadastrar o webhook. |
 

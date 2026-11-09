@@ -26,6 +26,11 @@ export async function responderComoPessoa(fornecedorId: number, _: Estado, d: Fo
   } catch (e) {
     return { erro: (e as Error).message }
   }
+  // Sem o número oficial a IA não manda nada sozinha: não há o que pausar.
+  if (!whatsappReal()) {
+    refresh()
+    return { ok: 'Mensagem pronta: toque em "Mandar pelo meu WhatsApp".' }
+  }
   // Uma pessoa assumiu: a IA para de responder esse fornecedor.
   if (!f.iaPausada) await escrever(nomePerfil(s), (tx) => tx`update fornecedores set ia_pausada = true where id = ${f.id}`)
   refresh()
@@ -57,10 +62,10 @@ export async function salvarWhatsapp(fornecedorId: number, _: Estado, d: FormDat
   return { ok: 'WhatsApp salvo.' }
 }
 
-// Só existe enquanto o WhatsApp real não está ligado: faz de conta que o fornecedor escreveu.
+// Só existe sem o número oficial: a resposta que o fornecedor mandou no WhatsApp de alguém da equipe é colada aqui.
 export async function simularMensagem(fornecedorId: number, _: Estado, d: FormData): Promise<Estado> {
   const s = await exigirSessao()
-  if (whatsappReal()) return { erro: 'O WhatsApp real está ligado: o simulador fica desativado.' }
+  if (whatsappReal()) return { erro: 'O WhatsApp oficial está ligado: as respostas chegam sozinhas.' }
   const f = await fornecedorPermitido(s, fornecedorId)
   if (d.get('audio') === 'on') {
     await registrarEntrada(f.id, { texto: '[áudio]', paraIA: false })
@@ -76,5 +81,5 @@ export async function simularMensagem(fornecedorId: number, _: Estado, d: FormDa
   await registrarEntrada(f.id, { texto: texto || null, anexo: arquivo && caminho ? { caminho, tipo: arquivo.type } : undefined })
   const aviso = await processarFornecedor(f.id)
   refresh()
-  return aviso ? { erro: `Mensagem recebida. ${aviso}` } : { ok: 'Mensagem recebida e lida pela IA.' }
+  return aviso ? { erro: `Resposta guardada. ${aviso}` } : { ok: 'A IA leu a resposta. Se faltou algo, a pergunta dela está pronta na conversa.' }
 }

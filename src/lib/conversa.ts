@@ -45,9 +45,10 @@ export async function mandarTexto(f: Fornecedor, texto: string, autor: 'ia' | 'p
   await sql`insert into mensagens (fornecedor_id, direcao, autor, texto, whatsapp_id) values (${f.id}, 'saida', ${autor}, ${texto}, ${id})`
 }
 
+// Sem o número oficial, a mensagem fica pronta na conversa e a pessoa manda pelo próprio WhatsApp.
 async function mandarModelo(f: Fornecedor, modelo: Modelo, parametros: string[]) {
-  if (!f.whatsapp) throw new Error('Fornecedor sem WhatsApp cadastrado.')
-  const id = whatsappReal() ? await enviarModelo(f.whatsapp, modelo, parametros) : null
+  if (whatsappReal() && !f.whatsapp) throw new Error('Fornecedor sem WhatsApp cadastrado.')
+  const id = whatsappReal() ? await enviarModelo(f.whatsapp!, modelo, parametros) : null
   await sql`
     insert into mensagens (fornecedor_id, direcao, autor, texto, whatsapp_id)
     values (${f.id}, 'saida', 'sistema', ${MODELOS[modelo](parametros)}, ${id})`
@@ -157,7 +158,8 @@ export async function processarFornecedor(fornecedorId: number, { responder = tr
       // Quando a IA pede uma pessoa, ela para de responder esse fornecedor até alguém liberar.
       if (v.precisaPessoa) await tx`update fornecedores set ia_pausada = true where id = ${f.id}`
     })
-    if (responder && v.resposta) await mandarTexto(f, v.resposta, 'ia')
+    // Sem o número oficial, a pergunta da IA fica pronta na conversa para a pessoa mandar pelo próprio WhatsApp.
+    if (v.resposta && (responder || !whatsappReal())) await mandarTexto(f, v.resposta, 'ia')
     return v.precisaPessoa ? 'A IA pediu uma pessoa nesta conversa e ficou pausada para este fornecedor.' : null
   } catch (e) {
     // Nada se perde: as mensagens voltam para a fila da IA.
@@ -181,7 +183,7 @@ export async function pedirCotacao(cotacaoId: number, perfil: string) {
   const erros: string[] = []
   let enviados = 0
   for (const f of alvos) {
-    if (!f.whatsapp) {
+    if (!f.whatsapp && whatsappReal()) {
       semWhatsapp.push(f.nome)
       continue
     }
@@ -197,21 +199,38 @@ export async function pedirCotacao(cotacaoId: number, perfil: string) {
   return { enviados, semWhatsapp, erros }
 }
 
-// Compra de cotação aprovada: só agora o pedido sai para o fornecedor. Devolve um aviso para a tela.
-export async function enviarPedido(compraId: number): Promise<string | null> {
-  const [c] = await sql<{ cotacaoId: number | null; situacao: string; enviado: Date | null; valor: number; fornecedorId: number; obra: string; endereco: string | null; empresa: string }[]>`
-    select c.cotacao_id as "cotacaoId", c.situacao, c.pedido_enviado_em as enviado, c.valor, c.fornecedor_id as "fornecedorId",
-           o.nome as obra, o.endereco, cfg.nome_empresa as empresa
-    from compras c join obras o on o.id = c.obra_id cross join config cfg where c.id = ${compraId}`
-  if (!c?.cotacaoId || c.situacao !== 'aprovada' || c.enviado) return null
-  const f = await carregarFornecedor(c.fornecedorId)
-  if (!f?.whatsapp) return 'O fornecedor não tem WhatsApp cadastrado: avise o pedido por outro meio.'
+type DadosPedido = { cotacaoId: number | null; situacao: string; enviado: Date | null; valor: number; fornecedorId: number; fornecedor: string; obra: string; endereco: string | null; empresa: string }
+const dadosPedido = async (compraId: number) =>
+  (
+    await sql<DadosPedido[]>`
+      select c.cotacao_id as "cotacaoId", c.situacao, c.pedido_enviado_em as enviado, c.valor, c.fornecedor_id as "fornecedorId",
+             f.nome as fornecedor, o.nome as obra, o.endereco, cfg.nome_empresa as empresa
+      from compras c join obras o on o.id = c.obra_id join fornecedores f on f.id = c.fornecedor_id cross join config cfg where c.id = ${compraId}`
+  )[0]
+
+async function parametrosPedido(compraId: number, c: DadosPedido) {
   const itens = await sql<{ descricao: string; quantidade: number | null; unidade: string | null }[]>`
     select descricao, quantidade, unidade from compra_itens where compra_id = ${compraId} order by id`
+  return [c.fornecedor, c.empresa, String(c.cotacaoId), listaItens(itens), brl(c.valor), obraComEndereco(c.obra, c.endereco)]
+}
+
+// Texto do pedido de compra, para mandar pelo próprio WhatsApp quando não há número oficial.
+export async function textoPedido(compraId: number) {
+  const c = await dadosPedido(compraId)
+  return c?.cotacaoId ? MODELOS.pedido_compra(await parametrosPedido(compraId, c)) : null
+}
+
+// Compra de cotação aprovada: só agora o pedido sai para o fornecedor. Devolve um aviso para a tela.
+export async function enviarPedido(compraId: number): Promise<string | null> {
+  const c = await dadosPedido(compraId)
+  if (!c?.cotacaoId || c.situacao !== 'aprovada' || c.enviado) return null
+  const f = await carregarFornecedor(c.fornecedorId)
+  if (!f) return null
+  if (whatsappReal() && !f.whatsapp) return 'O fornecedor não tem WhatsApp cadastrado: avise o pedido por outro meio.'
   try {
-    await mandarModelo(f, 'pedido_compra', [f.nome, c.empresa, String(c.cotacaoId), listaItens(itens), brl(c.valor), obraComEndereco(c.obra, c.endereco)])
+    await mandarModelo(f, 'pedido_compra', await parametrosPedido(compraId, c))
     await escrever('Sistema', (tx) => tx`update compras set pedido_enviado_em = now() where id = ${compraId}`)
-    return whatsappReal() ? 'Pedido enviado ao fornecedor pelo WhatsApp.' : 'Pedido registrado na conversa (WhatsApp simulado).'
+    return whatsappReal() ? 'Pedido enviado ao fornecedor pelo WhatsApp.' : 'Pedido pronto: mande ao fornecedor pelo seu WhatsApp (botão na compra).'
   } catch (e) {
     return `Não foi possível avisar o fornecedor: ${(e as Error).message}`
   }
@@ -219,6 +238,7 @@ export async function enviarPedido(compraId: number): Promise<string | null> {
 
 // Lembrete diário para quem recebeu o pedido de cotação e ainda não respondeu (dentro do prazo).
 export async function cobrarPendentes() {
+  if (!whatsappReal()) return 0 // sem o número oficial, quem cobra é a pessoa, pelo próprio WhatsApp
   const alvos = await sql<(Fornecedor & { cotacaoId: number; prazo: string; obra: string })[]>`
     select f.id, f.nome, f.whatsapp, f.ia_pausada as "iaPausada", c.id as "cotacaoId", c.prazo_resposta as prazo, o.nome as obra
     from cotacao_fornecedores cf

@@ -10,6 +10,7 @@ import { carregarCotacao, dadosCotacao, resumoParaIA, type ItemCotacao } from '@
 import { registrarCompra } from '@/lib/compras'
 import { pedirCotacao, registrarEntrada, processarFornecedor, enviarPedido } from '@/lib/conversa'
 import { iaDisponivel, compararPropostas, ErroIA } from '@/lib/ia'
+import { whatsappReal } from '@/lib/whatsapp'
 import { validarArquivo, enviarArquivo } from '@/lib/storage'
 import type { Estado } from '@ds'
 
@@ -87,7 +88,9 @@ export async function enviarPedidos(cotacaoId: number): Promise<Estado> {
   if (c.situacao === 'concluida' || c.situacao === 'cancelada') return { erro: 'Esta cotação já foi encerrada.' }
   const r = await pedirCotacao(cotacaoId, nomePerfil(s))
   refresh()
-  const partes = [`Pedido enviado a ${r.enviados} fornecedor(es).`]
+  const partes = whatsappReal()
+    ? [`Pedido enviado a ${r.enviados} fornecedor(es).`]
+    : [`Mensagem pronta para ${r.enviados} fornecedor(es): abra cada um em "Conversas com os fornecedores" e toque em "Mandar pelo meu WhatsApp".`]
   if (r.semWhatsapp.length) partes.push(`Sem WhatsApp (cole a resposta deles aqui): ${r.semWhatsapp.join(', ')}.`)
   if (r.erros.length) partes.push(`Falhou: ${r.erros.join('; ')}.`)
   return r.erros.length ? { erro: partes.join(' ') } : { ok: partes.join(' ') }
@@ -170,7 +173,9 @@ export async function colarResposta(cfId: number, _: Estado, d: FormData): Promi
   })
   const aviso = await processarFornecedor(cf.fornecedorId, { responder: false })
   refresh()
-  return aviso ? { erro: aviso } : { ok: 'A IA leu a resposta e preencheu a proposta. Confira os valores.' }
+  return aviso
+    ? { erro: aviso }
+    : { ok: `A IA leu a resposta e preencheu a proposta. Confira os valores.${whatsappReal() ? '' : ' Se faltou algo, a pergunta dela está pronta na conversa.'}` }
 }
 
 export async function analisarCotacao(cotacaoId: number): Promise<Estado> {

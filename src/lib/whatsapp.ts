@@ -33,6 +33,10 @@ async function enviar(corpo: object): Promise<string | null> {
   return j.messages?.[0]?.id ?? null
 }
 
+// Sem o número oficial, a mensagem sai pelo WhatsApp de quem usa o sistema: o link abre a conversa com o texto pronto
+// (sem número, o próprio WhatsApp pede para escolher o contato).
+export const linkWhatsapp = (numero: string | null, texto: string) => `https://wa.me/${numero ?? ''}?text=${encodeURIComponent(texto)}`
+
 export const enviarTexto = (para: string, texto: string) => enviar({ to: para, type: 'text', text: { body: texto } })
 
 // Parâmetros de modelo não podem ter quebra de linha (regra da Meta).

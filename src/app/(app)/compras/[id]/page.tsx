@@ -37,6 +37,16 @@ import { TabelaFluxo } from '@/components/tabela-fluxo'
 import { decidir, cancelar, registrarPagamento, agendarPagamento, desagendarPagamento, anexar, reenviarPedido } from '../acoes'
 import { listarContas } from '@/lib/contas-bancarias'
 import { CampoConta } from '@/components/campo-conta'
+import { whatsappReal, linkWhatsapp } from '@/lib/whatsapp'
+import { textoPedido } from '@/lib/conversa'
+
+async function linkDoPedido(compraId: number) {
+  const [texto, [f]] = await Promise.all([
+    textoPedido(compraId),
+    sql<{ whatsapp: string | null }[]>`select f.whatsapp from compras c join fornecedores f on f.id = c.fornecedor_id where c.id = ${compraId}`,
+  ])
+  return texto ? linkWhatsapp(f?.whatsapp ?? null, texto) : null
+}
 
 type Compra = {
   id: number
@@ -100,6 +110,8 @@ export default async function DetalheCompra({ params }: PageProps<'/compras/[id]
   ])
 
   const financeiro = s.perfil === 'financeiro' || s.perfil === 'chefe' // aprova, cancela aprovada e paga
+  // Sem o número oficial, o pedido fica pronto e sai pelo WhatsApp de quem está na tela.
+  const linkPedido = c.cotacaoId && c.pedidoEnviado && !whatsappReal() ? await linkDoPedido(c.id) : null
   const contas = financeiro ? (await listarContas()).filter((x) => x.ativa).map((x) => ({ id: x.id, nome: x.nome })) : []
   const decide =
     (c.situacao === 'aguardando_financeiro' && financeiro) ||
@@ -281,7 +293,11 @@ export default async function DetalheCompra({ params }: PageProps<'/compras/[id]
                 <span className="font-semibold">Pedido ao fornecedor: </span>
                 <Link href={`/cotacoes/${c.cotacaoId}`}>Cotação nº {c.cotacaoId}</Link>
                 {': '}
-                {c.pedidoEnviado ? (
+                {c.pedidoEnviado && linkPedido ? (
+                  <a href={linkPedido} target="_blank" rel="noreferrer" className="font-semibold">
+                    pronto desde {quando(c.pedidoEnviado)} · Mandar pelo meu WhatsApp ›
+                  </a>
+                ) : c.pedidoEnviado ? (
                   <span className="font-semibold text-ok">enviado em {quando(c.pedidoEnviado)}</span>
                 ) : c.situacao === 'aprovada' ? (
                   <span className="font-semibold text-warn">ainda não enviado (fornecedor sem WhatsApp ou falha no envio).</span>

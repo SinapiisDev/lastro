@@ -26,11 +26,11 @@ export default async function Conversas() {
 
   return (
     <>
-      <CabecalhoTela contexto={whatsappReal() ? 'WhatsApp da empresa' : 'WhatsApp simulado'} titulo="Conversas com fornecedores">
+      <CabecalhoTela contexto={whatsappReal() ? 'WhatsApp da empresa' : 'Pelo seu WhatsApp'} titulo="Conversas com fornecedores">
         <p className="max-w-3xl text-table text-ink-2">
           {whatsappReal()
             ? 'Mensagens do WhatsApp da empresa. A IA conversa com os fornecedores sobre as cotações; qualquer pessoa pode assumir.'
-            : 'WhatsApp simulado: as mensagens ficam só no sistema. Abra um fornecedor para simular a resposta dele.'}
+            : 'O sistema prepara as mensagens e você manda pelo seu WhatsApp. Quando o fornecedor responder, cole a resposta na conversa dele e a IA lê.'}
         </p>
       </CabecalhoTela>
       <Secao titulo="Fornecedores">

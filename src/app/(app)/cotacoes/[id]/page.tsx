@@ -7,6 +7,7 @@ import { brl, dataBR } from '@/lib/regras'
 import { carregarCotacao, dadosCotacao, type FornecedorCotacao, type ItemCotacao } from '@/lib/cotacoes'
 import { resumirProposta, menorPorItem, type Proposta } from '@/lib/cotacao'
 import { iaDisponivel } from '@/lib/ia'
+import { whatsappReal } from '@/lib/whatsapp'
 import { Conversa } from '@/components/conversa'
 import { enviarPedidos, adicionarFornecedor, salvarProposta, colarResposta, analisarCotacao, gerarCompras, cancelarCotacao } from '../acoes'
 
@@ -40,8 +41,8 @@ export default async function DetalheCotacao({ params }: PageProps<'/cotacoes/[i
   const menor = menorPorItem(itens, propostas)
   const indicada = c.recomendacao?.escolhas ?? null
   const temPreco = propostas.some((p) => Object.values(p.precos).some((v) => typeof v === 'number'))
-  // Depois do primeiro envio, só conta quem ainda pode receber: fornecedor sem WhatsApp responde por fora.
-  const pendentes = fornecedores.filter((f) => f.situacao === 'pendente' && (c.situacao === 'rascunho' || f.whatsapp)).length
+  // Depois do primeiro envio, só conta quem ainda pode receber: com o número oficial, fornecedor sem WhatsApp responde por fora.
+  const pendentes = fornecedores.filter((f) => f.situacao === 'pendente' && (c.situacao === 'rascunho' || f.whatsapp || !whatsappReal())).length
   const responderam = propostas.filter((p) => Object.keys(p.precos).length > 0).length
 
   return (
@@ -159,13 +160,17 @@ export default async function DetalheCotacao({ params }: PageProps<'/cotacoes/[i
                 <Situacao status={`forn_${f.situacao}`} />
               </summary>
               <div className="grid gap-4 p-3.5 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-                <Conversa fornecedor={{ id: f.fornecedorId, nome: f.nome, whatsapp: f.whatsapp, iaPausada: f.iaPausada }} />
+                <Conversa fornecedor={{ id: f.fornecedorId, nome: f.nome, whatsapp: f.whatsapp, iaPausada: f.iaPausada }} colar={false} />
                 {aberta && (
                   <div className="flex flex-col gap-4">
                     <FormAcao action={colarResposta.bind(null, f.id)} botao="A IA lê a resposta" className="flex flex-col gap-3">
                       <div className="flex flex-col gap-1">
-                        <p className="text-body font-semibold">Resposta que chegou por fora</p>
-                        <p className="text-label text-ink-3">WhatsApp pessoal, e-mail ou ligação: cole o texto ou anexe a foto/PDF, e a IA preenche a proposta.</p>
+                        <p className="text-body font-semibold">{whatsappReal() ? 'Resposta que chegou por fora' : 'Resposta do fornecedor'}</p>
+                        <p className="text-label text-ink-3">
+                          {whatsappReal()
+                            ? 'WhatsApp pessoal, e-mail ou ligação: cole o texto ou anexe a foto/PDF, e a IA preenche a proposta.'
+                            : 'Cole o que ele mandou no seu WhatsApp (ou no e-mail) ou anexe o print/PDF: a IA preenche a proposta e, se faltar algo, deixa a pergunta pronta na conversa.'}
+                        </p>
                       </div>
                       <Campo rotulo="Texto da resposta">
                         <AreaTexto name="texto" rows={3} />
