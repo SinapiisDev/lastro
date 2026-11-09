@@ -42,6 +42,18 @@ Em Financeiro › Contas a pagar › **Importar planilha**, o financeiro ou o do
 - Os documentos ficam no serviço "Sistema anterior › Documentos importados" de cada obra. Fornecedor com o mesmo nome aproveita o cadastro, e os novos são cadastrados.
 - Mandar a mesma planilha (ou uma mais nova) de novo não duplica: só os documentos novos entram (`compras.importacao_chave`).
 
+## Contas bancárias e conciliação
+
+Sem ligar o sistema ao banco: as contas são cadastradas à mão e conferidas pelo arquivo do extrato.
+
+- **Contas**: o dono cadastra em Configurações › Contas bancárias, com o saldo no fim de um dia. O saldo da conta é esse saldo, mais o que entrou e saiu nela depois daquele dia. Com conta cadastrada, o "Saldo em caixa" do painel passa a ser a soma das contas.
+- **Pagar e receber**: ao registrar um pagamento ou recebimento, escolhe-se a conta (com uma conta só, ela vai sozinha). Na compra, a parcela também pode ser **agendada** para um dia e uma conta: entra no fluxo de caixa nessa data.
+- **Conciliação** (Financeiro › Conciliação): o financeiro envia o extrato em **OFX** (no internet banking, às vezes como Money ou Quicken). O mesmo lançamento não entra duas vezes. O sistema compara cada linha com as parcelas e entradas em aberto (mesmo valor, data próxima, e o nome do favorecido quando o banco mostra) e separa em:
+  - **Bateu**: um par só. Ela confere e confirma todos de uma vez; a parcela vira paga na data do extrato, nessa conta. Parcela que já estava paga à mão (até 3 dias de diferença) só é ligada à linha.
+  - **Escolha o par**: mais de uma parcela com o mesmo valor, ou o nome do extrato não bate com o fornecedor.
+  - **Sem par**: lança o documento que falta e o par aparece; tarifa e juros entram no saldo como avulso; o resto pode ser ignorado.
+- O extrato traz o saldo do banco: a tela mostra a diferença entre o saldo do sistema e o do banco naquele dia. Toda conferência pode ser desfeita, e fica no histórico com o nome de quem fez.
+
 ## Rodar no computador
 
 Precisa de Node 20+ e do **Docker Desktop aberto** (o banco local roda dentro dele; depois de reiniciar o computador, abra o Docker antes).

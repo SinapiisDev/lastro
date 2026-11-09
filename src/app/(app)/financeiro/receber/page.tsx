@@ -25,6 +25,8 @@ import { exigirSessao } from '@/lib/sessao'
 import { brl, dataBR } from '@/lib/regras'
 import { NATUREZAS, TIPOS_DOCUMENTO } from '@/components/rotulos'
 import { receberEntrada, cancelarEntrada } from '../acoes'
+import { listarContas } from '@/lib/contas-bancarias'
+import { CampoConta } from '@/components/campo-conta'
 
 const SITUACOES = [
   ['abertas', 'A receber'],
@@ -59,7 +61,8 @@ export default async function ContasReceber({ searchParams }: PageProps<'/financ
   const de = dataOk(q.de)
   const ate = dataOk(q.ate)
 
-  const [hoje, obras] = await Promise.all([hojeDb(), sql<{ id: number; nome: string }[]>`select id, nome from obras order by ativa desc, nome`])
+  const [hoje, obras, todasContas] = await Promise.all([hojeDb(), sql<{ id: number; nome: string }[]>`select id, nome from obras order by ativa desc, nome`, listarContas()])
+  const contas = todasContas.filter((c) => c.ativa).map((c) => ({ id: c.id, nome: c.nome }))
   const linhas = await sql<Linha[]>`
     select e.id, o.nome as obra, e.descricao, e.valor, e.previsto_para as "previstoPara", e.recebida_em as "recebidaEm", e.cancelada,
       e.natureza, e.tipo_documento as "tipoDocumento", e.numero_documento as "numeroDocumento", e.saldo_de is not null as "saldoDe"
@@ -211,6 +214,7 @@ export default async function ContasReceber({ searchParams }: PageProps<'/financ
                                   <EntradaDinheiro name="valor_recebido" required min="0.01" defaultValue={l.valor} />
                                 </Campo>
                               </div>
+                              <CampoConta contas={contas} rotulo="Entrou na conta" />
                               <Campo rotulo="Se recebeu só uma parte: quando entra o restante">
                                 <Entrada name="restante_vencimento" type="date" />
                               </Campo>

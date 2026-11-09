@@ -11,6 +11,7 @@ import type { Estado } from '@ds'
 
 const texto = (d: FormData, campo: string) => String(d.get(campo) ?? '').trim()
 const erroUnico = (e: unknown) => (e as { code?: string }).code === '23505'
+const dataValida = (x: string) => /^\d{4}-\d{2}-\d{2}$/.test(x) && !isNaN(Date.parse(x + 'T00:00:00Z'))
 const PERFIS: Perfil[] = ['chefe', 'financeiro', 'obra', 'compras']
 const LOGO_TIPOS = ['image/png', 'image/jpeg', 'image/webp']
 
@@ -23,6 +24,36 @@ export async function salvarTetos(_: Estado, d: FormData): Promise<Estado> {
   await escrever(nomePerfil(s), (tx) => tx`update config set teto_baixo = ${baixo}, teto_medio = ${medio}`)
   refresh()
   return { ok: 'Tetos salvos. Valem para as próximas compras.' }
+}
+
+// Conta bancária cadastrada à mão (o sistema não se liga ao banco). id null = conta nova.
+export async function salvarConta(id: number | null, _: Estado, d: FormData): Promise<Estado> {
+  const s = await exigirSessao('chefe')
+  const nome = texto(d, 'nome').slice(0, 80)
+  if (!nome) return { erro: 'Dê um nome para a conta (por exemplo, Sicoob conta corrente).' }
+  const saldo = Number(d.get('saldo_inicial'))
+  if (texto(d, 'saldo_inicial') === '' || !Number.isFinite(saldo)) return { erro: 'Informe o saldo da conta.' }
+  const saldoEm = texto(d, 'saldo_em')
+  if (!dataValida(saldoEm)) return { erro: 'Informe o dia desse saldo.' }
+  const dados = {
+    nome,
+    banco: texto(d, 'banco').slice(0, 80) || null,
+    agencia: texto(d, 'agencia').slice(0, 20) || null,
+    numero: texto(d, 'numero').slice(0, 30) || null,
+    saldo_inicial: saldo,
+    saldo_em: saldoEm,
+    ativa: id === null || d.get('ativa') === 'on',
+  }
+  try {
+    await escrever(nomePerfil(s), (tx) =>
+      id === null ? tx`insert into contas_bancarias ${tx(dados)}` : tx`update contas_bancarias set ${tx(dados)} where id = ${id}`,
+    )
+  } catch (e) {
+    if (erroUnico(e)) return { erro: 'Já existe uma conta com esse nome.' }
+    throw e
+  }
+  refresh()
+  return { ok: id === null ? 'Conta cadastrada.' : 'Salvo.' }
 }
 
 export async function salvarEmpresa(_: Estado, d: FormData): Promise<Estado> {

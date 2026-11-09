@@ -29,6 +29,8 @@ import { exigirSessao } from '@/lib/sessao'
 import { dataBR, mesBR, projetarFluxo, somarDias } from '@/lib/regras'
 import { contextoFluxo, saldoHoje } from '@/lib/fluxo'
 import { TabelaFluxo } from '@/components/tabela-fluxo'
+import { CampoConta } from '@/components/campo-conta'
+import { listarContas } from '@/lib/contas-bancarias'
 import { salvarSaldo, criarEntrada, receberEntrada, cancelarEntrada } from './acoes'
 
 type Fila = { id: number; obra: string; fornecedor: string; descricao: string; valor: number; criadaEm: Date; situacao: string }
@@ -50,7 +52,7 @@ export default async function Financeiro({ searchParams }: PageProps<'/financeir
   const obraId = Number(q.obra) || 0
   const periodo = PERIODOS.find(([k]) => k === q.periodo)?.[0] ?? '30'
 
-  const [{ config, hoje, movimentos, saldo }, saldoEmpresa, obras, fila, entradas] = await Promise.all([
+  const [{ config, hoje, movimentos, saldo }, saldoEmpresa, obras, fila, entradas, contas] = await Promise.all([
     contextoFluxo(obraId || undefined),
     saldoHoje(),
     sql<{ id: number; nome: string; ativa: boolean }[]>`select id, nome, ativa from obras order by ativa desc, nome`,
@@ -64,7 +66,10 @@ export default async function Financeiro({ searchParams }: PageProps<'/financeir
       from entradas e join obras o on o.id = e.obra_id
       where e.recebida_em is null and not e.cancelada ${obraId ? sql`and e.obra_id = ${obraId}` : sql``}
       order by e.previsto_para`,
+    listarContas(),
   ])
+  const contasAtivas = contas.filter((c) => c.ativa).map((c) => ({ id: c.id, nome: c.nome }))
+  const conferidoAte = contas.map((c) => c.saldoBancoEm).filter(Boolean).sort()[0]
   const aPagar = await sql<{ id: number; compraId: number; numero: number; total: number; obra: string; fornecedor: string; valor: number; vencimento: string }[]>`
     select p.id, p.compra_id as "compraId", p.numero, (select count(*) from parcelas x where x.compra_id = p.compra_id)::int as total,
       c.obra, c.fornecedor, p.valor, p.vencimento
@@ -120,7 +125,22 @@ export default async function Financeiro({ searchParams }: PageProps<'/financeir
       />
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Kpi tom="escuro" rotulo="Saldo em caixa" valor={<Dinheiro valor={saldoEmpresa} />} detalhe={`informado em ${dataBR(config.saldoCaixaEm)}, mais o que entrou e saiu depois`} corDetalhe="acento" />
+        <Kpi
+          tom="escuro"
+          rotulo="Saldo em caixa"
+          valor={<Dinheiro valor={saldoEmpresa} />}
+          detalhe={
+            contas.length ? (
+              <Link href="/financeiro/conciliacao" className="text-accent-night no-underline">
+                {contas.length === 1 ? contas[0].nome : `${contas.length} contas`}
+                {conferidoAte ? ` · extrato até ${dataBR(conferidoAte)}` : ' · envie o extrato'} ›
+              </Link>
+            ) : (
+              `informado em ${dataBR(config.saldoCaixaEm)}, mais o que entrou e saiu depois`
+            )
+          }
+          corDetalhe="acento"
+        />
         <Kpi
           rotulo={`A pagar · ${nomePeriodo}`}
           valor={<Dinheiro valor={-saidas.reduce((t, m) => t + m.valor, 0)} />}
@@ -301,7 +321,12 @@ export default async function Financeiro({ searchParams }: PageProps<'/financeir
               <TabelaFluxo linhas={linhas} noturno />
             </div>
           </details>
-          {!obraId && (
+          {!obraId && contas.length > 0 && (
+            <Link href="/financeiro/conciliacao" className="text-[13px] font-semibold text-accent-night no-underline">
+              O saldo vem das contas bancárias: confira com o extrato em Conciliação ›
+            </Link>
+          )}
+          {!obraId && !contas.length && (
             <details className="rounded-md bg-night-2 p-4">
               <summary className="cursor-pointer text-[13px] font-semibold text-night-ink-2">Atualizar o saldo em caixa</summary>
               <FormAcao action={salvarSaldo} botao="Salvar saldo" variante="acento" noturno className="mt-3 grid gap-3 sm:grid-cols-[14rem_12rem_auto] sm:items-end">
@@ -341,6 +366,7 @@ export default async function Financeiro({ searchParams }: PageProps<'/financeir
                   <Campo rotulo="Recebida em" ocultarRotulo>
                     <Entrada name="recebida_em" type="date" required defaultValue={hoje} className="min-h-8 py-1 text-label" />
                   </Campo>
+                  <CampoConta contas={contasAtivas} rotulo={<span className="sr-only">Conta</span>} />
                 </FormAcao>
                 <FormAcao action={cancelarEntrada.bind(null, e.id)} botao="Cancelar" variante="secundario" tamanho="sm" noturno />
               </div>

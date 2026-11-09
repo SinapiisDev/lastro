@@ -1,9 +1,13 @@
 import 'server-only'
 import { sql, lerConfig, hoje } from './db'
 import type { Movimento } from './regras'
+import { listarContas } from './contas-bancarias'
 
-// Saldo de hoje = saldo informado (fim do dia) + o que entrou e saiu depois daquele dia.
+// Saldo de hoje. Com contas bancárias cadastradas, é a soma delas; sem, o saldo informado (fim do dia) + o que
+// entrou e saiu depois daquele dia.
 export async function saldoHoje() {
+  const contas = await listarContas()
+  if (contas.length) return Math.round(contas.reduce((t, c) => t + c.saldo * 100, 0)) / 100
   const [{ saldo }] = await sql<{ saldo: number }[]>`
     select c.saldo_caixa
       + coalesce((select sum(valor) from entradas where not cancelada and recebida_em > c.saldo_caixa_em), 0)
@@ -20,7 +24,7 @@ export async function movimentosEmAberto(obraId?: number) {
     select previsto_para as data, valor from entradas
     where not cancelada and recebida_em is null ${daObra('obra_id')}
     union all
-    select p.vencimento, -p.valor from parcelas p join v_compras c on c.id = p.compra_id
+    select coalesce(p.agendada_para, p.vencimento), -p.valor from parcelas p join v_compras c on c.id = p.compra_id
     where c.situacao = 'aprovada' and p.paga_em is null ${daObra('obra_id')}`
 }
 

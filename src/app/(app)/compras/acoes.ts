@@ -8,6 +8,7 @@ import { faixaDaCompra, centavos, brl, dataBR, restanteDoPagamento } from '@/lib
 import { registrarCompra } from '@/lib/compras'
 import { enviarPedido } from '@/lib/conversa'
 import { validarArquivo, enviarArquivo } from '@/lib/storage'
+import { contaDoFormulario } from '@/lib/contas-bancarias'
 import type { Estado } from '@ds'
 
 const texto = (d: FormData, campo: string) => String(d.get(campo) ?? '').trim()
@@ -157,6 +158,8 @@ export async function registrarPagamento(parcelaId: number, _: Estado, d: FormDa
   if (typeof resto === 'string') return { erro: resto }
   const venceResto = texto(d, 'restante_vencimento')
   if (resto > 0 && !dataValida(venceResto)) return { erro: `Pagamento parcial: informe quando vence o restante (${brl(resto)}).` }
+  const conta = await contaDoFormulario(d, 'Escolha a conta de onde saiu o pagamento.')
+  if (conta && typeof conta === 'object') return conta
 
   const arquivos: [string, File][] = []
   for (const tipo of ['boleto', 'comprovante']) {
@@ -167,7 +170,9 @@ export async function registrarPagamento(parcelaId: number, _: Estado, d: FormDa
   const enviados = await Promise.all(arquivos.map(async ([tipo, a]) => [tipo, a.name, await enviarArquivo(`obra-${p.obraId}`, a)]))
 
   const nova = await escrever(nomePerfil(s), async (tx) => {
-    const r = await tx`update parcelas set paga_em = ${data}, valor = ${pago} where id = ${parcelaId} and paga_em is null and valor = ${p.valor}`
+    const r = await tx`
+      update parcelas set paga_em = ${data}, valor = ${pago}, conta_id = ${conta}, agendada_para = null
+      where id = ${parcelaId} and paga_em is null and valor = ${p.valor}`
     if (!r.count) return null
     for (const [tipo, nome, caminho] of enviados) {
       await tx`insert into anexos (compra_id, parcela_id, tipo, nome, caminho) values (${p.compraId}, ${parcelaId}, ${tipo}, ${nome}, ${caminho})`
@@ -186,6 +191,28 @@ export async function registrarPagamento(parcelaId: number, _: Estado, d: FormDa
       ? `Pago ${brl(pago)} da ${p.numero}ª parcela. O restante, ${brl(resto)}, virou a ${nova}ª parcela, com vencimento em ${dataBR(venceResto)}.`
       : `Parcela ${p.numero} paga.`,
   }
+}
+
+// Pagamento agendado no banco: a parcela fica marcada para o dia e a conta, e a conciliação acha o par sozinha.
+export async function agendarPagamento(parcelaId: number, _: Estado, d: FormData): Promise<Estado> {
+  const s = await exigirSessao('financeiro', 'chefe')
+  const data = texto(d, 'agendada_para')
+  if (!dataValida(data)) return { erro: 'Informe o dia do pagamento.' }
+  const conta = await contaDoFormulario(d, 'Escolha a conta de onde vai sair o pagamento.')
+  if (conta && typeof conta === 'object') return conta
+  const r = await escrever(nomePerfil(s), (tx) => tx`
+    update parcelas p set agendada_para = ${data}, conta_id = ${conta}
+    from compras c where c.id = p.compra_id and c.situacao = 'aprovada' and p.id = ${parcelaId} and p.paga_em is null`)
+  if (!r.count) return { erro: 'Essa parcela já foi paga ou a compra não está aprovada.' }
+  refresh()
+  return { ok: `Agendada para ${dataBR(data)}.` }
+}
+
+export async function desagendarPagamento(parcelaId: number): Promise<Estado> {
+  const s = await exigirSessao('financeiro', 'chefe')
+  await escrever(nomePerfil(s), (tx) => tx`update parcelas set agendada_para = null, conta_id = null where id = ${parcelaId} and paga_em is null`)
+  refresh()
+  return null
 }
 
 export async function anexar(compraId: number, _: Estado, d: FormData): Promise<Estado> {

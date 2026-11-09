@@ -65,6 +65,9 @@ export function descreverEvento(e: Evento): string {
       if (mudou('paga_em') && d.paga_em && mudou('valor'))
         return `Parcela ${d.numero} da compra nº ${d.compra_id} paga em parte em ${dataBR(d.paga_em)}: ${brl(d.valor)} de ${brl(a.valor)}`
       if (mudou('paga_em') && d.paga_em) return `Parcela ${d.numero} da compra nº ${d.compra_id} paga em ${dataBR(d.paga_em)}`
+      if (mudou('paga_em') && !d.paga_em) return `Parcela ${d.numero} da compra nº ${d.compra_id} voltou a ficar em aberto`
+      if (mudou('agendada_para') && d.agendada_para) return `Parcela ${d.numero} da compra nº ${d.compra_id} agendada para ${dataBR(d.agendada_para)}`
+      if (mudou('agendada_para')) return `Parcela ${d.numero} da compra nº ${d.compra_id}: agendamento tirado`
       return `Parcela ${d.numero} da compra nº ${d.compra_id} alterada`
     case 'anexos':
       return `${NOME_DOCUMENTO[d.tipo] ?? 'Documento'} anexado à compra nº ${d.compra_id}: ${d.nome}`
@@ -144,6 +147,20 @@ export function descreverEvento(e: Evento): string {
       if (e.acao === 'insert') return `Foto enviada${d.rdo_id ? ' no RDO' : ' na galeria'}${d.legenda ? `: ${d.legenda}` : ''}`
       if (mudou('removida_em') && d.removida_em) return 'Foto retirada da galeria'
       return 'Foto alterada'
+    case 'contas_bancarias':
+      if (e.acao === 'insert') return `Conta bancária cadastrada: ${d.nome}, saldo ${brl(d.saldo_inicial)} em ${dataBR(d.saldo_em)}`
+      if (mudou('ativa')) return `Conta ${d.nome} ${d.ativa ? 'voltou a ser usada' : 'desativada'}`
+      if (mudou('saldo_inicial') || mudou('saldo_em')) return `Saldo da conta ${d.nome}: ${brl(d.saldo_inicial)} em ${dataBR(d.saldo_em)}`
+      if (mudou('saldo_banco')) return `Extrato da conta ${d.nome}: saldo no banco ${brl(d.saldo_banco)} em ${dataBR(d.saldo_banco_em)}`
+      return `Conta ${d.nome} alterada`
+    case 'extrato': {
+      const linha = `Extrato de ${dataBR(d.data)}, ${brl(Math.abs(d.valor))}`
+      if (d.situacao === 'conciliado')
+        return `${linha}: conciliado com ${d.parcela_id ? 'o pagamento de uma parcela' : 'um recebimento'}${d.baixou ? ', que foi baixado' : ''}`
+      if (d.situacao === 'avulso') return `${linha}: lançado no saldo da conta${d.observacao ? ` (${d.observacao})` : ''}`
+      if (d.situacao === 'ignorado') return `${linha}: ignorado`
+      return `${linha}: conferência desfeita`
+    }
     case 'config':
       if (mudou('teto_baixo') || mudou('teto_medio')) return `Tetos: baixo ${brl(d.teto_baixo)}, médio ${brl(d.teto_medio)}`
       if (mudou('saldo_caixa') || mudou('saldo_caixa_em'))

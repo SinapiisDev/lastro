@@ -1,16 +1,18 @@
 import Link from 'next/link'
-import { Campo, Cartao, Entrada, EntradaDinheiro, EstadoVazio, Etiqueta, FormAcao, Marcacao, Selecao } from '@ds'
+import { Campo, Cartao, Dinheiro, Entrada, EntradaDinheiro, EstadoVazio, Etiqueta, FormAcao, Marcacao, Selecao } from '@ds'
 import { sql, lerConfig } from '@/lib/db'
 import { exigirSessao, ROTULO_PERFIL, type Perfil } from '@/lib/sessao'
-import { brl } from '@/lib/regras'
+import { brl, dataBR } from '@/lib/regras'
+import { listarContas, type ContaBancaria } from '@/lib/contas-bancarias'
 import { quando } from '@/lib/historico'
 import { LinkDeAcesso } from '@/components/link-de-acesso'
 import { CamposObra } from '@/components/campos-obra'
-import { salvarTetos, salvarEmpresa, salvarObra, salvarFornecedor, criarPessoa, salvarObrasPessoa, alternarAtivo, gerarConvite } from './acoes'
+import { salvarTetos, salvarConta, salvarEmpresa, salvarObra, salvarFornecedor, criarPessoa, salvarObrasPessoa, alternarAtivo, gerarConvite } from './acoes'
 
 const ABAS = [
   ['pessoas', 'Pessoas'],
   ['tetos', 'Tetos de aprovação'],
+  ['contas', 'Contas bancárias'],
   ['obras', 'Obras'],
   ['fornecedores', 'Fornecedores'],
   ['empresa', 'Empresa'],
@@ -20,7 +22,7 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
   const s = await exigirSessao('chefe')
   const pedida = (await searchParams).aba
   const aba = ABAS.find(([k]) => k === pedida)?.[0] ?? 'pessoas'
-  const [config, obras, fornecedores, pessoas] = await Promise.all([
+  const [config, obras, fornecedores, pessoas, contas] = await Promise.all([
     lerConfig(),
     sql<
       {
@@ -48,8 +50,9 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
         case when u.convite is not null and u.convite_expira_em > now() then u.convite_expira_em end as "linkAte",
         coalesce((select array_agg(obra_id order by obra_id) from usuario_obras where usuario_id = u.id), '{}') as obras
       from usuarios u order by u.ativo desc, u.perfil, u.nome`,
+    listarContas(),
   ])
-  const contagem: Partial<Record<string, number>> = { pessoas: pessoas.filter((p) => p.ativo).length, obras: obras.length, fornecedores: fornecedores.length }
+  const contagem: Partial<Record<string, number>> = { pessoas: pessoas.filter((p) => p.ativo).length, obras: obras.length, fornecedores: fornecedores.length, contas: contas.filter((c) => c.ativa).length }
   const obrasAtivas = obras.filter((o) => o.ativa)
 
   return (
@@ -93,6 +96,43 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
               </div>
             </FormAcao>
           </Cartao>
+        )}
+
+        {aba === 'contas' && (
+          <>
+            <Cartao className="flex flex-col gap-5 p-6!">
+              <Titulo
+                titulo="Contas bancárias"
+                texto="Cadastradas à mão: o sistema não se liga ao banco. O financeiro escolhe a conta ao pagar e ao receber, e confere tudo pelo extrato em Financeiro › Conciliação."
+              />
+              {contas.length === 0 ? (
+                <EstadoVazio titulo="Nenhuma conta cadastrada">Cadastre abaixo a conta corrente da empresa, com o saldo de um dia.</EstadoVazio>
+              ) : (
+                contas.map((c) => (
+                  <div key={c.id} className="flex flex-col gap-3 border-b border-line pb-5 last:border-0 last:pb-0">
+                    <span className="flex flex-wrap items-center gap-2 text-table">
+                      <span className="font-semibold">{c.nome}</span>
+                      {!c.ativa && <Etiqueta tom="neg">Desativada</Etiqueta>}
+                      <span className="text-ink-3">
+                        · saldo hoje no sistema <Dinheiro valor={c.saldo} className="font-bold text-ink" />
+                        {c.saldoBanco !== null && c.saldoBancoEm && ` · no banco ${brl(c.saldoBanco)} em ${dataBR(c.saldoBancoEm)}`}
+                      </span>
+                    </span>
+                    <FormAcao action={salvarConta.bind(null, c.id)} botao="Salvar conta" tamanho="sm" className="flex flex-col gap-3">
+                      <CamposConta conta={c} />
+                      <Marcacao name="ativa" defaultChecked={c.ativa} rotulo="Conta em uso (desmarque para tirar das opções de pagamento)" />
+                    </FormAcao>
+                  </div>
+                ))
+              )}
+            </Cartao>
+            <Cartao className="flex flex-col gap-5 p-6!">
+              <Titulo titulo="Nova conta" texto="O saldo é o do fim de um dia, como no extrato. O que entrou e saiu até esse dia já está nele." />
+              <FormAcao action={salvarConta.bind(null, null)} botao="Cadastrar conta" variante="primario" className="flex flex-col gap-4">
+                <CamposConta />
+              </FormAcao>
+            </Cartao>
+          </>
         )}
 
         {aba === 'pessoas' && (
@@ -273,6 +313,33 @@ export default async function Configuracoes({ searchParams }: PageProps<'/config
         )}
       </div>
     </section>
+  )
+}
+
+function CamposConta({ conta }: { conta?: ContaBancaria }) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <Campo rotulo="Nome da conta">
+        <Entrada name="nome" required defaultValue={conta?.nome} placeholder="Ex.: Sicoob conta corrente" />
+      </Campo>
+      <Campo rotulo="Banco">
+        <Entrada name="banco" defaultValue={conta?.banco ?? ''} placeholder="Ex.: Sicoob (756)" />
+      </Campo>
+      <div className="grid grid-cols-2 gap-3">
+        <Campo rotulo="Agência">
+          <Entrada name="agencia" defaultValue={conta?.agencia ?? ''} />
+        </Campo>
+        <Campo rotulo="Conta">
+          <Entrada name="numero" defaultValue={conta?.numero ?? ''} />
+        </Campo>
+      </div>
+      <Campo rotulo="Saldo no fim do dia" ajuda="Pode ser negativo.">
+        <EntradaDinheiro name="saldo_inicial" required defaultValue={conta?.saldoInicial} min={undefined} />
+      </Campo>
+      <Campo rotulo="Dia desse saldo">
+        <Entrada name="saldo_em" type="date" required defaultValue={conta?.saldoEm} />
+      </Campo>
+    </div>
   )
 }
 

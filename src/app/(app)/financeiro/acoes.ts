@@ -7,6 +7,7 @@ import { exigirSessao, nomePerfil } from '@/lib/sessao'
 import { brl, centavos, dataBR, restanteDoPagamento } from '@/lib/regras'
 import { registrarDocumento } from '@/lib/compras'
 import { validarArquivo, enviarArquivo } from '@/lib/storage'
+import { contaDoFormulario } from '@/lib/contas-bancarias'
 import { NATUREZAS, TIPOS_DOCUMENTO } from '@/components/rotulos'
 import type { Estado } from '@ds'
 
@@ -132,9 +133,11 @@ export async function receberEntrada(id: number, _: Estado, d: FormData): Promis
   if (typeof resto === 'string') return { erro: resto.replace('pago', 'recebido') }
   const venceResto = texto(d, 'restante_vencimento')
   if (resto > 0 && !dataValida(venceResto)) return { erro: `Recebimento parcial: informe quando deve entrar o restante (${brl(resto)}).` }
+  const conta = await contaDoFormulario(d, 'Escolha a conta em que o dinheiro entrou.')
+  if (conta && typeof conta === 'object') return conta
   const r = await escrever(nomePerfil(s), async (tx) => {
     const r = await tx`
-      update entradas set recebida_em = ${data}, valor = ${recebido}
+      update entradas set recebida_em = ${data}, valor = ${recebido}, conta_id = ${conta}
       where id = ${id} and recebida_em is null and not cancelada and valor = ${e.valor}`
     if (r.count && resto > 0) {
       await tx`

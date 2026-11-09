@@ -34,7 +34,9 @@ import { contextoFluxo } from '@/lib/fluxo'
 import { descreverEvento, quando, NOME_DOCUMENTO, type Evento } from '@/lib/historico'
 import { FAIXAS, NATUREZAS, TIPOS_DOCUMENTO } from '@/components/rotulos'
 import { TabelaFluxo } from '@/components/tabela-fluxo'
-import { decidir, cancelar, registrarPagamento, anexar, reenviarPedido } from '../acoes'
+import { decidir, cancelar, registrarPagamento, agendarPagamento, desagendarPagamento, anexar, reenviarPedido } from '../acoes'
+import { listarContas } from '@/lib/contas-bancarias'
+import { CampoConta } from '@/components/campo-conta'
 
 type Compra = {
   id: number
@@ -82,8 +84,9 @@ export default async function DetalheCompra({ params }: PageProps<'/compras/[id]
                   where x.item_chave = ci.item_chave and c2.situacao = 'aprovada' and c2.id <> ci.compra_id), 0) as outras
       from compra_itens ci join subetapas s on s.id = ci.subetapa_id join etapas e on e.id = s.etapa_id
       where ci.compra_id = ${id} order by ci.id`,
-    sql<{ id: number; numero: number; valor: number; vencimento: string; pagaEm: string | null; vencida: boolean; saldoDe: number | null }[]>`
+    sql<{ id: number; numero: number; valor: number; vencimento: string; pagaEm: string | null; vencida: boolean; saldoDe: number | null; agendadaPara: string | null; contaId: number | null; conta: string | null }[]>`
       select p.id, p.numero, p.valor, p.vencimento, p.paga_em as "pagaEm", (p.paga_em is null and p.vencimento < hoje()) as vencida,
+        p.agendada_para as "agendadaPara", p.conta_id as "contaId", (select nome from contas_bancarias b where b.id = p.conta_id) as conta,
         (select x.numero from parcelas x where x.id = p.saldo_de) as "saldoDe"
       from parcelas p where p.compra_id = ${id} order by p.numero`,
     sql<{ id: number; parcelaId: number | null; tipo: string; nome: string; criadoEm: Date }[]>`
@@ -97,6 +100,7 @@ export default async function DetalheCompra({ params }: PageProps<'/compras/[id]
   ])
 
   const financeiro = s.perfil === 'financeiro' || s.perfil === 'chefe' // aprova, cancela aprovada e paga
+  const contas = financeiro ? (await listarContas()).filter((x) => x.ativa).map((x) => ({ id: x.id, nome: x.nome })) : []
   const decide =
     (c.situacao === 'aguardando_financeiro' && financeiro) ||
     (c.situacao === 'aguardando_chefe' && s.perfil === 'chefe')
@@ -313,7 +317,15 @@ export default async function DetalheCompra({ params }: PageProps<'/compras/[id]
                     </Td>
                     <Td>
                       {p.pagaEm ? (
-                        <Etiqueta tom="paga">Paga em {dataBR(p.pagaEm)}</Etiqueta>
+                        <Etiqueta tom="paga">
+                          Paga em {dataBR(p.pagaEm)}
+                          {p.conta && ` · ${p.conta}`}
+                        </Etiqueta>
+                      ) : p.agendadaPara ? (
+                        <Etiqueta tom="info">
+                          Agendada p/ {dataBR(p.agendadaPara)}
+                          {p.conta && ` · ${p.conta}`}
+                        </Etiqueta>
                       ) : p.vencida && c.situacao === 'aprovada' ? (
                         <Etiqueta tom="neg">Vencida</Etiqueta>
                       ) : (
@@ -331,13 +343,14 @@ export default async function DetalheCompra({ params }: PageProps<'/compras/[id]
                   .map((p) => (
                     <details key={p.id} className="rounded-md border border-line px-3.5 py-3">
                       <summary className="cursor-pointer text-table font-semibold">
-                        Registrar pagamento da {p.numero}ª parcela ({brl(p.valor)})
+                        {contas.length ? `Pagar ou agendar a ${p.numero}ª parcela` : `Registrar pagamento da ${p.numero}ª parcela`} ({brl(p.valor)})
                       </summary>
                       <FormAcao action={registrarPagamento.bind(null, p.id)} botao="Confirmar pagamento" variante="primario" className="mt-3 flex flex-col gap-3">
                         <div className="grid gap-3 sm:grid-cols-3 sm:items-start">
                           <Campo rotulo="Pago em">
-                            <Entrada name="paga_em" type="date" required />
+                            <Entrada name="paga_em" type="date" required defaultValue={p.agendadaPara ?? undefined} />
                           </Campo>
+                          <CampoConta contas={contas} padrao={p.contaId} rotulo="Saiu da conta" />
                           <Campo rotulo="Valor pago">
                             <EntradaDinheiro name="valor_pago" required min="0.01" defaultValue={p.valor} />
                           </Campo>
@@ -353,6 +366,21 @@ export default async function DetalheCompra({ params }: PageProps<'/compras/[id]
                           <CampoAnexo name="comprovante" titulo="Comprovante (opcional)" />
                         </div>
                       </FormAcao>
+                      <div className="mt-4 flex flex-col gap-2 border-t border-line pt-3">
+                        <span className="text-table font-semibold">Ainda não saiu? Agende</span>
+                        <span className="text-caption text-ink-3">
+                          Agendou no banco? Marque aqui o dia: a parcela entra no fluxo de caixa nessa data e a conciliação acha o par no extrato.
+                        </span>
+                        <div className="flex flex-wrap items-end gap-2">
+                          <FormAcao action={agendarPagamento.bind(null, p.id)} botao={p.agendadaPara ? 'Mudar agendamento' : 'Agendar'} tamanho="sm" className="flex flex-wrap items-end gap-2">
+                            <Campo rotulo="Dia do pagamento">
+                              <Entrada name="agendada_para" type="date" required defaultValue={p.agendadaPara ?? undefined} className="min-h-9 py-1.5" />
+                            </Campo>
+                            <CampoConta contas={contas} padrao={p.contaId} rotulo="Conta" />
+                          </FormAcao>
+                          {p.agendadaPara && <FormAcao action={desagendarPagamento.bind(null, p.id)} botao="Tirar agendamento" variante="fantasma" tamanho="sm" />}
+                        </div>
+                      </div>
                     </details>
                   ))}
               </div>
