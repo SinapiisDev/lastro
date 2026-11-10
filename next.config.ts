@@ -1,10 +1,13 @@
 import type { NextConfig } from "next";
 
 const dev = process.env.NODE_ENV === "development";
-// O navegador sobe anexos grandes direto no Storage do Supabase (endereço autorizado pelo servidor, um por arquivo).
+// O navegador sobe anexos grandes direto no armazenamento (endereço autorizado pelo servidor, um por arquivo):
+// o Cloudflare R2 quando configurado, senão o Storage do Supabase.
 const storage = (() => {
+  const { R2_ENDPOINT, R2_ACCOUNT_ID, SUPABASE_URL } = process.env;
+  const endereco = R2_ENDPOINT || (R2_ACCOUNT_ID ? `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com` : SUPABASE_URL);
   try {
-    return process.env.SUPABASE_URL ? ` ${new URL(process.env.SUPABASE_URL).origin}` : "";
+    return endereco ? ` ${new URL(endereco).origin}` : "";
   } catch {
     return "";
   }

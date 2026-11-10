@@ -1,7 +1,16 @@
 import 'server-only'
 import { randomUUID } from 'node:crypto'
+import { linkAssinado, type Credenciais } from './s3-assinado'
 
-// Supabase Storage pela API REST, só no servidor, com a chave de serviço.
+// Arquivos (anexos, fotos, diário) no Cloudflare R2 quando ele está configurado (10 GB grátis); senão no Supabase Storage.
+// Os dois só no servidor, com a chave: o navegador recebe só links assinados, que expiram.
+function r2(): Credenciais | null {
+  const { R2_ACCOUNT_ID, R2_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET } = process.env
+  if (!R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY || !R2_BUCKET || !(R2_ENDPOINT || R2_ACCOUNT_ID)) return null
+  return { endpoint: R2_ENDPOINT || `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`, bucket: R2_BUCKET, chave: R2_ACCESS_KEY_ID, segredo: R2_SECRET_ACCESS_KEY, regiao: process.env.R2_REGIAO }
+}
+
+// Supabase Storage pela API REST, com a chave de serviço.
 const BUCKET = 'anexos'
 const base = () => `${process.env.SUPABASE_URL}/storage/v1`
 const cabecalhos = () => {
@@ -35,6 +44,12 @@ export function validarFotos(lista: unknown[]): File[] | string {
 export async function enviarArquivo(pasta: string, arquivo: File) {
   const limpo = arquivo.name.normalize('NFD').replace(/[^\w.-]+/g, '_').slice(-80)
   const caminho = `${pasta}/${randomUUID()}-${limpo}`
+  const c = r2()
+  if (c) {
+    const r = await fetch(linkAssinado(c, 'PUT', caminho, 300), { method: 'PUT', headers: { 'content-type': arquivo.type }, body: arquivo })
+    if (!r.ok) throw new Error(`Falha ao guardar o arquivo (${r.status}): ${await r.text()}`)
+    return caminho
+  }
   const r = await fetch(`${base()}/object/${BUCKET}/${caminho}`, {
     method: 'POST',
     headers: { ...cabecalhos(), 'content-type': arquivo.type, 'x-upsert': 'false' },
@@ -45,12 +60,15 @@ export async function enviarArquivo(pasta: string, arquivo: File) {
 }
 
 export async function baixarArquivo(caminho: string) {
-  const r = await fetch(`${base()}/object/${BUCKET}/${caminho}`, { headers: cabecalhos() })
+  const c = r2()
+  const r = c ? await fetch(linkAssinado(c, 'GET', caminho, 300)) : await fetch(`${base()}/object/${BUCKET}/${caminho}`, { headers: cabecalhos() })
   if (!r.ok) throw new Error(`Falha ao ler o arquivo (${r.status})`)
   return Buffer.from(await r.arrayBuffer())
 }
 
 export async function linkTemporario(caminho: string) {
+  const c = r2()
+  if (c) return linkAssinado(c, 'GET', caminho, 60)
   const r = await fetch(`${base()}/object/sign/${BUCKET}/${caminho}`, {
     method: 'POST',
     headers: { ...cabecalhos(), 'content-type': 'application/json' },
@@ -64,6 +82,8 @@ export async function linkTemporario(caminho: string) {
 // Envio direto do navegador para o Storage (sem passar pelo limite de 4,5 MB da Vercel): o servidor autoriza
 // um caminho de cada vez e o navegador faz o PUT nesse endereço. Vale por 2 horas.
 export async function linkDeEnvio(caminho: string) {
+  const c = r2()
+  if (c) return linkAssinado(c, 'PUT', caminho, 7200)
   const r = await fetch(`${base()}/object/upload/sign/${BUCKET}/${caminho}`, { method: 'POST', headers: cabecalhos() })
   if (!r.ok) throw new Error(`Falha ao autorizar o envio (${r.status}): ${await r.text()}`)
   const { url } = (await r.json()) as { url: string }

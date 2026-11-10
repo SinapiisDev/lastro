@@ -46,7 +46,7 @@ Em Financeiro › Contas a pagar › **Importar planilha**, o financeiro ou o do
 - Numa planilha mais nova, o que foi pago no sistema antigo depois da última importação é baixado aqui: o par da parcela é o vencimento e o valor (pago com juros fica com o valor pago; pago em parte vira parcela paga + o resto, igual ao pagamento parcial do sistema). Parcela já paga aqui não muda.
 - Uma obra da planilha pode ficar de fora ("Não importar"), por exemplo as despesas do escritório de outra empresa; dá para importar depois com a mesma planilha.
 
-**Anexos** (Importar planilha › Importar anexos): escolha a pasta baixada do sistema antigo, com uma subpasta por documento com o número dele (ex.: `001840/nota.pdf`). Cada arquivo é anexado ao documento importado de mesmo número, com o tipo pelo nome (XML e "NF" = nota fiscal, "boleto", "comprovante"…). O navegador sobe direto para o Storage, com um endereço autorizado pelo servidor para cada arquivo (sem o limite de 4 MB das telas); enviar a pasta de novo pula o que já subiu.
+**Anexos** (Importar planilha › Importar anexos): escolha a pasta baixada do sistema antigo, com uma subpasta por documento com o número dele (ex.: `001840/nota.pdf`). Cada arquivo é anexado ao documento importado de mesmo número, com o tipo pelo nome (XML e "NF" = nota fiscal, "boleto", "comprovante"…). O navegador sobe direto para o armazenamento (R2 ou Storage), com um endereço autorizado pelo servidor para cada arquivo (sem o limite de 4 MB das telas); enviar a pasta de novo pula o que já subiu.
 
 ## Contas bancárias e conciliação
 
@@ -78,6 +78,7 @@ npm run dev # liga o Supabase local (aplica supabase/migrations) e depois o site
 | `DATABASE_URL` | Conexão do Postgres do Supabase. No computador: `postgresql://postgres:postgres@127.0.0.1:54322/postgres`. Em produção, a do pooler em modo **Transaction** (porta 6543). |
 | `SUPABASE_URL` | Endereço do projeto Supabase (no computador: `http://127.0.0.1:54321`). |
 | `SUPABASE_SERVICE_ROLE_KEY` | Chave secreta do Supabase (service role / `sb_secret_...`). Só no servidor, nunca no navegador. |
+| `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET` | Cloudflare R2, onde ficam os arquivos (anexos, fotos, diário): 10 GB grátis. Sem eles, os arquivos vão para o Storage do Supabase (1 GB no plano gratuito). Veja "Arquivos no Cloudflare R2". |
 | `SESSION_SECRET` | Assina o cookie de entrada. Texto aleatório de 32+ caracteres. |
 | `PLATAFORMA_ADMINS` | E-mails de quem administra o sistema (vende), separados por vírgula. Eles veem a Administração do sistema. |
 | `CRON_SECRET` | Senha da rotina diária de lembretes (a Vercel envia sozinha). Texto aleatório de 32+ caracteres. |
@@ -92,11 +93,35 @@ Testes das regras (faixas, parcelas, fluxo de caixa, fracionamento, frete, propo
 
 ## Colocar no ar
 
-1. Crie o projeto no Supabase na região São Paulo (plano Pro para ter backup diário).
+1. Crie o projeto no Supabase na região São Paulo. No plano gratuito, use o R2 para os arquivos e o backup pelo GitHub (abaixo).
 2. Aplique o banco: `npx supabase login`, `npx supabase link --project-ref <ref>`, `npx supabase db push`.
 3. Na Vercel, importe o repositório e defina as variáveis da tabela acima. `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` ficam em Project Settings → API Keys do Supabase.
 4. Configure o WhatsApp oficial (abaixo): é por ele que saem as cotações e os pedidos.
 5. Abra o site e clique em "Criar minha construtora". Ponha o seu e-mail em `PLATAFORMA_ADMINS` para ver a Administração do sistema.
+
+### Arquivos no Cloudflare R2
+
+1. No painel da Cloudflare, R2 Object Storage: ative o R2 (plano gratuito) e crie o bucket `lastro-anexos`.
+2. No bucket, Settings › CORS Policy, libere o envio pelo navegador:
+   ```json
+   [{ "AllowedOrigins": ["https://lastro-tawny.vercel.app"], "AllowedMethods": ["GET", "PUT"], "AllowedHeaders": ["*"], "MaxAgeSeconds": 3600 }]
+   ```
+3. R2 › Manage API tokens › Create API token: permissão **Object Read & Write**, só no bucket `lastro-anexos`.
+4. Na Vercel, as 4 variáveis `R2_*` (tabela acima) e publique de novo (a CSP do site é montada no build com o endereço do R2).
+
+O bucket fica fechado: o servidor assina um link por arquivo, que vale 60 s para abrir e 2 h para enviar (`src/lib/s3-assinado.ts`).
+
+### Backup do banco
+
+A rotina `.github/workflows/backup.yml` copia o banco todo dia às 3h e guarda no R2: `backup/diario/dia-DD.dump` (os últimos ~30 dias) e `backup/mensal/AAAA-MM.dump` (a do dia 1, para sempre). Para ligar, no GitHub (Settings › Secrets and variables › Actions) crie:
+
+| Segredo | Valor |
+|---|---|
+| `BACKUP_DATABASE_URL` | Supabase › Connect › **Session pooler** (porta 5432), com a senha do banco no lugar de `[YOUR-PASSWORD]`. |
+| `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | Os mesmos da Vercel. |
+
+Teste na aba Actions › Backup do banco › Run workflow. Para restaurar (num projeto novo ou no mesmo, que é apagado e refeito): baixe o `.dump` do R2 e rode
+`pg_restore --no-owner --clean --if-exists -d "<Session pooler>" lastro.dump` (Postgres 17).
 
 ### WhatsApp oficial (Meta)
 
