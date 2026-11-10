@@ -27,8 +27,20 @@ function Barra({ valor, estouro }: { valor: number; estouro?: boolean }) {
   )
 }
 
-function Valores({ l, forte }: { l: Linha; forte?: boolean }) {
+function Valores({ l, forte, semPrevisto }: { l: Linha; forte?: boolean; semPrevisto?: boolean }) {
   const saldo = l.previsto - l.realizado
+  // Linha sem orçamento (gastos do sistema antigo): só o realizado tem sentido.
+  if (semPrevisto)
+    return (
+      <>
+        <Td num className="text-ink-3">—</Td>
+        <Td num forte={forte}>
+          <Dinheiro valor={l.realizado} />
+        </Td>
+        <Td num className="text-ink-3">—</Td>
+        <Td num className="text-ink-3">—</Td>
+      </>
+    )
   return (
     <>
       <Td num forte={forte}>
@@ -59,7 +71,7 @@ export default async function Apropriacao({ params, searchParams }: PageProps<'/
     select o.nome, (select v.versao from v_orcamento_vigente v where v.obra_id = o.id) as versao from obras o where o.id = ${id}`
   if (!obra) notFound()
   const [etapas, subs] = await Promise.all([
-    sql<{ id: number; nome: string }[]>`select id, nome from etapas where obra_id = ${id} order by ordem, id`,
+    sql<{ id: number; nome: string; importada: boolean }[]>`select id, nome, importada from etapas where obra_id = ${id} order by ordem, id`,
     sql<Sub[]>`
       select s.id, s.etapa_id as "etapaId", s.nome, s.grupo,
         coalesce(p.previsto, 0) as previsto,
@@ -72,11 +84,14 @@ export default async function Apropriacao({ params, searchParams }: PageProps<'/
       order by s.ordem, s.id`,
   ])
 
-  const lista = etapas.map((e) => {
+  const porEtapa = etapas.map((e) => {
     const filhas = subs.filter((x) => x.etapaId === e.id)
     return { ...e, subs: filhas, ...soma(filhas) }
   })
-  const total = soma(lista)
+  // Documentos do sistema antigo não dizem a etapa: entram no realizado da obra numa linha à parte, sem número de fase.
+  const lista = porEtapa.filter((e) => !e.importada)
+  const antigo = soma(porEtapa.filter((e) => e.importada))
+  const total = soma([...lista, antigo])
   const grupos = new Set(subs.filter((x) => x.grupo).map((x) => `${x.etapaId}|${x.grupo}`)).size
   const contagem = `${etapas.length} ${etapas.length === 1 ? 'fase' : 'fases'} · ${grupos} ${grupos === 1 ? 'subfase' : 'subfases'} · ${subs.length} ${subs.length === 1 ? 'serviço' : 'serviços'}`
 
@@ -180,6 +195,14 @@ export default async function Apropriacao({ params, searchParams }: PageProps<'/
                       ])
                     : []),
                 ])}
+                {antigo.realizado > 0 && (
+                  <tr>
+                    <Td forte>
+                      Gastos do sistema antigo <span className="font-normal text-ink-3">(sem etapa)</span>
+                    </Td>
+                    <Valores l={antigo} semPrevisto />
+                  </tr>
+                )}
               </tbody>
               <tfoot>
                 <tr className="bg-surface-2">
@@ -190,6 +213,7 @@ export default async function Apropriacao({ params, searchParams }: PageProps<'/
             </Tabela>
             <p className="mt-3 text-label text-ink-3">
               Realizado = compras aprovadas da obra. Medido = previsto de cada serviço × % feito marcado pelo engenheiro.
+              {antigo.realizado > 0 && ' Gastos do sistema antigo = documentos importados do Obra Prima, que não dizem a etapa: contam no realizado da obra, não nas fases.'}
             </p>
           </Cartao>
         </>

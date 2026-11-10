@@ -15,13 +15,13 @@ const emLotes = <T>(lista: T[]) => Array.from({ length: Math.ceil(lista.length /
 async function servicoDaObra(tx: Tx, obraId: number) {
   const [s] = await tx<{ id: number }[]>`
     select s.id from subetapas s join etapas e on e.id = s.etapa_id
-    where e.obra_id = ${obraId} and e.nome = ${ETAPA_IMPORTADOS} and s.nome = ${SUBETAPA_IMPORTADOS} order by s.id limit 1`
+    where e.obra_id = ${obraId} and e.importada and s.nome = ${SUBETAPA_IMPORTADOS} order by s.id limit 1`
   if (s) return s.id
-  let [e] = await tx<{ id: number }[]>`select id from etapas where obra_id = ${obraId} and nome = ${ETAPA_IMPORTADOS} order by id limit 1`
+  let [e] = await tx<{ id: number }[]>`select id from etapas where obra_id = ${obraId} and importada order by id limit 1`
   e ??= (
     await tx<{ id: number }[]>`
-      insert into etapas (obra_id, nome, ordem)
-      values (${obraId}, ${ETAPA_IMPORTADOS}, (select coalesce(max(ordem), 0) + 1 from etapas where obra_id = ${obraId})) returning id`
+      insert into etapas (obra_id, nome, ordem, importada)
+      values (${obraId}, ${ETAPA_IMPORTADOS}, (select coalesce(max(ordem), 0) + 1 from etapas where obra_id = ${obraId}), true) returning id`
   )[0]
   const [n] = await tx<{ id: number }[]>`
     insert into subetapas (etapa_id, nome, ordem)

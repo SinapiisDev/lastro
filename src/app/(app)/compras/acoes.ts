@@ -30,7 +30,7 @@ export async function criarCompra(_: Estado, d: FormData): Promise<Estado> {
 
   const subetapaId = Number(d.get('subetapa'))
   const [sub] = await sql`
-    select 1 from subetapas s join etapas e on e.id = s.etapa_id where s.id = ${subetapaId} and e.obra_id = ${obraId}`
+    select 1 from subetapas s join etapas e on e.id = s.etapa_id where s.id = ${subetapaId} and e.obra_id = ${obraId} and not e.importada`
   if (!sub) return { erro: 'Escolha a etapa da obra a que a compra pertence.' }
 
   // Item do orçamento vigente, na mesma subetapa; vazio = compra fora do orçamento.

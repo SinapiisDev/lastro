@@ -53,7 +53,7 @@ export async function criarDocumentoPagar(_: Estado, d: FormData): Promise<Estad
   const obraId = Number(d.get('obra'))
   const subetapaId = Number(d.get('subetapa'))
   const [sub] = obraId && subetapaId
-    ? await sql`select 1 from subetapas s join etapas e on e.id = s.etapa_id join obras o on o.id = e.obra_id where s.id = ${subetapaId} and o.id = ${obraId}`
+    ? await sql`select 1 from subetapas s join etapas e on e.id = s.etapa_id join obras o on o.id = e.obra_id where s.id = ${subetapaId} and o.id = ${obraId} and not e.importada`
     : []
   if (!sub) return { erro: 'Escolha a obra e o serviço (etapa) a que o documento pertence.' }
   const doc = lerDocumento(d)

@@ -14,13 +14,13 @@ const texto = (d: FormData, campo: string) => String(d.get(campo) ?? '').trim()
 const podeMexer = async (s: Sessao, obraId: number) => podeVerObra(s, obraId) && (s.perfil !== 'compras' || (await atuaNaObra(s, obraId)))
 
 async function obraDaEtapa(s: Sessao, etapaId: number) {
-  const [e] = await sql<{ obraId: number }[]>`select obra_id as "obraId" from etapas where id = ${etapaId}`
+  const [e] = await sql<{ obraId: number }[]>`select obra_id as "obraId" from etapas where id = ${etapaId} and not importada`
   if (!e || !(await podeMexer(s, e.obraId))) notFound()
 }
 
 async function obraDaSubetapa(s: Sessao, subetapaId: number) {
   const [e] = await sql<{ obraId: number }[]>`
-    select e.obra_id as "obraId" from subetapas s join etapas e on e.id = s.etapa_id where s.id = ${subetapaId}`
+    select e.obra_id as "obraId" from subetapas s join etapas e on e.id = s.etapa_id where s.id = ${subetapaId} and not e.importada`
   if (!e || !(await podeMexer(s, e.obraId))) notFound()
 }
 

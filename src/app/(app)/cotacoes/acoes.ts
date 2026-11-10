@@ -50,7 +50,7 @@ export async function criarCotacao(_: Estado, d: FormData): Promise<Estado> {
   if (todos.some((i) => !i.subetapaId)) return { erro: 'Escolha a etapa de cada item fora do orçamento.' }
   const subs = await sql<{ id: number }[]>`
     select s.id from subetapas s join etapas e on e.id = s.etapa_id
-    where e.obra_id = ${obraId} and s.id in ${sql(todos.map((i) => i.subetapaId))}`
+    where e.obra_id = ${obraId} and not e.importada and s.id in ${sql(todos.map((i) => i.subetapaId))}`
   if (todos.some((i) => !subs.some((x) => x.id === i.subetapaId))) return { erro: 'Escolha a etapa de cada item fora do orçamento.' }
 
   const fornecedores = d.getAll('fornecedor').map(Number).filter(Boolean)

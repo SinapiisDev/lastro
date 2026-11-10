@@ -90,7 +90,7 @@ export default async function DiaDoDiario({ params, searchParams }: PageProps<'/
       sql<{ nome: string }[]>`select nome from fornecedores order by nome`,
       sql<{ nome: string }[]>`
         select e.nome || '/' || s.nome as nome from etapas e join subetapas s on s.etapa_id = e.id
-        where e.obra_id = ${id} order by e.ordem, e.id, s.ordem, s.id`,
+        where e.obra_id = ${id} and not e.importada order by e.ordem, e.id, s.ordem, s.id`,
     ])
     return (
       <>

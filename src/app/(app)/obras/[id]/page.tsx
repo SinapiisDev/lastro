@@ -67,8 +67,11 @@ export default async function Obra({ params, searchParams }: PageProps<'/obras/[
       orcamento_antigo as "orcamentoAntigo", controla_estoque as "controlaEstoque"
     from obras where id = ${id}`
   if (!obra) notFound()
-  const etapas = await sql<{ id: number; nome: string; ordem: number }[]>`
-    select id, nome, ordem from etapas where obra_id = ${id} order by ordem, id`
+  const todas = await sql<{ id: number; nome: string; ordem: number; importada: boolean }[]>`
+    select id, nome, ordem, importada from etapas where obra_id = ${id} order by ordem, id`
+  // A etapa dos documentos do sistema antigo não é fase de obra: fica fora da lista e do avanço, só soma no gasto.
+  const etapas = todas.filter((e) => !e.importada)
+  const antigas = new Set(todas.filter((e) => e.importada).map((e) => e.id))
   // Previsto vem do orçamento vigente; gasto, dos itens de compras aprovadas.
   const subs = await sql<Sub[]>`
     select s.id, s.etapa_id as "etapaId", s.nome, s.grupo, s.ordem, s.progresso,
@@ -82,8 +85,10 @@ export default async function Obra({ params, searchParams }: PageProps<'/obras/[
     where e.obra_id = ${id}
     order by s.ordem, s.id`
 
+  const gastoAntigo = subs.filter((x) => antigas.has(x.etapaId)).reduce((t, x) => t + x.gasto, 0)
+  const daObra = subs.filter((x) => !antigas.has(x.etapaId))
   const lista = etapas.map((e) => {
-    const filhas = subs.filter((x) => x.etapaId === e.id)
+    const filhas = daObra.filter((x) => x.etapaId === e.id)
     return {
       ...e,
       subs: filhas,
@@ -93,8 +98,8 @@ export default async function Obra({ params, searchParams }: PageProps<'/obras/[
     }
   })
   const previstoTotal = lista.reduce((t, e) => t + e.previsto, 0)
-  const gastoTotal = lista.reduce((t, e) => t + e.gasto, 0)
-  const pctObra = progressoObra(subs)
+  const gastoTotal = lista.reduce((t, e) => t + e.gasto, 0) + gastoAntigo
+  const pctObra = progressoObra(daObra)
   const pctGasto = previstoTotal > 0 ? (gastoTotal / previstoTotal) * 100 : 0
   const emAlerta = lista.filter((e) => gastoNaFrente(e.gasto, e.previsto, e.pct)).length
   const concluidas = lista.filter((e) => e.subs.length && e.pct === 100).length
@@ -334,6 +339,25 @@ export default async function Obra({ params, searchParams }: PageProps<'/obras/[
               </div>
             </details>
           ))}
+          {gastoAntigo > 0 && (
+            <div className="grid grid-cols-[28px_1fr] items-center gap-x-4 gap-y-2 rounded-lg border border-dashed border-line px-5 py-4 lg:grid-cols-[28px_minmax(150px,1.1fr)_minmax(220px,2fr)_150px_150px_28px]">
+              <span />
+              <span className="flex min-w-0 flex-col gap-0.5">
+                <span className="text-[15px] font-semibold">Gastos do sistema antigo</span>
+                <span className="text-label font-medium text-ink-3">sem etapa</span>
+              </span>
+              <span className="col-span-2 text-label text-ink-3 lg:col-span-1">
+                Documentos importados do Obra Prima, que não dizem a etapa. Entram no gasto da obra, não no avanço.
+              </span>
+              <span className="col-span-2 flex justify-between text-body lg:col-span-2 lg:grid lg:grid-cols-2 lg:gap-4">
+                <span className="text-right font-semibold">
+                  <span className="text-ink-3 lg:hidden">Gasto </span>
+                  <Dinheiro valor={gastoAntigo} />
+                </span>
+                <span className="text-right font-medium text-ink-3">—</span>
+              </span>
+            </div>
+          )}
         </section>
       )}
 

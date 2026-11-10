@@ -22,7 +22,7 @@ export default async function NovaCotacao({ searchParams }: PageProps<'/cotacoes
       order by e.ordem, e.id, s.ordem, s.id, i.id`,
     sql<{ id: number; nome: string; etapa: string }[]>`
       select s.id, s.nome, e.nome as etapa from subetapas s join etapas e on e.id = s.etapa_id
-      where e.obra_id = ${obraId} order by e.ordem, e.id, s.ordem, s.id`,
+      where e.obra_id = ${obraId} and not e.importada order by e.ordem, e.id, s.ordem, s.id`,
     // Sugeridos: quem já vendeu para esta obra aparece primeiro.
     sql<{ id: number; nome: string; whatsapp: string | null; vendas: number }[]>`
       select f.id, f.nome, f.whatsapp, (select count(*) from compras c where c.fornecedor_id = f.id and c.obra_id = ${obraId})::int as vendas

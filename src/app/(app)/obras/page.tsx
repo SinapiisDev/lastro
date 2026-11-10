@@ -22,7 +22,7 @@ export default async function Obras() {
       coalesce((select sum(valor) from v_compras c where c.obra_id = o.id and c.situacao = 'aprovada'), 0) as gasto,
       coalesce((select json_agg(json_build_object('etapaId', e.id, 'progresso', s.progresso, 'previsto', coalesce(p.previsto, 0)))
         from etapas e join subetapas s on s.etapa_id = e.id left join v_previsto p on p.subetapa_id = s.id
-        where e.obra_id = o.id), '[]') as servicos
+        where e.obra_id = o.id and not e.importada), '[]') as servicos
     from obras o
     ${minhas ? sql`where exists (select 1 from usuario_obras uo where uo.obra_id = o.id and uo.usuario_id = ${s.usuarioId})` : sql``}
     order by o.ativa desc, o.nome`

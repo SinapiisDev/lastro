@@ -81,7 +81,7 @@ export async function adicionarItem(orcamentoId: number, subetapaId: number, _: 
   const s = await exigir()
   const o = await carregar(orcamentoId)
   const [sub] = await sql`
-    select 1 from subetapas s join etapas e on e.id = s.etapa_id where s.id = ${subetapaId} and e.obra_id = ${o.obraId}`
+    select 1 from subetapas s join etapas e on e.id = s.etapa_id where s.id = ${subetapaId} and e.obra_id = ${o.obraId} and not e.importada`
   if (!sub) notFound()
   const item = lerItem(d)
   if (typeof item === 'string') return { erro: item }

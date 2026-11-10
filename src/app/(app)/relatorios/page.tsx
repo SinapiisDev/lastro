@@ -32,11 +32,13 @@ export default async function Relatorios({ searchParams }: PageProps<'/relatorio
       where c.situacao = 'aprovada' ${periodo}
       group by c.obra_id, c.etapa_id`,
     sql<{ obraId: number; obra: string; etapaId: number; etapa: string; previsto: number }[]>`
-      select o.id as "obraId", o.nome as obra, e.id as "etapaId", e.nome as etapa,
+      select o.id as "obraId", o.nome as obra, e.id as "etapaId",
+        -- documentos do sistema antigo não dizem a etapa: linha à parte, no fim
+        case when e.importada then 'Gastos do sistema antigo (sem etapa)' else e.nome end as etapa,
         coalesce((select sum(v.previsto) from v_previsto v join subetapas s on s.id = v.subetapa_id where s.etapa_id = e.id), 0) as previsto
       from etapas e join obras o on o.id = e.obra_id
       ${obraId ? sql`where o.id = ${obraId}` : sql``}
-      order by o.nome, e.ordem, e.id`,
+      order by o.nome, e.importada, e.ordem, e.id`,
     sql<{ fornecedor: string; compras: number; total: number; obras: string }[]>`
       select c.fornecedor, count(*)::int as compras, sum(c.valor) as total, string_agg(distinct c.obra, ', ') as obras
       from v_compras c where c.situacao = 'aprovada' ${periodo}

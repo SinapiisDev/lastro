@@ -89,7 +89,7 @@ export default async function OrcamentoObra({ params, searchParams }: PageProps<
   const [subs, itens, [{ fora }], config] = await Promise.all([
     sql<Sub[]>`
       select s.id, s.nome, e.id as "etapaId", e.nome as etapa, s.grupo, s.quantidade, s.unidade from subetapas s join etapas e on e.id = s.etapa_id
-      where e.obra_id = ${obraId} order by e.ordem, e.id, s.ordem, s.id`,
+      where e.obra_id = ${obraId} and not e.importada order by e.ordem, e.id, s.ordem, s.id`,
     sql<Item[]>`
       select i.id, i.subetapa_id as "subetapaId", i.descricao, i.unidade, i.quantidade, i.preco_unitario as preco, i.tipo,
         round(i.quantidade * i.preco_unitario, 2) as total,

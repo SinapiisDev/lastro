@@ -17,7 +17,7 @@ export default async function NovaCompra({ searchParams }: PageProps<'/compras/n
   const [subs, itens, fornecedores, config, dia] = await Promise.all([
     sql<{ id: number; nome: string; etapaId: number; etapa: string }[]>`
       select s.id, s.nome, e.id as "etapaId", e.nome as etapa from subetapas s join etapas e on e.id = s.etapa_id
-      where e.obra_id = ${obraId} order by e.ordem, e.id, s.ordem, s.id`,
+      where e.obra_id = ${obraId} and not e.importada order by e.ordem, e.id, s.ordem, s.id`,
     // Itens do orçamento vigente com quanto já foi comprado (compras aprovadas) de cada um.
     sql<ItemOrcado[]>`
       select i.chave, i.subetapa_id as "subetapaId", i.descricao, i.unidade, i.quantidade,
