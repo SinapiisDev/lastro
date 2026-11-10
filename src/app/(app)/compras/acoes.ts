@@ -3,7 +3,7 @@
 import { redirect, notFound } from 'next/navigation'
 import { refresh } from 'next/cache'
 import { sql, escrever, lerConfig } from '@/lib/db'
-import { exigirSessao, podeVerObra, nomePerfil, obraDeTrabalho, ehFinanceiro, type Sessao } from '@/lib/sessao'
+import { exigirSessao, podeVerObra, nomePerfil, obraDeTrabalho, podeVerDocumento, type Sessao } from '@/lib/sessao'
 import { faixaDaCompra, centavos, brl, dataBR, restanteDoPagamento } from '@/lib/regras'
 import { registrarCompra } from '@/lib/compras'
 import { enviarPedido } from '@/lib/conversa'
@@ -17,9 +17,9 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const TIPOS_ANEXO =['nota_fiscal', 'orcamento', 'pedido', 'boleto', 'comprovante', 'outro']
 
 async function carregarCompra(s: Sessao, id: number) {
-  const [c] = await sql<{ obraId: number; situacao: string; origem: string }[]>`
-    select obra_id as "obraId", situacao, origem from v_compras where id = ${id}`
-  if (!c || !podeVerObra(s, c.obraId) || (c.origem === 'financeiro' && !ehFinanceiro(s))) notFound()
+  const [c] = await sql<{ obraId: number; situacao: string; origem: string; importacaoChave: string | null }[]>`
+    select obra_id as "obraId", situacao, origem, importacao_chave as "importacaoChave" from v_compras where id = ${id}`
+  if (!c || !podeVerObra(s, c.obraId) || !podeVerDocumento(s, c)) notFound()
   return c
 }
 

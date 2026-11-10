@@ -26,7 +26,7 @@ export default async function Compras({ searchParams }: PageProps<'/compras'>) {
   >`
     select id, criada_em as "criadaEm", obra, etapa, subetapa, fornecedor, descricao, valor, status, origem
     from v_compras
-    where true ${ehFinanceiro(s) ? sql`` : sql`and origem = 'obra'`} ${obraId ? sql`and obra_id = ${obraId}` : sql``} ${status ? sql`and status = ${status}` : sql``}
+    where true ${ehFinanceiro(s) ? sql`` : s.perfil === 'compras' ? sql`and (origem = 'obra' or importacao_chave is not null)` : sql`and origem = 'obra'`} ${obraId ? sql`and obra_id = ${obraId}` : sql``} ${status ? sql`and status = ${status}` : sql``}
     order by id desc
     limit 300`
 

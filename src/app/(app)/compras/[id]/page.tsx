@@ -28,7 +28,7 @@ import {
   type EstadoPasso,
 } from '@ds'
 import { sql } from '@/lib/db'
-import { exigirSessao, podeVerObra, ehFinanceiro } from '@/lib/sessao'
+import { exigirSessao, podeVerObra, podeVerDocumento } from '@/lib/sessao'
 import { brl, dataBR, mesBR, projetarFluxo } from '@/lib/regras'
 import { contextoFluxo } from '@/lib/fluxo'
 import { descreverEvento, quando, NOME_DOCUMENTO, type Evento } from '@/lib/historico'
@@ -66,6 +66,7 @@ type Compra = {
   cotacaoId: number | null
   pedidoEnviado: Date | null
   origem: string
+  importacaoChave: string | null
   natureza: string
   tipoDocumento: string | null
   numeroDocumento: string | null
@@ -79,9 +80,9 @@ export default async function DetalheCompra({ params }: PageProps<'/compras/[id]
   const [c] = await sql<Compra[]>`
     select id, obra_id as "obraId", obra, etapa, subetapa, fornecedor, descricao, valor, justificativa,
            faixa, situacao, status, motivo, criada_em as "criadaEm", cotacao_id as "cotacaoId", pedido_enviado_em as "pedidoEnviado",
-           origem, natureza, tipo_documento as "tipoDocumento", numero_documento as "numeroDocumento", emissao
+           origem, importacao_chave as "importacaoChave", natureza, tipo_documento as "tipoDocumento", numero_documento as "numeroDocumento", emissao
     from v_compras where id = ${id}`
-  if (!c || !podeVerObra(s, c.obraId) || (c.origem === 'financeiro' && !ehFinanceiro(s))) notFound()
+  if (!c || !podeVerObra(s, c.obraId) || !podeVerDocumento(s, c)) notFound()
   const documento = c.origem === 'financeiro'
 
   const [itens, parcelas, anexos, eventos] = await Promise.all([

@@ -132,6 +132,11 @@ export function podeVerObra(s: Sessao, obraId: number) {
 // Quem cuida do dinheiro: aprova, paga e vê os documentos do financeiro (imposto, salário…).
 export const ehFinanceiro = (s: Sessao) => s.perfil === 'financeiro' || s.perfil === 'chefe'
 
+// Documento lançado pelo financeiro: só quem cuida do dinheiro. Os que vieram do sistema antigo (Obra Prima) são o
+// histórico das obras e também ficam abertos ao setor de compras (decisão do dono, inclusive folha e impostos).
+export const podeVerDocumento = (s: Sessao, c: { origem: string; importacaoChave: string | null }) =>
+  c.origem !== 'financeiro' || ehFinanceiro(s) || (s.perfil === 'compras' && c.importacaoChave !== null)
+
 // Como a pessoa aparece no histórico.
 export const nomePerfil = (s: Sessao) => `${s.nome} (${ROTULO_PERFIL[s.perfil]})`
 

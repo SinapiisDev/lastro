@@ -1,14 +1,14 @@
 import { redirect } from 'next/navigation'
 import { sql } from '@/lib/db'
-import { exigirSessao, podeVerObra, ehFinanceiro } from '@/lib/sessao'
+import { exigirSessao, podeVerObra, podeVerDocumento } from '@/lib/sessao'
 import { linkTemporario } from '@/lib/storage'
 
 // Confere quem está pedindo e devolve um link do arquivo que vale por 60 segundos.
 export async function GET(_: Request, { params }: RouteContext<'/anexos/[id]'>) {
   const s = await exigirSessao()
   const id = Number((await params).id)
-  const [a] = await sql<{ caminho: string; obraId: number; origem: string }[]>`
-    select a.caminho, c.obra_id as "obraId", c.origem from anexos a join v_compras c on c.id = a.compra_id where a.id = ${id}`
-  if (!a || !podeVerObra(s, a.obraId) || (a.origem === 'financeiro' && !ehFinanceiro(s))) return new Response('Documento não encontrado', { status: 404 })
+  const [a] = await sql<{ caminho: string; obraId: number; origem: string; importacaoChave: string | null }[]>`
+    select a.caminho, c.obra_id as "obraId", c.origem, c.importacao_chave as "importacaoChave" from anexos a join v_compras c on c.id = a.compra_id where a.id = ${id}`
+  if (!a || !podeVerObra(s, a.obraId) || !podeVerDocumento(s, a)) return new Response('Documento não encontrado', { status: 404 })
   redirect(await linkTemporario(a.caminho))
 }
