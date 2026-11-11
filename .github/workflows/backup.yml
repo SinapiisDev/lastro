@@ -1,0 +1,46 @@
+name: Backup do banco
+
+# Uma cópia do banco por dia, guardada no Cloudflare R2 (pasta backup/ do bucket dos anexos):
+#   backup/diario/dia-DD.dump  → uma por dia do mês (a do mês seguinte substitui), ou seja, os últimos ~30 dias;
+#   backup/mensal/AAAA-MM.dump → a do dia 1 de cada mês, guardada para sempre.
+# Restaurar: veja "Backup do banco" no README.
+on:
+  schedule:
+    - cron: '0 6 * * *' # 3h da manhã em Brasília
+  workflow_dispatch: # botão "Run workflow" na aba Actions, para testar ou tirar uma cópia na hora
+
+concurrency: backup
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Copiar o banco
+        env:
+          BACKUP_DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+        run: |
+          test -n "$BACKUP_DATABASE_URL" || { echo "Falta o segredo BACKUP_DATABASE_URL"; exit 1; }
+          docker run --rm -e BACKUP_DATABASE_URL postgres:17-alpine \
+            sh -c 'pg_dump "$BACKUP_DATABASE_URL" --format=custom --no-owner --schema=public --schema=supabase_migrations' > lastro.dump
+          tamanho=$(stat -c %s lastro.dump)
+          echo "Cópia com $((tamanho / 1024)) KB"
+          test "$tamanho" -gt 50000 || { echo "Cópia pequena demais: algo deu errado"; exit 1; }
+
+      - name: Guardar no R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+          AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BUCKET: lastro-anexos
+        run: |
+          endereco="${R2_ENDPOINT:-https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com}"
+          dia=$(TZ=America/Sao_Paulo date +%d)
+          aws s3 cp lastro.dump "s3://$R2_BUCKET/backup/diario/dia-$dia.dump" --endpoint-url "$endereco" --only-show-errors
+          if [ "$dia" = "01" ]; then
+            aws s3 cp lastro.dump "s3://$R2_BUCKET/backup/mensal/$(TZ=America/Sao_Paulo date +%Y-%m).dump" --endpoint-url "$endereco" --only-show-errors
+          fi
+          echo "Guardado em backup/diario/dia-$dia.dump"
