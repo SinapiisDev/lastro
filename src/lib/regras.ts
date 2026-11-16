@@ -77,6 +77,14 @@ export function progressoObra(servicos: { etapaId: number; progresso: number; pr
   return progressoEtapa(etapas.map((id) => progressoPorValor(servicos.filter((x) => x.etapaId === id))))
 }
 
+// % feito de um serviço pelo que já foi medido nos contratos (mesma unidade do orçamento). Arredonda para baixo:
+// só chega a 100% com tudo medido. null = não dá para calcular (serviço sem quantidade ou unidade diferente).
+export function avancoMedido(medido: number, servico: { quantidade: number | null; unidade: string | null }, unidadeMedida: string) {
+  const igual = (a: string) => a.trim().toLowerCase().replace(/[²2]/g, '2').replace(/[³3]/g, '3').replace(/\.$/, '')
+  if (!servico.quantidade || servico.quantidade <= 0 || !servico.unidade || igual(servico.unidade) !== igual(unidadeMedida)) return null
+  return Math.min(100, Math.floor((medido / servico.quantidade) * 100 + 1e-9))
+}
+
 // Laranja quando o dinheiro gasto corre na frente do serviço feito.
 export function gastoNaFrente(gasto: number, previsto: number, progresso: number) {
   if (previsto <= 0) return gasto > 0

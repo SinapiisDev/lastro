@@ -13,7 +13,19 @@ import {
   totalItem,
   comBdi,
   restanteDoPagamento,
+  avancoMedido,
 } from './regras.ts'
+
+test('medição: % feito do serviço pelo medido nos contratos', () => {
+  const pintura = { quantidade: 1000, unidade: 'm²' }
+  assert.equal(avancoMedido(200, pintura, 'm²'), 20)
+  assert.equal(avancoMedido(200, pintura, 'M2'), 20) // mesma unidade escrita de outro jeito
+  assert.equal(avancoMedido(999.9, pintura, 'm²'), 99) // só 100% com tudo medido
+  assert.equal(avancoMedido(1200, pintura, 'm²'), 100)
+  assert.equal(avancoMedido(10, pintura, 'vb'), null) // unidade diferente: não dá para converter
+  assert.equal(avancoMedido(10, { quantidade: 0, unidade: 'm²' }, 'm²'), null)
+  assert.equal(avancoMedido(10, { quantidade: null, unidade: null }, 'm²'), null)
+})
 
 test('orçamento: total do item em centavos e preço com BDI', () => {
   assert.equal(totalItem(3, 0.1), 0.3) // 3 × 0,10 sem erro de ponto flutuante

@@ -137,6 +137,11 @@ export const ehFinanceiro = (s: Sessao) => s.perfil === 'financeiro' || s.perfil
 export const podeVerDocumento = (s: Sessao, c: { origem: string; importacaoChave: string | null }) =>
   c.origem !== 'financeiro' || ehFinanceiro(s) || (s.perfil === 'compras' && c.importacaoChave !== null)
 
+// Contratos de empreitada: engenheiro (na obra dele), setor de compras e dono montam; medição é do engenheiro da
+// obra (ou do dono), que é quem aprova.
+export const podeContratar = (s: Sessao) => s.perfil === 'obra' || s.perfil === 'compras' || s.perfil === 'chefe'
+export const podeMedir = (s: Sessao, obraId: number) => s.perfil === 'chefe' || (s.perfil === 'obra' && s.obraId === obraId)
+
 // Como a pessoa aparece no histórico.
 export const nomePerfil = (s: Sessao) => `${s.nome} (${ROTULO_PERFIL[s.perfil]})`
 
