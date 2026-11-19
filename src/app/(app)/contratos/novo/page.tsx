@@ -1,6 +1,6 @@
 import { sql, hoje } from '@/lib/db'
 import { exigirSessao, obraDeTrabalho } from '@/lib/sessao'
-import { CabecalhoTela, Campo, Cartao, Entrada, FormAcao, Selecao } from '@ds'
+import { CabecalhoTela, Campo, Cartao, Entrada, FormAcao, SelecaoBusca } from '@ds'
 import { EscolherObra } from '@/components/escolher-obra'
 import { ItensContrato } from '../itens'
 import { servicosDaObra } from '../servicos'
@@ -29,14 +29,11 @@ export default async function NovoContrato({ searchParams }: PageProps<'/contrat
           </Campo>
           <div className="grid gap-3.5 sm:grid-cols-2">
             <Campo rotulo="Empreiteiro" ajuda="Não está na lista? Deixe em branco e escreva o nome ao lado.">
-              <Selecao name="fornecedor" defaultValue="">
-                <option value="">Novo empreiteiro…</option>
-                {fornecedores.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.nome}
-                  </option>
-                ))}
-              </Selecao>
+              <SelecaoBusca
+                name="fornecedor"
+                placeholder="Digite o nome do empreiteiro"
+                opcoes={[{ valor: '', rotulo: 'Novo empreiteiro (escrever o nome ao lado)' }, ...fornecedores.map((f) => ({ valor: String(f.id), rotulo: f.nome }))]}
+              />
             </Campo>
             <Campo rotulo="Nome do empreiteiro novo">
               <Entrada name="fornecedor_nome" placeholder="Só se não estiver na lista" />
@@ -54,6 +51,7 @@ export default async function NovoContrato({ searchParams }: PageProps<'/contrat
             <h2 className="font-display text-h2 font-normal">Serviços contratados</h2>
             <p className="text-[13px] text-ink-2">
               Escolha o serviço do orçamento e informe só o que foi empreitado: se a obra tem 1.000 m² de pintura e o contrato é de 200 m², a quantidade é 200.
+              Pacote com vários serviços (pintura interna, externa, de forro…)? Use <strong>Adicionar outro serviço</strong>.
             </p>
           </div>
           {servicos.length ? (

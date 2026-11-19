@@ -1,12 +1,13 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { CabecalhoTela, Campo, Dinheiro, Entrada, Etiqueta, FormAcao, Kpi, LinhaTotal, Secao, Situacao, Tabela, Td, Th, Tr } from '@ds'
+import { CabecalhoTela, Campo, Dinheiro, Entrada, Etiqueta, FormAcao, Kpi, LinhaTotal, Marcacao, Secao, Situacao, Tabela, Td, Th, Tr } from '@ds'
 import { sql, hoje } from '@/lib/db'
 import { exigirSessao, podeContratar, podeMedir } from '@/lib/sessao'
-import { brl, dataBR, somarDias, totalItem } from '@/lib/regras'
+import { dataBR, somarDias, totalItem } from '@/lib/regras'
 import { ItensContrato } from '../itens'
 import { servicosDaObra } from '../servicos'
-import { lancarMedicao, adicionarAditivo } from '../acoes'
+import { lancarMedicao, incluirItens } from '../acoes'
+import { CamposMedicao } from './campos-medicao'
 
 const num = (x: number) => x.toLocaleString('pt-BR', { maximumFractionDigits: 4 })
 
@@ -113,20 +114,14 @@ export default async function Contrato({ params }: PageProps<'/contratos/[id]'>)
       {medir && (
         <Secao titulo="Nova medição">
           {comSaldo.length === 0 ? (
-            <p className="text-[13px] text-ink-2">Tudo já foi medido. Para medir mais, inclua um aditivo.</p>
+            <p className="text-[13px] text-ink-2">Tudo já foi medido. Para medir mais, inclua o serviço de novo no contrato, logo abaixo.</p>
           ) : (
             <FormAcao action={lancarMedicao.bind(null, id)} botao="Lançar medição" variante="primario" className="flex flex-col gap-4">
               <p className="text-[13px] text-ink-2">
-                Informe quanto foi executado de cada serviço neste período (deixe em branco o que não andou). A medição vira uma conta a pagar ao
-                empreiteiro, já aprovada, e atualiza o % feito dos serviços na obra.
+                Informe quanto foi executado de cada serviço neste período (deixe em branco o que não andou), em quantidade, em % do item ou em valor. A
+                medição vira uma conta a pagar ao empreiteiro, já aprovada, e atualiza o % feito dos serviços na obra.
               </p>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {comSaldo.map((i) => (
-                  <Campo key={i.id} rotulo={`${i.descricao} (${i.unidade})`} ajuda={`Saldo: ${num(i.quantidade - i.medido)} ${i.unidade} · ${brl(i.precoUnitario)}/${i.unidade}`}>
-                    <Entrada name={`medir_${i.id}`} type="number" step="any" min="0" max={i.quantidade - i.medido} inputMode="decimal" />
-                  </Campo>
-                ))}
-              </div>
+              <CamposMedicao key={medicoes.length} itens={comSaldo} />
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 <Campo rotulo="Data da medição">
                   <Entrada name="data" type="date" defaultValue={dia} required />
@@ -177,12 +172,14 @@ export default async function Contrato({ params }: PageProps<'/contratos/[id]'>)
       </Secao>
 
       {aditar && (
-        <Secao titulo="Aditivo">
-          <FormAcao action={adicionarAditivo.bind(null, id)} botao="Incluir aditivo" className="flex flex-col gap-4">
+        <Secao titulo="Incluir serviços">
+          <FormAcao action={incluirItens.bind(null, id)} botao="Incluir no contrato" className="flex flex-col gap-4">
             <p className="text-[13px] text-ink-2">
-              Serviço novo ou mais quantidade de um que já está no contrato. Serviço fora do orçamento também entra: escolha a etapa onde o gasto deve cair.
+              Serviço que faltou no contrato, serviço novo ou mais quantidade de um que já está nele. Serviço fora do orçamento também entra: escolha a
+              etapa onde o gasto deve cair.
             </p>
             <ItensContrato key={itens.length} servicos={servicos} />
+            <Marcacao name="aditivo" rotulo="É aditivo (mudança combinada depois do contrato assinado)" />
           </FormAcao>
         </Secao>
       )}

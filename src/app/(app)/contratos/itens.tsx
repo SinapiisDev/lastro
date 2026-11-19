@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Botao, Campo, Dinheiro, Entrada, Selecao } from '@ds'
+import { Botao, Campo, Dinheiro, Entrada, SelecaoBusca } from '@ds'
 import { totalItem } from '@/lib/regras'
 
 export type Servico = { id: number; nome: string; etapa: string; quantidade: number | null; unidade: string | null; contratado: number }
@@ -15,7 +15,7 @@ const vazia = (): Linha => ({ k: proxima++, sub: '', desc: '', unid: '', qtd: ''
 export function ItensContrato({ servicos }: { servicos: Servico[] }) {
   const [linhas, setLinhas] = useState<Linha[]>(() => [vazia()])
   const muda = (k: number, campo: Partial<Linha>) => setLinhas((ls) => ls.map((l) => (l.k === k ? { ...l, ...campo } : l)))
-  const etapas = [...new Set(servicos.map((s) => s.etapa))]
+  const opcoes = servicos.map((x) => ({ valor: String(x.id), rotulo: x.nome, grupo: x.etapa, detalhe: x.quantidade ? `orçamento: ${num(x.quantidade)} ${x.unidade ?? ''}` : undefined }))
   const total = linhas.reduce((t, l) => t + (Number(l.qtd) > 0 && Number(l.preco) >= 0 ? totalItem(Number(l.qtd), Number(l.preco)) : 0), 0)
 
   return (
@@ -42,27 +42,16 @@ export function ItensContrato({ servicos }: { servicos: Servico[] }) {
                     : 'Serviço sem quantidade no orçamento: a medição não mexe no % feito.')
                 }
               >
-                <Selecao
+                <SelecaoBusca
                   name="item_subetapa"
-                  value={l.sub}
-                  onChange={(e) => {
-                    const novo = servicos.find((x) => String(x.id) === e.target.value)
-                    muda(l.k, { sub: e.target.value, desc: l.desc || novo?.nome || '', unid: l.unid || novo?.unidade || '' })
+                  valor={l.sub}
+                  opcoes={opcoes}
+                  placeholder="Digite o serviço (ex.: pintura)"
+                  aoMudar={(v) => {
+                    const novo = servicos.find((x) => String(x.id) === v)
+                    muda(l.k, { sub: v, desc: l.desc || novo?.nome || '', unid: l.unid || novo?.unidade || '' })
                   }}
-                >
-                  <option value="">Escolha…</option>
-                  {etapas.map((e) => (
-                    <optgroup key={e} label={e}>
-                      {servicos
-                        .filter((x) => x.etapa === e)
-                        .map((x) => (
-                          <option key={x.id} value={x.id}>
-                            {x.nome}
-                          </option>
-                        ))}
-                    </optgroup>
-                  ))}
-                </Selecao>
+                />
               </Campo>
               <Campo rotulo="Descrição no contrato">
                 <Entrada name="item_descricao" value={l.desc} onChange={(e) => muda(l.k, { desc: e.target.value })} placeholder="Ex.: Pintura de parede, 2 demãos" />
@@ -89,8 +78,8 @@ export function ItensContrato({ servicos }: { servicos: Servico[] }) {
         )
       })}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Botao type="button" variante="suave" tamanho="sm" onClick={() => setLinhas((ls) => [...ls, vazia()])}>
-          + Outro serviço
+        <Botao type="button" variante="secundario" onClick={() => setLinhas((ls) => [...ls, vazia()])}>
+          + Adicionar outro serviço
         </Botao>
         <span className="text-[13px] font-semibold">
           Total: <Dinheiro valor={total} />

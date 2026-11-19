@@ -13,6 +13,7 @@ import {
   Marca,
   Passos,
   Secao,
+  BuscaNaLista,
   Selecao,
   Situacao,
   Tabela,
@@ -188,6 +189,7 @@ export default async function OrcamentoObra({ params, searchParams }: PageProps<
               {itens.length === 0 ? (
                 <EstadoVazio titulo="Nenhum item ainda">{editor && sel.situacao === 'rascunho' ? 'Use Editar itens para incluir.' : undefined}</EstadoVazio>
               ) : (
+                <BuscaNaLista placeholder="Buscar insumo, serviço ou etapa (ex.: metal)">
                 <Tabela minimo={980}>
                   <thead>
                     <tr>
@@ -207,7 +209,10 @@ export default async function OrcamentoObra({ params, searchParams }: PageProps<
                     let n = 0
                     return (
                       <tbody key={e.id}>
-                        <tr className="bg-surface-2 font-bold [&>td]:px-2 [&>td]:py-3 [&>td:first-child]:rounded-l-md [&>td:last-child]:rounded-r-md">
+                        <tr
+                          data-busca={[e.nome, ...e.subs.flatMap((x) => [nomeServico(x), x.grupo ?? '', ...x.itens.map((i) => i.descricao)])].join(' ')}
+                          className="bg-surface-2 font-bold [&>td]:px-2 [&>td]:py-3 [&>td:first-child]:rounded-l-md [&>td:last-child]:rounded-r-md"
+                        >
                           <td className="text-ink-3">{dois(ei + 1)}</td>
                           <td colSpan={5}>{e.nome}</td>
                           <td className="text-right">
@@ -225,21 +230,24 @@ export default async function OrcamentoObra({ params, searchParams }: PageProps<
                           .filter((x) => x.itens.length)
                           .map((x, si, lista) => [
                             x.grupo && x.grupo !== lista[si - 1]?.grupo && (
-                              <tr key={`g${x.id}`}>
+                              <tr
+                                key={`g${x.id}`}
+                                data-busca={[e.nome, ...lista.filter((y) => y.grupo === x.grupo).flatMap((y) => [x.grupo, nomeServico(y), ...y.itens.map((i) => i.descricao)])].join(' ')}
+                              >
                                 <td />
                                 <td colSpan={9} className="px-2 pt-4 pb-0.5 text-label font-bold text-ink-2 uppercase">
                                   {x.grupo}
                                 </td>
                               </tr>
                             ),
-                            <tr key={`s${x.id}`}>
+                            <tr key={`s${x.id}`} data-busca={[e.nome, x.grupo ?? '', nomeServico(x), ...x.itens.map((i) => i.descricao)].join(' ')}>
                               <td />
                               <td colSpan={9} className="px-2 pt-3 pb-1 text-label font-semibold text-ink-3">
                                 {nomeServico(x)}
                               </td>
                             </tr>,
                             ...x.itens.map((i) => (
-                              <tr key={i.id} className="hover:bg-surface-2">
+                              <tr key={i.id} data-busca={`${e.nome} ${x.grupo ?? ''} ${nomeServico(x)} ${i.descricao}`} className="hover:bg-surface-2">
                                 <Td className="text-ink-3">
                                   {dois(ei + 1)}.{dois(++n)}
                                 </Td>
@@ -284,6 +292,7 @@ export default async function OrcamentoObra({ params, searchParams }: PageProps<
                     </tr>
                   </tfoot>
                 </Tabela>
+                </BuscaNaLista>
               )}
               {fora > 0 && <p className="mt-3 text-table font-semibold text-warn">Compras fora do orçamento nesta obra: {brl(fora)}.</p>}
             </Cartao>
@@ -471,9 +480,11 @@ function Editor({
   etapas: { id: number; nome: string; total: number; subs: (Sub & { itens: Item[] })[] }[]
 }) {
   return (
-    <div className="flex flex-col gap-4">
+    <BuscaNaLista placeholder="Buscar insumo, serviço ou etapa (ex.: metal)" className="gap-4">
+      <div className="flex flex-col gap-4">
       {etapas.map((e) => (
-        <Cartao key={e.id} className="grid gap-4">
+        <div key={e.id} data-busca={[e.nome, ...e.subs.flatMap((x) => [nomeServico(x), x.grupo ?? '', ...x.itens.map((i) => i.descricao)])].join(' ')}>
+        <Cartao className="grid gap-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="font-display text-h2 font-normal">{e.nome}</h2>
             <span className="text-body font-bold">
@@ -481,13 +492,13 @@ function Editor({
             </span>
           </div>
           {e.subs.map((x) => (
-            <div key={x.id} className="grid gap-3 border-l-4 border-line pl-4">
+            <div key={x.id} data-busca={[e.nome, x.grupo ?? '', nomeServico(x), ...x.itens.map((i) => i.descricao)].join(' ')} className="grid gap-3 border-l-4 border-line pl-4">
               <p className="text-table font-semibold">
                 {x.grupo && <span className="text-ink-3">{x.grupo} › </span>}
                 {nomeServico(x)}
               </p>
               {x.itens.map((i) => (
-                <div key={i.id} className="flex flex-wrap items-end gap-2 border-b border-line pb-3">
+                <div key={i.id} data-busca={`${e.nome} ${x.grupo ?? ''} ${nomeServico(x)} ${i.descricao}`} className="flex flex-wrap items-end gap-2 border-b border-line pb-3">
                   <FormAcao action={salvarItem.bind(null, i.id)} botao="Salvar" className="grid flex-1 items-end gap-2.5 sm:grid-cols-[1fr_9rem_5rem_6rem_8rem_auto]">
                     <CamposItem item={i} />
                   </FormAcao>
@@ -505,8 +516,10 @@ function Editor({
             </div>
           ))}
         </Cartao>
+        </div>
       ))}
-    </div>
+      </div>
+    </BuscaNaLista>
   )
 }
 

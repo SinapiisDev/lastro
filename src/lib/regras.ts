@@ -85,6 +85,24 @@ export function avancoMedido(medido: number, servico: { quantidade: number | nul
   return Math.min(100, Math.floor((medido / servico.quantidade) * 100 + 1e-9))
 }
 
+// Medição lançada por quantidade, por % do item contratado ou por valor em R$: tudo vira quantidade (4 casas, como
+// no banco) e valor. Por valor, o valor digitado é o que vale (a quantidade sai dele).
+export type ModoMedicao = 'quantidade' | 'percentual' | 'valor'
+export function itemDaMedicao(modo: ModoMedicao, digitado: number, item: { quantidade: number; precoUnitario: number }) {
+  if (!(digitado > 0)) return 'informe um número maior que zero (ou deixe em branco)'
+  const q4 = (x: number) => Math.round(x * 10_000) / 10_000
+  if (modo === 'percentual') {
+    if (digitado > 100) return 'o percentual vai até 100%'
+    const quantidade = q4((item.quantidade * digitado) / 100)
+    return { quantidade, valor: totalItem(quantidade, item.precoUnitario) }
+  }
+  if (modo === 'valor') {
+    if (!(item.precoUnitario > 0)) return 'item sem preço no contrato: meça por quantidade'
+    return { quantidade: q4(digitado / item.precoUnitario), valor: centavos(digitado) / 100 }
+  }
+  return { quantidade: q4(digitado), valor: totalItem(digitado, item.precoUnitario) }
+}
+
 // Laranja quando o dinheiro gasto corre na frente do serviço feito.
 export function gastoNaFrente(gasto: number, previsto: number, progresso: number) {
   if (previsto <= 0) return gasto > 0

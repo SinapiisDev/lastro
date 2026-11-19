@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { AreaTexto, CabecalhoTela, Campo, Cartao, Dinheiro, Entrada, EstadoVazio, FormAcao, Marcacao, SeloIA, Secao, Selecao, Situacao } from '@ds'
+import { AreaTexto, CabecalhoTela, Campo, Cartao, Dinheiro, Entrada, EstadoVazio, FormAcao, Marcacao, SeloIA, Secao, Selecao, SelecaoBusca, Situacao } from '@ds'
 import { sql } from '@/lib/db'
 import { exigirSessao } from '@/lib/sessao'
 import { brl, dataBR } from '@/lib/regras'
@@ -190,13 +190,7 @@ export default async function DetalheCotacao({ params }: PageProps<'/cotacoes/[i
         {aberta && outros.length > 0 && (
           <FormAcao action={adicionarFornecedor.bind(null, c.id)} botao="Incluir fornecedor" className="flex flex-wrap items-end gap-3 border-t border-line pt-4">
             <Campo rotulo="Pedir preço também para" className="min-w-64">
-              <Selecao name="fornecedor">
-                {outros.map((o) => (
-                  <option key={o.id} value={o.id}>
-                    {o.nome}
-                  </option>
-                ))}
-              </Selecao>
+              <SelecaoBusca name="fornecedor" placeholder="Digite o nome do fornecedor" opcoes={outros.map((o) => ({ valor: String(o.id), rotulo: o.nome }))} />
             </Campo>
           </FormAcao>
         )}

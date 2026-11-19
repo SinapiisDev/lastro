@@ -17,6 +17,7 @@ design-system/
 |---|---|
 | `botao.tsx` | `Botao`, `BotaoLink`, `classesBotao`, `Spinner` — variantes primário, acento, secundário, suave, fantasma, perigo, perigo sólido; tamanhos sm/md/lg; carregando |
 | `campo.tsx` | `Campo` (rótulo, ajuda, erro), `Entrada`, `Selecao`, `AreaTexto`, `EntradaDinheiro` |
+| `selecao-busca.tsx` | `SelecaoBusca` — lista longa (serviço, insumo, fornecedor) em que se digita qualquer parte do nome, sem acento e em qualquer ordem; aberta, vazia, sem resultado, teclado |
 | `marcacao.tsx` | `Marcacao` (marcada, parcial, desabilitada), `Interruptor` |
 | `etiqueta.tsx` | `Etiqueta` e `Situacao` (situações de compra, orçamento, cotação e proposta) |
 | `barra-etapa.tsx` | `BarraEtapa` (normal com alerta de gasto acima do feito, ou fina), `BarraCarregando` |

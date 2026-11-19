@@ -14,7 +14,19 @@ import {
   comBdi,
   restanteDoPagamento,
   avancoMedido,
+  itemDaMedicao,
 } from './regras.ts'
+
+test('medição por quantidade, por % do item e por valor', () => {
+  const item = { quantidade: 200, precoUnitario: 18 }
+  assert.deepEqual(itemDaMedicao('quantidade', 50, item), { quantidade: 50, valor: 900 })
+  assert.deepEqual(itemDaMedicao('percentual', 25, item), { quantidade: 50, valor: 900 })
+  assert.deepEqual(itemDaMedicao('valor', 900, item), { quantidade: 50, valor: 900 })
+  assert.deepEqual(itemDaMedicao('valor', 100, item), { quantidade: 5.5556, valor: 100 }) // o valor digitado manda
+  assert.equal(typeof itemDaMedicao('percentual', 120, item), 'string')
+  assert.equal(typeof itemDaMedicao('quantidade', 0, item), 'string')
+  assert.equal(typeof itemDaMedicao('valor', 10, { quantidade: 1, precoUnitario: 0 }), 'string')
+})
 
 test('medição: % feito do serviço pelo medido nos contratos', () => {
   const pintura = { quantidade: 1000, unidade: 'm²' }

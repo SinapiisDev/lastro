@@ -1,4 +1,4 @@
-import { CabecalhoTela, Campo, Entrada, EstadoVazio, FormAcao, Marcacao, Secao } from '@ds'
+import { BuscaNaLista, CabecalhoTela, Campo, Entrada, EstadoVazio, FormAcao, Marcacao, Secao } from '@ds'
 import { sql, hoje } from '@/lib/db'
 import { exigirSessao, obraDeTrabalho } from '@/lib/sessao'
 import { EscolherObra } from '@/components/escolher-obra'
@@ -54,9 +54,9 @@ export default async function NovaCotacao({ searchParams }: PageProps<'/cotacoes
               Inclua itens fora do orçamento logo abaixo.
             </EstadoVazio>
           ) : (
-            <div className="flex flex-col">
+            <BuscaNaLista placeholder="Buscar insumo ou etapa (ex.: cimento)">
               {itens.map((i) => (
-                <div key={i.chave} className="grid items-center gap-2 border-b border-line py-2.5 sm:grid-cols-[1fr_11rem]">
+                <div key={i.chave} data-busca={`${i.descricao} ${i.etapa} ${i.subetapa}`} className="grid items-center gap-2 border-b border-line py-2.5 sm:grid-cols-[1fr_11rem]">
                   <Marcacao
                     name="item"
                     value={i.chave}
@@ -76,7 +76,7 @@ export default async function NovaCotacao({ searchParams }: PageProps<'/cotacoes
                   </label>
                 </div>
               ))}
-            </div>
+            </BuscaNaLista>
           )}
           <ItensLivres subetapas={subetapas} />
         </Secao>

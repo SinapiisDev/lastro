@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { AreaTexto, Botao, Campo, CampoAnexo, Cartao, Dinheiro, Entrada, FormAcao, Selecao } from '@ds'
+import { AreaTexto, Botao, Campo, CampoAnexo, Cartao, Dinheiro, Entrada, FormAcao, Selecao, SelecaoBusca } from '@ds'
 import { brl, faixaDaCompra } from '@/lib/regras'
 import { CamposParcelas, useParcelamento } from '@/components/parcelamento'
 import { criarCompra } from '../acoes'
@@ -59,6 +59,8 @@ export function FormCompra({
 
   const total = Number(valor)
   const daSubetapa = itens.filter((i) => String(i.subetapaId) === subetapa)
+  const nomeSub = new Map(etapas.flatMap((e) => e.subs.map((s) => [s.id, `${e.nome} / ${s.nome}`] as const)))
+  const ordemSub = new Map(etapas.flatMap((e) => e.subs.map((s) => s.id)).map((id, i) => [id, i]))
   const item = daSubetapa.find((i) => i.chave === itemChave)
   const sobra = item ? item.orcado - item.comprado : 0
   const faixa = total > 0 ? faixaDaCompra(total, tetoBaixo, tetoMedio) : null
@@ -76,28 +78,16 @@ export function FormCompra({
           <h2 className="font-display text-h2 font-normal">Onde e de quem</h2>
           <div className="grid gap-3.5 sm:grid-cols-2">
             <Campo rotulo="Etapa da obra">
-              <Selecao
+              <SelecaoBusca
                 name="subetapa"
-                required
-                value={subetapa}
-                onChange={(e) => {
-                  setSubetapa(e.target.value)
+                valor={subetapa}
+                placeholder="Digite a etapa ou o serviço"
+                opcoes={etapas.flatMap((e) => e.subs.map((s) => ({ valor: String(s.id), rotulo: s.nome, grupo: e.nome })))}
+                aoMudar={(v) => {
+                  setSubetapa(v)
                   setItemChave('')
                 }}
-              >
-                <option value="" disabled>
-                  Escolha a subetapa
-                </option>
-                {etapas.map((e) => (
-                  <optgroup key={e.id} label={e.nome}>
-                    {e.subs.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.nome}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </Selecao>
+              />
             </Campo>
 
             {novoFornecedor ? (
@@ -106,16 +96,12 @@ export function FormCompra({
               </Campo>
             ) : (
               <Campo rotulo="Fornecedor">
-                <Selecao name="fornecedor" required defaultValue={inicial.fornecedorId ?? ''}>
-                  <option value="" disabled>
-                    Escolha o fornecedor
-                  </option>
-                  {fornecedores.map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {f.nome}
-                    </option>
-                  ))}
-                </Selecao>
+                <SelecaoBusca
+                  name="fornecedor"
+                  padrao={inicial.fornecedorId ? String(inicial.fornecedorId) : ''}
+                  placeholder="Digite o nome do fornecedor"
+                  opcoes={fornecedores.map((f) => ({ valor: String(f.id), rotulo: f.nome }))}
+                />
               </Campo>
             )}
             {novoFornecedor && (
@@ -138,18 +124,27 @@ export function FormCompra({
 
         <Cartao className="flex flex-col gap-4">
           <h2 className="font-display text-h2 font-normal">Item</h2>
-          {subetapa && (
-            <Campo rotulo="Item do orçamento">
-              <Selecao name="item" value={itemChave} onChange={(e) => setItemChave(e.target.value)}>
-                <option value="">Não previsto no orçamento</option>
-                {daSubetapa.map((i) => (
-                  <option key={i.chave} value={i.chave}>
-                    {i.descricao} ({i.quantidade} {i.unidade})
-                  </option>
-                ))}
-              </Selecao>
-            </Campo>
-          )}
+          <Campo rotulo="Item do orçamento" ajuda={subetapa ? undefined : 'Busca no orçamento todo; ao escolher, a etapa se preenche sozinha.'}>
+            <SelecaoBusca
+              name="item"
+              valor={itemChave}
+              placeholder="Digite o insumo (ex.: cimento)"
+              opcoes={[
+                { valor: '', rotulo: 'Não previsto no orçamento' },
+                ...(subetapa ? daSubetapa : [...itens].sort((a, b) => (ordemSub.get(a.subetapaId) ?? 0) - (ordemSub.get(b.subetapaId) ?? 0))).map((i) => ({
+                  valor: i.chave,
+                  rotulo: i.descricao,
+                  grupo: nomeSub.get(i.subetapaId),
+                  detalhe: `${i.quantidade.toLocaleString('pt-BR')} ${i.unidade}`,
+                })),
+              ]}
+              aoMudar={(v) => {
+                setItemChave(v)
+                const escolhido = itens.find((i) => i.chave === v)
+                if (escolhido) setSubetapa(String(escolhido.subetapaId))
+              }}
+            />
+          </Campo>
           {subetapa &&
             (item ? (
               <p className={`rounded-md px-3 py-2.5 text-[12.5px] font-semibold ${total > sobra ? 'bg-neg-bg text-neg' : 'bg-surface-2 text-ink-2'}`}>

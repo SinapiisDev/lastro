@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { AreaTexto, Botao, Campo, CampoAnexo, Cartao, Dinheiro, Entrada, FormAcao, Selecao } from '@ds'
+import { AreaTexto, Botao, Campo, CampoAnexo, Cartao, Dinheiro, Entrada, FormAcao, Selecao, SelecaoBusca } from '@ds'
 import { CamposParcelas, useParcelamento } from '@/components/parcelamento'
 import { NATUREZAS, TIPOS_DOCUMENTO } from '@/components/rotulos'
 import { criarDocumentoPagar } from '../../acoes'
@@ -26,7 +26,6 @@ export function FormDocumento({
   const total = Number(valor)
   const pc = useParcelamento(total, hoje)
   const daObra = servicos.filter((s) => String(s.obraId) === obra)
-  const etapas = [...new Set(daObra.map((s) => s.etapa))]
 
   return (
     <FormAcao action={criarDocumentoPagar} botao="Lançar documento" variante="primario" tamanho="lg" className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
@@ -88,22 +87,13 @@ export function FormDocumento({
               </Selecao>
             </Campo>
             <Campo rotulo="Serviço (etapa) em que entra o gasto">
-              <Selecao name="subetapa" required defaultValue="" key={obra} disabled={!obra}>
-                <option value="" disabled>
-                  {obra ? 'Escolha o serviço' : 'Escolha a obra primeiro'}
-                </option>
-                {etapas.map((e) => (
-                  <optgroup key={e} label={e}>
-                    {daObra
-                      .filter((s) => s.etapa === e)
-                      .map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.grupo ? `${s.grupo} › ${s.nome}` : s.nome}
-                        </option>
-                      ))}
-                  </optgroup>
-                ))}
-              </Selecao>
+              <SelecaoBusca
+                key={obra}
+                name="subetapa"
+                disabled={!obra}
+                placeholder={obra ? 'Digite o serviço ou a etapa' : 'Escolha a obra primeiro'}
+                opcoes={daObra.map((s) => ({ valor: String(s.id), rotulo: s.grupo ? `${s.grupo} › ${s.nome}` : s.nome, grupo: s.etapa }))}
+              />
             </Campo>
             {novoFornecedor ? (
               <>
@@ -116,16 +106,7 @@ export function FormDocumento({
               </>
             ) : (
               <Campo rotulo="Fornecedor">
-                <Selecao name="fornecedor" required defaultValue="">
-                  <option value="" disabled>
-                    Escolha o fornecedor
-                  </option>
-                  {fornecedores.map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {f.nome}
-                    </option>
-                  ))}
-                </Selecao>
+                <SelecaoBusca name="fornecedor" placeholder="Digite o nome do fornecedor" opcoes={fornecedores.map((f) => ({ valor: String(f.id), rotulo: f.nome }))} />
               </Campo>
             )}
           </div>

@@ -4,7 +4,7 @@ import { redirect, notFound } from 'next/navigation'
 import { refresh } from 'next/cache'
 import { sql, escrever, lerConfig, type Tx } from '@/lib/db'
 import { exigirSessao, nomePerfil, obraDeTrabalho, podeMedir, type Sessao } from '@/lib/sessao'
-import { faixaDaCompra, centavos, totalItem, brl, avancoMedido } from '@/lib/regras'
+import { faixaDaCompra, centavos, totalItem, brl, avancoMedido, itemDaMedicao } from '@/lib/regras'
 import type { Estado } from '@ds'
 
 const texto = (d: FormData, campo: string) => String(d.get(campo) ?? '').trim()
@@ -84,15 +84,17 @@ export async function criarContrato(_: Estado, d: FormData): Promise<Estado> {
   redirect(`/contratos/${id}`)
 }
 
-// Aditivo: serviço novo (ou mais quantidade de um que já está no contrato), inclusive fora do orçamento.
-export async function adicionarAditivo(contratoId: number, _: Estado, d: FormData): Promise<Estado> {
+// Serviço que faltou, serviço novo ou mais quantidade, inclusive fora do orçamento. Só fica marcado como aditivo
+// quando quem inclui diz que é (mudança combinada depois do contrato assinado).
+export async function incluirItens(contratoId: number, _: Estado, d: FormData): Promise<Estado> {
   const s = await exigirSessao('obra', 'compras', 'chefe')
   const c = await carregarContrato(s, contratoId)
   const itens = await lerItens(d, c.obraId)
   if (typeof itens === 'string') return { erro: itens }
-  await escrever(nomePerfil(s), (tx) => gravarItens(tx, contratoId, itens, true))
+  const aditivo = d.get('aditivo') === 'on'
+  await escrever(nomePerfil(s), (tx) => gravarItens(tx, contratoId, itens, aditivo))
   refresh()
-  return { ok: 'Aditivo incluído no contrato.' }
+  return { ok: aditivo ? 'Aditivo incluído no contrato.' : 'Serviço incluído no contrato.' }
 }
 
 /**
@@ -111,18 +113,22 @@ export async function lancarMedicao(contratoId: number, _: Estado, d: FormData):
   const itens = await sql<{ id: number; subetapaId: number; descricao: string; unidade: string; quantidade: number; precoUnitario: number; medido: number }[]>`
     select id, subetapa_id as "subetapaId", descricao, unidade, quantidade, preco_unitario as "precoUnitario", medido
     from v_contrato_itens where contrato_id = ${contratoId} order by id`
+  const modo = (['quantidade', 'percentual', 'valor'] as const).find((m) => m === texto(d, 'modo')) ?? 'quantidade'
   const medidos: { item: (typeof itens)[number]; quantidade: number; valor: number }[] = []
   for (const item of itens) {
-    const bruto = texto(d, `medir_${item.id}`)
+    const bruto = texto(d, `medir_${item.id}`).replace(',', '.')
     if (!bruto) continue
-    const q = Number(bruto)
-    if (!(q > 0)) return { erro: `${item.descricao}: informe uma quantidade maior que zero (ou deixe em branco).` }
+    const m = itemDaMedicao(modo, Number(bruto), item)
+    if (typeof m === 'string') return { erro: `${item.descricao}: ${m}.` }
     const saldo = item.quantidade - item.medido
-    if (q > saldo + 1e-9)
-      return { erro: `${item.descricao}: o saldo do contrato é ${saldo.toLocaleString('pt-BR')} ${item.unidade}. Para medir mais, inclua um aditivo.` }
-    medidos.push({ item, quantidade: q, valor: totalItem(q, item.precoUnitario) })
+    // 0,0001 de folga: medir o saldo inteiro por valor ou por % arredonda na 4ª casa
+    if (m.quantidade > saldo + 1e-4)
+      return {
+        erro: `${item.descricao}: o saldo do contrato é ${saldo.toLocaleString('pt-BR')} ${item.unidade} (${brl(totalItem(saldo, item.precoUnitario))}). Para medir mais, inclua o serviço de novo no contrato.`,
+      }
+    medidos.push({ item, quantidade: Math.min(m.quantidade, saldo), valor: m.valor })
   }
-  if (!medidos.length) return { erro: 'Informe a quantidade executada de pelo menos um item.' }
+  if (!medidos.length) return { erro: 'Informe quanto foi executado de pelo menos um item.' }
   const valor = medidos.reduce((t, m) => t + centavos(m.valor), 0) / 100
   if (!(valor > 0)) return { erro: 'A medição ficou sem valor: confira os preços do contrato.' }
   const config = await lerConfig()

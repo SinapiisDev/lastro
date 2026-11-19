@@ -1,6 +1,7 @@
 // Biblioteca do design system Lastro. Contrato visual: DESIGN.md (raiz). Mapa: design-system/README.md.
 export * from './componentes/botao'
 export * from './componentes/campo'
+export * from './componentes/selecao-busca'
 export * from './componentes/marcacao'
 export * from './componentes/etiqueta'
 export * from './componentes/barra-etapa'
